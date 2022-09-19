@@ -101,10 +101,14 @@ def cal_opt_u(datas, details=False, returnYita=False):
     float | tuple | OptimizeResult
         result depends on input parameters
     '''
-    T, C, S, K = datas
+    _, C, S, K = datas
 
-    u_min = 1E2
-    u_max = S[0] * C[0] / K[0]
+    if S[0] > 0:
+        u_min = 1E-2
+        u_max = 1E-4 * S[0] * C[0] / K[0]
+    else:
+        u_min = 1E-4 * S[0] * C[0] / K[0]
+        u_max = -1E-2
     rst = minimize_scalar(fun=_nega_Yita, 
                           bounds=(u_min, u_max), 
                           args=(datas,), 
@@ -160,7 +164,11 @@ def cal_ZTdev_from_Yita(Yita, Tc, Th):
     float | ndarray
         device ZT (ZTdev)
     '''
-    ZTdev = np.power((Th-Tc*(1-Yita/100))/(Th*(1-Yita/100)-Tc), 2) - 1
+    # ZTdev = np.power((Th-Tc*(1-Yita/100))/(Th*(1-Yita/100)-Tc), 2) - 1
+    sub_1 = Th-Tc*(1-Yita/100)
+    sub_2 = Th*(1-Yita/100)-Tc
+    sub = np.divide(sub_1, sub_2, out=np.ones_like(sub_1), where=(np.abs(sub_2) > 1E-3))
+    ZTdev = np.power(sub, 2) - 1
     return ZTdev
 
 def cal_ZTdev_from_data(datas, detailas=True):
@@ -180,8 +188,7 @@ def cal_ZTdev_from_data(datas, detailas=True):
         device ZT (ZTdev)
     '''
     T = datas[0]
-    Tc, Th = T[0], T[-1]
     Yita_opt = cal_opt_Yita(datas, details=detailas)
-    ZTdev = cal_ZTdev_from_Yita(Yita_opt, Tc, Th)
+    ZTdev = cal_ZTdev_from_Yita(Yita_opt, Tc=T[0], Th=T)
     return ZTdev
 
