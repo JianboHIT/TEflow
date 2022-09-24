@@ -9,6 +9,7 @@ class BaseDevice(ABC):
     paras = dict()
     options = dict()
     profiles = dict()
+    outputs = dict()
     _itgs = None
     _mdfs = None
     _wgts = None
@@ -24,11 +25,18 @@ class BaseDevice(ABC):
     def simulate(self, Jx='optimal'):
         pass
     
+    @classmethod
+    @abstractmethod
+    def valuate(cls, **kwargs):
+        pass
+    
     def __getattr__(self, name):
         if name in self.paras.keys():
             return self.paras[name]
         elif name in self.profiles.keys():
             return self.profiles[name]
+        elif name in self.outputs.keys():
+            return self.outputs[name]
         else:
             return super.__getattr__(name)
     
@@ -160,7 +168,7 @@ class Generator(BaseDevice):
         if options['returnProfiles']:
             return self.profiles
         
-    def simulate(self, Jd_r='optimal', numPoints=101):
+    def simulate(self, Jd_r='optimal', numPoints=101, returnOutputs=False):
         if isinstance(Jd_r, str):
             if Jd_r.lower().startswith('o'):
                 Jd_r = None
@@ -189,4 +197,16 @@ class Generator(BaseDevice):
             outputs['Pd'] = Qx * deltaT * Pd_r
             outputs['Qhot'] = Qx * Qhot_rt
             outputs['Yita'] = 100 * deltaT * Pd_r / Qhot_rt
-        return outputs
+        
+        self.outputs = outputs
+        if returnOutputs:
+            return outputs
+    
+    @classmethod
+    def valuate(cls, datas, L=1):
+        gen = cls(TEdatas=datas, L=L)
+        gen.build()
+        gen.simulate()
+        return gen.PFeng, gen.ZTeng, gen.Pd, gen.Yita
+        
+        
