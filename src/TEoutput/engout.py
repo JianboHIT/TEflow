@@ -138,6 +138,7 @@ class Generator(BaseDevice):
         m_opt = np.sqrt(1+ZTp)
         V_oc = 1E3 * itgs['S']        # mV
         Jd_sc = 1E5 * deltaT*itgs['S']/(itgs['Rho']*L)   # A/cm^2
+        Qx = 0.1 * PFeng/L      # W/cm^2.K, Qflux = Qx * DT
         
         self.profiles = {
             '_isCum': options['isCum'],
@@ -149,6 +150,7 @@ class Generator(BaseDevice):
             'm_opt': m_opt,
             'V_oc': V_oc,
             'Jd_sc': Jd_sc,
+            'Qx': Qx,
         }
         
         if options['calWeights']:
@@ -167,27 +169,24 @@ class Generator(BaseDevice):
         else:
             Jd_r = np.array(Jd_r)
         
-        L = self.paras['L']
-        PFeng = self.profiles['PFeng']
-        Zeng = self.profiles['Zeng']
         deltaT = self.profiles['deltaT']
+        Qx = self.profiles['Qx']
         mdfs = self._mdfs
-        Qx = PFeng*deltaT/L
         
         outputs = dict()
         if Jd_r is None:
             m_opt = self.profiles['m_opt']
-            outputs['Pd'] = 0.1 * Qx / 4     # W/cm^2, L = 1 mm
+            outputs['Pd'] = 1/4 * Qx * deltaT     # W/cm^2
             outputs['Yita'] = 100 * deltaT * (m_opt-1)/(mdfs['ST_RhoT_0']*m_opt+mdfs['ST_RhoT_2'])
         else:
             if self.profiles['_isCum']:
                 Jd_r = np.reshape(Jd_r, (-1,1))
             Vout_r = 1-Jd_r
             Pd_r = Jd_r * Vout_r
-            Qhot_r = (1/self.profiles['Zeng'] + mdfs['ST'] * Jd_r - mdfs['RhoT']*Jd_r*Jd_r) / deltaT
+            Qhot_rt = (1/self.profiles['Zeng'] + mdfs['ST'] * Jd_r - mdfs['RhoT']*Jd_r*Jd_r)
             outputs['Jd'] = self.profiles['Jd_sc'] * Jd_r
             outputs['Vout'] = self.profiles['V_oc'] * Vout_r
-            outputs['Pd'] = Qx * Pd_r
-            outputs['Qhot'] = Qx * Qhot_r
-            outputs['Yita'] = 100 * Pd_r/Qhot_r
+            outputs['Pd'] = Qx * deltaT * Pd_r
+            outputs['Qhot'] = Qx * Qhot_rt
+            outputs['Yita'] = 100 * deltaT * Pd_r / Qhot_rt
         return outputs
