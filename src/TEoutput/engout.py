@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 
+import logging
 from abc import ABC, abstractmethod
+from pprint import pformat
 from scipy.integrate import cumtrapz, trapz
 import numpy as np
 
+LEVEL = logging.DEBUG
+FORMAT = '%(asctime)s [%(levelname)s @ %(name)s]: %(message)s'
+DATEFMT = '%Y-%m-%d %H:%M:%S'
+logging.basicConfig(format=FORMAT, level=LEVEL, datefmt=DATEFMT)
+logger = logging.getLogger(__name__)
 
 class BaseDevice(ABC):
     paras = dict()
@@ -126,17 +133,25 @@ class Generator(BaseDevice):
         'returnProfiles': False,
     }
     def __init__(self, **paras):
+        logger.info('Begin initialization ...')
         self.paras.update(paras)
+        logger.info('Read parameters of device')
+        logger.debug('Parameters:\n%s', pformat(self.paras))
+        logger.info('Finish initialization')
 
     def build(self, **options):
+        logger.info('Begin building process ...')
         self.options.update(options)
         options = self.options
+        logger.info('Read options')
+        logger.debug('Options:\n%s', pformat(options))
         
         L = self.paras['L']
         datas = self.paras['TEdatas']
         
         itgs = self._get_itgs(datas, isCum=options['isCum'])
         mdfs = self._get_mdfs(itgs)
+        logger.info('Calculate integrals and modification factors')
         
         deltaT = itgs['deltaT']
         PFeng = 1E-6 * itgs['S']*itgs['S']/itgs['Rho']
@@ -160,35 +175,48 @@ class Generator(BaseDevice):
             'Jd_sc': Jd_sc,
             'Qx': Qx,
         }
+        logger.info('Calculate profiles of device')
+        logger.debug('Keys of profiles:\n%s', pformat(self.profiles.keys()))
         
         if options['calWeights']:
             wgts = self._get_wgts(itgs, mdfs)
             self.profiles.update(wgts)
+            logger.info('Calculate weight factors')
+        else:
+            logger.debug('Ingore calculation of weight factors')
         
+        logger.info('Finish building process')
         if options['returnProfiles']:
             return self.profiles
         
     def simulate(self, Jd_r='optimal', numPoints=101, returnOutputs=False):
+        logger.info('Begin simulating ...')
         if isinstance(Jd_r, str):
             if Jd_r.lower().startswith('o'):
                 Jd_r = None
+                logger.info('Work under optimial current density')
             elif Jd_r.lower().startswith('s'):
                 Jd_r = np.linspace(0, 1, numPoints)
+                logger.info('Work under auto-limition of current density')
         else:
             Jd_r = np.array(Jd_r)
+            logger.info('Work under assigned current density')
         
         deltaT = self.profiles['deltaT']
         Qx = self.profiles['Qx']
         mdfs = self._mdfs
+        logger.info('Read out deltaT, Qx, and mdfs')
         
         outputs = dict()
         if Jd_r is None:
             m_opt = self.profiles['m_opt']
             outputs['Pd'] = 1/4 * Qx * deltaT     # W/cm^2
             outputs['Yita'] = 100 * deltaT * (m_opt-1)/(mdfs['ST_RhoT_0']*m_opt+mdfs['ST_RhoT_2'])
+            logger.info('Calculate Pd and Yita')
         else:
             if self.profiles['_isCum']:
                 Jd_r = np.reshape(Jd_r, (-1,1))
+                logger.debug('Reshape Jd_r to (-1,1)')
             Vout_r = 1-Jd_r
             Pd_r = Jd_r * Vout_r
             Qhot_rt = (1/self.profiles['Zeng'] + mdfs['ST'] * Jd_r - mdfs['RhoT']*Jd_r*Jd_r)
@@ -197,16 +225,26 @@ class Generator(BaseDevice):
             outputs['Pd'] = Qx * deltaT * Pd_r
             outputs['Qhot'] = Qx * Qhot_rt
             outputs['Yita'] = 100 * deltaT * Pd_r / Qhot_rt
+            logger.info('Calculate Jd, Vout, Pd, Qhot, and Yita')
         
         self.outputs = outputs
+        logger.info('Finish simulating process')
         if returnOutputs:
             return outputs
     
     @classmethod
     def valuate(cls, datas, L=1):
+        logger.info('Quick calculate engineering output performace')
+        logger.info('Initializing ...')
         gen = cls(TEdatas=datas, L=L)
+        
+        logger.info('Building device ...')
         gen.build()
+        
+        logger.info('Simulating ...')
         gen.simulate()
+        
+        logger.info('Finished. (PFeng, ZTeng, Pd, Yita)')
         return gen.PFeng, gen.ZTeng, gen.Pd, gen.Yita
         
         
