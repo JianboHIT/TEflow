@@ -159,9 +159,9 @@ class Generator(BaseDevice):
         ZTeng = Zeng * deltaT
         ZTp = Zeng * mdfs['ST_RhoT_1']
         m_opt = np.sqrt(1+ZTp)
-        V_oc = 1E3 * itgs['S']        # mV
-        Jd_sc = 1E5 * deltaT*itgs['S']/(itgs['Rho']*L)   # A/cm^2
-        Qx = 0.1 * PFeng/L      # W/cm^2.K, Qflux = Qx * DT
+        V_oc = 1E-3 * itgs['S']        # mV
+        Jd_sc = 1E-1 * deltaT*itgs['S']/(itgs['Rho']*L)   # A/cm^2
+        Qx = 0.1 * PFeng*deltaT/L      # W/cm^2, Qflux
         
         self.profiles = {
             '_isCum': options['isCum'],
@@ -210,7 +210,7 @@ class Generator(BaseDevice):
         outputs = dict()
         if Jd_r is None:
             m_opt = self.profiles['m_opt']
-            outputs['Pd'] = 1/4 * Qx * deltaT     # W/cm^2
+            outputs['Pd'] = 1/4 * Qx     # W/cm^2
             outputs['Yita'] = 100 * deltaT * (m_opt-1)/(mdfs['ST_RhoT_0']*m_opt+mdfs['ST_RhoT_2'])
             logger.info('Calculate Pd and Yita')
         else:
@@ -222,8 +222,8 @@ class Generator(BaseDevice):
             Qhot_rt = (1/self.profiles['Zeng'] + mdfs['ST'] * Jd_r - mdfs['RhoT']*Jd_r*Jd_r)
             outputs['Jd'] = self.profiles['Jd_sc'] * Jd_r
             outputs['Vout'] = self.profiles['V_oc'] * Vout_r
-            outputs['Pd'] = Qx * deltaT * Pd_r
-            outputs['Qhot'] = Qx * Qhot_rt
+            outputs['Pd'] = Qx * Pd_r
+            outputs['Qhot'] = Qx/deltaT * Qhot_rt
             outputs['Yita'] = 100 * deltaT * Pd_r / Qhot_rt
             logger.info('Calculate Jd, Vout, Pd, Qhot, and Yita')
         
