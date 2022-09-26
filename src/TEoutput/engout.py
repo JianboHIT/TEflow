@@ -159,8 +159,8 @@ class Generator(BaseDevice):
         ZTeng = Zeng * deltaT
         ZTp = Zeng * mdfs['ST_RhoT_1']
         m_opt = np.sqrt(1+ZTp)
-        V_oc = 1E-3 * itgs['S']        # mV
-        Jd_sc = 1E-1 * deltaT*itgs['S']/(itgs['Rho']*L)   # A/cm^2
+        Voc = 1E-3 * itgs['S']        # mV
+        Jsc = 1E-1 * deltaT*itgs['S']/(itgs['Rho']*L)   # A/cm^2
         Qx = 0.1 * PFeng*deltaT/L      # W/cm^2, Qflux
         
         self.profiles = {
@@ -171,8 +171,8 @@ class Generator(BaseDevice):
             'Zeng': Zeng,
             'ZTp': ZTp,
             'm_opt': m_opt,
-            'V_oc': V_oc,
-            'Jd_sc': Jd_sc,
+            'Voc': Voc,
+            'Jsc': Jsc,
             'Qx': Qx,
         }
         logger.info('Calculate profiles of device')
@@ -220,8 +220,8 @@ class Generator(BaseDevice):
             Vout_r = 1-Jd_r
             Pd_r = Jd_r * Vout_r
             Qhot_rt = (1/self.profiles['Zeng'] + mdfs['ST'] * Jd_r - mdfs['RhoT']*Jd_r*Jd_r)
-            outputs['Jd'] = self.profiles['Jd_sc'] * Jd_r
-            outputs['Vout'] = self.profiles['V_oc'] * Vout_r
+            outputs['Jd'] = self.profiles['Jsc'] * Jd_r
+            outputs['Vout'] = self.profiles['Voc'] * Vout_r
             outputs['Pd'] = Qx * Pd_r
             outputs['Qhot'] = Qx/deltaT * Qhot_rt
             outputs['Yita'] = 100 * deltaT * Pd_r / Qhot_rt
