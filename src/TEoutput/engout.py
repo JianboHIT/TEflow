@@ -37,7 +37,7 @@ class BaseDevice(ABC):
     def valuate(cls, **kwargs):
         pass
     
-    def __getattr__(self, name):
+    def __getattribute__(self, name):
         if name in self.paras.keys():
             return self.paras[name]
         elif name in self.profiles.keys():
@@ -45,7 +45,7 @@ class BaseDevice(ABC):
         elif name in self.outputs.keys():
             return self.outputs[name]
         else:
-            return super.__getattr__(name)
+            return super().__getattribute__(name)
     
     @classmethod
     def _get_itgs(cls, datas, isCum=True):
