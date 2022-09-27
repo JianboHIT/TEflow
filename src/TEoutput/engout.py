@@ -6,10 +6,6 @@ from pprint import pformat
 from scipy.integrate import cumtrapz, trapz
 import numpy as np
 
-LEVEL = logging.DEBUG
-FORMAT = '%(asctime)s [%(levelname)s @ %(name)s]: %(message)s'
-DATEFMT = '%Y-%m-%d %H:%M:%S'
-logging.basicConfig(format=FORMAT, level=LEVEL, datefmt=DATEFMT)
 logger = logging.getLogger(__name__)
 
 class BaseDevice(ABC):
@@ -133,7 +129,7 @@ class Generator(BaseDevice):
         'returnProfiles': False,
     }
     def __init__(self, **paras):
-        logger.info('Begin initialization ...')
+        logger.info('Begin initialization of {} ...'.format(self.__class__.__name__))
         self.paras.update(paras)
         logger.info('Read parameters of device')
         logger.debug('Parameters:\n%s', pformat(self.paras))
@@ -234,7 +230,7 @@ class Generator(BaseDevice):
     
     @classmethod
     def valuate(cls, datas, L=1):
-        logger.info('Quick calculate engineering output performace')
+        logger.info('Quick calculate engineering output performace using {}'.format(cls.__name__))
         logger.info('Initializing ...')
         gen = cls(TEdatas=datas, L=L)
         
