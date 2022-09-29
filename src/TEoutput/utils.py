@@ -12,11 +12,15 @@ def get_pkg_name():
     '''
     return __name__.split('.')[0]
 
-def get_root_logger():
+def get_root_logger(stdout=True):
     '''
     Get root logger with package name
     '''
-    return logging.getLogger(get_pkg_name())
+    logger = logging.getLogger(get_pkg_name())
+    if stdout:
+        console = get_logger_handler()
+        logger.addHandler(console)
+    return logger
 
 def get_logger_handler(kind='CONSOLE',*args,**kwargs):
     '''
