@@ -33,12 +33,12 @@ class BaseDevice(ABC):
     def valuate(cls, **kwargs):
         pass
     
-    def __getattribute__(self, name):
-        if name in self.paras.keys():
+    def __getattr__(self, name):
+        if name in self.paras:
             return self.paras[name]
-        elif name in self.profiles.keys():
+        elif name in self.profiles:
             return self.profiles[name]
-        elif name in self.outputs.keys():
+        elif name in self.outputs:
             return self.outputs[name]
         else:
             return super().__getattribute__(name)
@@ -230,17 +230,9 @@ class Generator(BaseDevice):
     
     @classmethod
     def valuate(cls, datas, L=1):
-        logger.info('Quick calculate engineering output performace using {}'.format(cls.__name__))
-        logger.info('Initializing ...')
         gen = cls(TEdatas=datas, L=L)
-        
-        logger.info('Building device ...')
         gen.build()
-        
-        logger.info('Simulating ...')
         gen.simulate()
-        
-        logger.info('Finished. (PFeng, ZTeng, Pd, Yita)')
-        return gen.PFeng, gen.ZTeng, gen.Pd, gen.Yita
+        return gen.deltaT, gen.PFeng, gen.ZTeng, gen.Pd, gen.Yita
         
         
