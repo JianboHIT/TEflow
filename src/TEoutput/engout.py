@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import logging
 from abc import ABC, abstractmethod
 from pprint import pformat
@@ -235,4 +233,4 @@ class Generator(BaseDevice):
         gen.simulate()
         return gen.deltaT, gen.PFeng, gen.ZTeng, gen.Pd, gen.Yita
         
-        
+ 

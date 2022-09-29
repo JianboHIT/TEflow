@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import logging 
 import numpy as np
 from numpy.polynomial import Polynomial as Poly
@@ -95,3 +93,4 @@ def interp(x, y, x2, method='linear', merge=False):
         y2 = fx(x2)
         datas = np.vstack([x2,y2]) if merge else y2
     return datas
+
