@@ -1,9 +1,42 @@
 #!/usr/bin/env python3
- 
+
+import logging 
 import numpy as np
 from numpy.polynomial import Polynomial as Poly
 from scipy.interpolate import interp1d
 
+
+def get_pkg_name():
+    '''
+    Get package name
+    '''
+    return __name__.split('.')[0]
+
+def get_root_logger():
+    '''
+    Get root logger with package name
+    '''
+    return logging.getLogger(get_pkg_name())
+
+def get_logger_handler(kind='CONSOLE',*args,**kwargs):
+    '''
+    Get kinds of handler of logging
+    '''
+    kind = kind.lower()
+    if kind in {'cons', 'console', 'stream'}:
+        formatter = logging.Formatter(
+            fmt='[%(levelname)s] %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S')
+        handler = logging.StreamHandler()
+    elif kind in {'file', 'logfile'}:
+        formatter = logging.Formatter(
+            fmt='%(asctime)s [%(levelname)s @ %(name)s] %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S')
+        handler = logging.FileHandler(*args, **kwargs)
+    else:
+        raise ValueError('The kind of handler is invaild.')
+    handler.setFormatter(formatter)
+    return handler
 
 def interp(x, y, x2, method='linear', merge=False):
     '''
