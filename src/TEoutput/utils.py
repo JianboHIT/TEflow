@@ -22,6 +22,21 @@ def get_root_logger(stdout=True):
         logger.addHandler(console)
     return logger
 
+def get_script_logger(name=None, level=None, stdout=True):
+    '''
+    Get a logger for scripts using
+    '''
+    if name is None:
+        name = '{}_script'.format(get_pkg_name())
+    logger = logging.getLogger(name)
+    
+    if level is not None:
+        logger.setLevel(level)
+    if stdout:
+        console = get_logger_handler()
+        logger.addHandler(console)
+    return logger
+
 def get_logger_handler(kind='CONSOLE',*args,**kwargs):
     '''
     Get kinds of handler of logging
