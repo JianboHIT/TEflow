@@ -7,6 +7,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Distribution / packaging
+dist/
+*.egg-info/
+
 # # C extensions
 # *.so
 # 
