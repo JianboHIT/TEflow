@@ -94,3 +94,12 @@ def interp(x, y, x2, method='linear', merge=False):
         datas = np.vstack([x2,y2]) if merge else y2
     return datas
 
+def cutrange(datas_TXX, a, b):
+    T, *props = datas_TXX
+    v_a = np.array([np.interp(a,T,prop) for prop in props]).reshape((-1,1))
+    v_b = np.array([np.interp(b,T,prop) for prop in props]).reshape((-1,1))
+    
+    idx = (T > a) & (T < b)
+    v_props = np.hstack([v_a, np.array(props)[:, idx], v_b])
+    v_T = np.hstack([a, T[idx], b])
+    return np.vstack([v_T, v_props])
