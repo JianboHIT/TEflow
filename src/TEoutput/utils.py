@@ -55,6 +55,10 @@ def get_logger_handler(kind='CONSOLE',*args,**kwargs):
     handler.setFormatter(formatter)
     return handler
 
+class AttrDict(dict):
+    def __getattr__(self, attr):
+        return self[attr]
+
 def interp(x, y, x2, method='linear', merge=False):
     '''
     A convenient method to implement scipy.interpolate.interp1d and Polynomial.fit
