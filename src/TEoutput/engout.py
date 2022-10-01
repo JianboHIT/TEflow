@@ -1,5 +1,4 @@
 import logging
-from unittest import mock
 import numpy as np
 from pprint import pformat
 from abc import ABC, abstractmethod
@@ -103,11 +102,11 @@ def get_wgts(itgs, mdfs):
     return wgts
 
 class BaseDevice(ABC):
-    paras = AttrDict()          # init
-    options = AttrDict()        # build-input
-    configs = AttrDict()        # simulate-input
-    profiles = AttrDict()       # build-output
-    outputs = AttrDict()        # simulate-output
+    paras    = dict()   # input-init
+    options  = dict()   # input-build
+    configs  = dict()   # input-simulate
+    profiles = dict()   # output-build
+    outputs  = dict()   # output-simulate
     
     def __init__(self, **paras):
         self.paras.update(paras)
@@ -138,10 +137,63 @@ class BaseDevice(ABC):
     def valuate(cls, **kwargs):
         pass
     
-
 class Generator(BaseDevice):
     paras = {
         'mode': 'cum',          # mode, cum | single | poly
+        'TEdatas': (None, None),        # TE datas
+        'Tc': None,
+        'Th': None,
+        'L': 1,                 # length of TE leg
+        'A': None,
+        'Rc': None,
+        'Kc': None,
+        'isPair': True,
+        'hasContact': True,
+    }
+    def __new__(cls, **paras):
+        if 'isPair' in paras:
+            isPair = paras['isPair']
+        else:
+            TEdatas = paras.get('TEdatas', None)
+            if TEdatas is None:
+                raise ValueError('TEdatas is required to create object.')
+            elif len(TEdatas) == 2:
+                isPair = True
+            else:
+                isPair = False
+        
+        if 'hasContact' in paras:
+            hasContact = paras['hasContact']
+        else:
+            Rc = paras.get('Rc', None)
+            Kc = paras.get('Kc', None)
+            if (Rc is None) and (Kc is None):
+                hasContact = False
+            else:
+                hasContact = True
+        
+        if isPair:
+            if hasContact:
+                # return super().__new__(cls)
+                pass
+            else:
+                # return GenCouple(**paras)
+                pass
+        else:
+            if hasContact:
+                # return GenElement(**paras)
+                pass
+            else:
+                return GenElementCore(**paras)
+            
+        dsp = ('%s will become a convenience class, and '
+               'the original one is called GenElementCore now.')
+        raise NotImplementedError(dsp, cls.__name__)
+
+
+class GenElementCore(BaseDevice):
+    paras = {
+        'mode': 'cum',          # cum | single | poly
         'TEdatas': None,        # TE datas
         'Tc': None,
         'Th': None,
@@ -302,4 +354,15 @@ class Generator(BaseDevice):
         rst = gen.simulate(returnOutputs=True)
         return rst.deltaT, rst.PFeng, rst.ZTeng, rst.Pd, rst.Yita
         
- 
+class GenElement(BaseDevice):
+    paras = {
+        'mode': 'poly',          # cum | single | poly
+        'TEdatas': None,        # TE datas
+        'Tc': None,
+        'Th': None,
+        'L': 1,                 # length of TE leg
+        'Rc': None,
+        'Kc': None,
+    }
+    def __init__(self, **paras):
+        raise NotImplementedError
