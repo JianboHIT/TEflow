@@ -197,14 +197,15 @@ class GenElementCore(BaseDevice):
         'TEdatas': None,        # TE datas
         'Tc': None,
         'Th': None,
-        'L': 1,                 # length of TE leg
+        'L': 1,                 # length of TE leg in mm
+        'A': 100,               # the cross-sectional area in mm^2, default 1 cm^2
     }
     options = {
         'calWeights': False,    # whether to calculate dimensionless weight factors of Joule and Thomson heat
         'returnProfiles': False,
     }
     configs = {
-        'Jd_r': 'optimal',
+        'I_r': 'optimal',       # optimal | scan(sweep) | array_like
         'numPoints': 101,
         'returnOutputs': False,
     }
@@ -237,11 +238,13 @@ class GenElementCore(BaseDevice):
         else:
             T, C, S, K = TEdatas
             datas = np.vstack([T,C,S,K]).T
+            # TODO: Tc, Th_max check and cutrange
             logger.info('Read datas of TE properties')
             logger.debug('Value of TEdatas:\n%s', pformat(datas))
         
         self.paras.update(paras)
         logger.info('Length of TE leg: {} mm'.format(self.paras['L']))
+        logger.info('Area of TE leg: {} mm^2'.format(self.paras['A']))
         logger.info('Finish initialization')
 
     def build(self, **options):
@@ -258,7 +261,8 @@ class GenElementCore(BaseDevice):
         mdfs = get_mdfs(itgs)
         logger.info('Calculate integrals and modification factors')
         
-        L = self.paras['L']
+        L = self.paras['L']         # mm
+        A = self.paras['A'] / 100   # mm^2 to cm^2
         deltaT = itgs['deltaT']
         PFeng = 1E-6 * itgs['S']*itgs['S']/itgs['Rho']
         Zeng = PFeng / itgs['K']
@@ -267,7 +271,9 @@ class GenElementCore(BaseDevice):
         m_opt = np.sqrt(1+ZTp)
         Voc = 1E-3 * itgs['S']        # mV
         Jsc = 1E-1 * deltaT*itgs['S']/(itgs['Rho']*L)   # A/cm^2
-        Qx = 0.1 * PFeng*deltaT/L      # W/cm^2, Qflux
+        qx = 0.1 * PFeng*deltaT/L      # W/cm^2, q_flux
+        Isc = A*Jsc
+        Qx = A*qx
         
         profiles = AttrDict()
         profiles['deltaT'] = deltaT
@@ -277,7 +283,7 @@ class GenElementCore(BaseDevice):
         profiles['ZTp']    = ZTp
         profiles['m_opt']  = m_opt
         profiles['Voc']    = Voc
-        profiles['Jsc']    = Jsc
+        profiles['Isc']    = Isc
         profiles['Qx']     = Qx
         profiles['itgs']   = itgs
         profiles['mdfs']   = mdfs
@@ -301,18 +307,18 @@ class GenElementCore(BaseDevice):
         self.configs.update(configs)
         configs = self.configs
         
-        # Jd_r='optimal', numPoints=101, returnOutputs=False
-        Jd_r = configs['Jd_r']
-        if isinstance(Jd_r, str):
-            if Jd_r.lower().startswith('o'):
-                Jd_r = None
+        # I_r='optimal', numPoints=101, returnOutputs=False
+        I_r = configs['I_r']
+        if isinstance(I_r, str):
+            if I_r.lower().startswith('o'):
+                I_r = None
                 logger.info('Work under optimial current density')
-            elif Jd_r.lower().startswith('s'):
+            elif I_r.lower().startswith('s'):
                 numPoints = configs['numPoints']
-                Jd_r = np.linspace(0, 1, numPoints)
+                I_r = np.linspace(0, 1, numPoints)
                 logger.info('Work under auto-limition of current density')
         else:
-            Jd_r = np.array(Jd_r)
+            I_r = np.array(I_r)
             logger.info('Work under assigned current density')
         
         deltaT = self.profiles['deltaT']
@@ -321,26 +327,26 @@ class GenElementCore(BaseDevice):
         logger.info('Read out deltaT, Qx, and mdfs')
         
         outputs = AttrDict()
-        if Jd_r is None:
+        if I_r is None:
             m_opt = self.profiles['m_opt']
             ST_RhoT_0 = mdfs['ST_RhoT_0']
             ST_RhoT_2 = mdfs['ST_RhoT_2']
-            outputs['Pd'] = 1/4 * Qx     # W/cm^2
+            outputs['Pout'] = 1/4 * Qx     # W
             outputs['Yita'] = 100 * deltaT * (m_opt-1)/(ST_RhoT_0*m_opt+ST_RhoT_2)
-            logger.info('Calculate Pd and Yita')
+            logger.info('Calculate Pout and Yita')
         else:
             if self.paras['mode'][0].lower() == 'c':
-                Jd_r = np.reshape(Jd_r, (-1,1))
-                logger.debug('Reshape Jd_r to (-1,1)')
-            Vout_r = 1-Jd_r
-            Pd_r = Jd_r * Vout_r
-            Qhot_rt = (1/self.profiles['Zeng'] + mdfs['ST'] * Jd_r - mdfs['RhoT']*Jd_r*Jd_r)
-            outputs['Jd'] = self.profiles['Jsc'] * Jd_r
+                I_r = np.reshape(I_r, (-1,1))
+                logger.debug('Reshape I_r to (-1,1)')
+            Vout_r = 1-I_r
+            Pout_r = I_r * Vout_r
+            Qhot_rt = (1/self.profiles['Zeng'] + mdfs['ST'] * I_r - mdfs['RhoT']*I_r*I_r)
+            outputs['I'] = self.profiles['Isc'] * I_r
             outputs['Vout'] = self.profiles['Voc'] * Vout_r
-            outputs['Pd'] = Qx * Pd_r
+            outputs['Pout'] = Qx * Pout_r 
             outputs['Qhot'] = Qx * Qhot_rt/deltaT
-            outputs['Yita'] = 100 * outputs['Pd'] / outputs['Qhot']
-            logger.info('Calculate Jd, Vout, Pd, Qhot, and Yita')
+            outputs['Yita'] = 100 * outputs['Pout'] / outputs['Qhot']
+            logger.info('Calculate Jd, Vout, Pout, Qhot, and Yita')
         
         self.outputs = outputs
         if configs['returnOutputs']:
@@ -352,17 +358,18 @@ class GenElementCore(BaseDevice):
         gen = cls(TEdatas=datas_TCSK, L=L)
         gen.build()
         rst = gen.simulate(returnOutputs=True)
-        return rst.deltaT, rst.PFeng, rst.ZTeng, rst.Pd, rst.Yita
+        return rst.deltaT, rst.PFeng, rst.ZTeng, rst.Pout, rst.Yita
         
 class GenElement(BaseDevice):
     paras = {
-        'mode': 'poly',          # cum | single | poly
+        'mode': 'poly',         # cum | single | poly
         'TEdatas': None,        # TE datas
         'Tc': None,
         'Th': None,
-        'L': 1,                 # length of TE leg
+        'L': 1,                 # length of TE leg in mm
+        'A': 100,               # the cross-sectional area in mm^2, default 1 cm^2
         'Rc': None,
         'Kc': None,
     }
     def __init__(self, **paras):
-        raise NotImplementedError
+        raise NotImplementedError('Under-developed')
