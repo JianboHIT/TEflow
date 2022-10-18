@@ -23,7 +23,7 @@ def cal_Phi(u, S, T):
     Phi = 1E-6 * S*T + 1/u
     return Phi
 
-def cal_Yita(u,datas,details=False):
+def cal_Yita(u,datas,allTemp=False):
     '''
     calculate Yita by TE datas and initial u
 
@@ -33,8 +33,8 @@ def cal_Yita(u,datas,details=False):
         the relative current density in [1/V]
     datas : list | ndarray
         TE datas like [T, C, S, K]
-    details : bool, optional
-        calculate Yita at all temperatures (details=True), or only at the hot temperature (details=False, default)
+    allTemp : bool, optional
+        calculate Yita at all temperatures (allTemp=True), or only at the hot temperature (allTemp=False, default)
 
     Returns
     -------
@@ -56,12 +56,12 @@ def cal_Yita(u,datas,details=False):
         Yitas.append( 1-Phi_0/Phi_i )
     Yitas = 100 * np.array(Yitas)
     
-    if details:
+    if allTemp:
         return Yitas
     else:
         return Yitas[-1]
 
-def cal_opt_u(datas, details=False, returnYita=False):
+def cal_opt_u(datas, allTemp=False, returnYita=False):
     '''
     calculate optimal u to max Yita
 
@@ -69,11 +69,11 @@ def cal_opt_u(datas, details=False, returnYita=False):
     ----------
     datas : list | ndarray
         TE datas like [T, C, S, K]
-    details : bool, optional
-        return the actual OptimizeResult object that contains detailed optimization results (details=True), or only the solution of the optimization and/or values of objective function (details=False, default)
+    allTemp : bool, optional
+        return the actual OptimizeResult object that contains detailed optimization results (allTemp=True), or only the solution of the optimization and/or values of objective function (allTemp=False, default)
     returnYita : bool, optional
         whether to return the corresponding single-point Yita at optimal u, by default False.
-        Note: this will only work if details=False.
+        Note: this will only work if allTemp=False.
 
     Returns
     -------
@@ -93,7 +93,7 @@ def cal_opt_u(datas, details=False, returnYita=False):
                           bounds=(u_min, u_max), 
                           args=(datas,), 
                           method='bounded')
-    if details:
+    if allTemp:
         return rst
     else:
         if rst.success:
@@ -106,7 +106,7 @@ def cal_opt_u(datas, details=False, returnYita=False):
         else:
             return None
 
-def cal_opt_Yita(datas, details=True):
+def cal_opt_Yita(datas, allTemp=True):
     '''
     calculate maximum at the optimal u
 
@@ -114,8 +114,8 @@ def cal_opt_Yita(datas, details=True):
     ----------
     datas : list | ndarray
         TE datas like [T, C, S, K]
-    details : bool, optional
-        calculate maximum Yita at all temperatures (details=True, default), or only at the hot temperature (details=False)
+    allTemp : bool, optional
+        calculate maximum Yita at all temperatures (allTemp=True, default), or only at the hot temperature (allTemp=False)
 
     Returns
     -------
@@ -123,7 +123,7 @@ def cal_opt_Yita(datas, details=True):
         maximum Yita
     '''
     u_opt = cal_opt_u(datas)
-    Yita_opt = cal_Yita(u_opt, datas, details=details)
+    Yita_opt = cal_Yita(u_opt, datas, allTemp=allTemp)
     return Yita_opt
 
 def cal_ZTdev_from_Yita(Yita, Tc, Th):
@@ -151,7 +151,7 @@ def cal_ZTdev_from_Yita(Yita, Tc, Th):
     ZTdev = np.power(sub, 2) - 1
     return ZTdev
 
-def cal_ZTdev_from_data(datas, detailas=True):
+def cal_ZTdev_from_data(datas, allTemp=True):
     '''
     calculate ZTdev by TE datas
 
@@ -159,7 +159,7 @@ def cal_ZTdev_from_data(datas, detailas=True):
     ----------
     datas : list | ndarray
         TE datas like [T, C, S, K]
-    detailas : bool, optional
+    allTemp : bool, optional
         pass to cal_opt_Yita()
 
     Returns
@@ -168,7 +168,7 @@ def cal_ZTdev_from_data(datas, detailas=True):
         device ZT (ZTdev)
     '''
     T = datas[0]
-    Yita_opt = cal_opt_Yita(datas, details=detailas)
+    Yita_opt = cal_opt_Yita(datas, allTemp=allTemp)
     ZTdev = cal_ZTdev_from_Yita(Yita_opt, Tc=T[0], Th=T)
     return ZTdev
 
