@@ -3,7 +3,7 @@
 import logging
 import numpy as np
 from pprint import pformat
-from TEoutput.engout import Generator
+from TEoutput.engout import GenElementCore
 from TEoutput.utils import get_root_logger
 
 
@@ -15,7 +15,7 @@ comment = ''
 ###########################################
 
 # config logging
-LEVEL = logging.DEBUG
+LEVEL = logging.INFO
 logger = get_root_logger()
 logger.setLevel(LEVEL)
 
@@ -30,7 +30,7 @@ logger.debug('Data spot checking:\n{}'.format(data_spot))
 
 # perform calculation
 logger.info('Perform simulating of thermoelectric generator.')
-out = Generator.valuate(datas, L=height)  # PFeng, ZTeng, Pd, Yita
+out = GenElementCore.valuate(datas, L=height)  # PFeng, ZTeng, Pd, Yita
 outdata = np.vstack(out).T
 logger.info('Export results: deltaT, PFeng, ZTeng, Pd, Yita')
 data_spot = pformat(outdata[::10,:])
@@ -45,6 +45,6 @@ if comment == '':
     logger.debug('Automatically generate comment:\n{}'.format(comment))
 else:
     logger.debug('Read comment info.\n{}'.format(comment))
-comment += '\ndeltaT PFeng ZTeng Pd Yita'
-np.savetxt(fileoutput, outdata, fmt='%.4f', header=comment)
+comment += '\ndeltaT[K] PFeng[W/m.K] ZTeng[1] Pd[W/cm^2] Yita[%]'
+np.savetxt(fileoutput, outdata, fmt='%10.4f', header=comment)
 logger.info('Save interpolation results to {}. (Done)'.format(fileoutput))
