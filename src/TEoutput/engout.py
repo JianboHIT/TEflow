@@ -325,7 +325,7 @@ class GenElementCore(BaseDevice):
             if deltaT.size > 1:
                 shp = [-1,] + [1,]*deltaT.ndim
                 I_r = np.reshape(I_r, shp)
-                logger.debug('Reshape I_r to {}'.format(pformat(shp)))
+                logger.debug('Reshape I_r to %s', pformat(shp))
             Vout_r = 1-I_r
             Pout_r = I_r * Vout_r
             Qhot_rt = (1/self.profiles['Zeng'] + mdfs['ST'] * I_r - mdfs['RhoT']*I_r*I_r)
