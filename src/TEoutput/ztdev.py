@@ -1,6 +1,11 @@
+import logging
+from pprint import pformat
 import numpy as np
 from scipy.optimize import minimize_scalar
 
+from .utils import AttrDict
+
+logger = logging.getLogger(__name__)
 
 def cal_Phi(u, S, T):
     '''
@@ -119,6 +124,9 @@ def cal_opt_u(datas, details=False, returnYita=False):
                           bounds=(u_min, u_max), 
                           args=(datas,), 
                           method='bounded')
+    
+    logger.info('Optimize u to maximize Yita')
+    logger.debug('Returned OptimizeResult: \n%s', pformat(rst))
     if details:
         return rst
     else:
@@ -151,6 +159,7 @@ def cal_opt_Yita(datas, allTemp=True):
     '''
     u_opt = cal_opt_u(datas)
     Yita_opt = cal_Yita(u_opt, datas, allTemp=allTemp)
+    logger.info('Calculate corresponding Yita at the optimized u')
     return Yita_opt
 
 def valuate(datas, allTemp=True):
@@ -166,16 +175,24 @@ def valuate(datas, allTemp=True):
 
     Returns
     -------
-    deltaT : float | ndarray
-        temperature difference in [K]
-    ZTdev : float | ndarray
-        device ZT
-    Yita_opt : float | ndarray
-        optimal Yita in [%]
+    rst : AttrDict
+        deltaT : float | ndarray
+            temperature difference in [K]
+        ZTdev : float | ndarray
+            device ZT
+        Yita : float | ndarray
+            optimal Yita in [%]
     '''
+    
+    dsp = 'all' if allTemp else 'max.'
+    logger.info('Calculate ZTdev by TE datas at %s temperature', dsp)
+    
+    rst = AttrDict()
     T = datas[0]
-    deltaT = T - T[0]
-    Yita_opt = cal_opt_Yita(datas, allTemp=allTemp)
-    ZTdev = cal_ZTdev(Yita_opt, Tc=T[0], Th=T)
-    return deltaT, ZTdev, Yita_opt
+    rst['deltaT'] = T - T[0]
+    rst['Yita'] = cal_opt_Yita(datas, allTemp=allTemp)
+    rst['ZTdev'] = cal_ZTdev(rst['Yita'], Tc=T[0], Th=T)
+    
+    logger.info('Finish calculation of ZTdev and relative')
+    return rst
 
