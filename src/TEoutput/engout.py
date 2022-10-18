@@ -2,77 +2,62 @@ import logging
 import numpy as np
 from pprint import pformat
 from abc import ABC, abstractmethod
-from scipy.integrate import cumtrapz, trapz
-from numpy.polynomial import Polynomial as Poly
+from scipy.integrate import cumtrapz
+from numpy.polynomial import Polynomial
 
 from .utils import AttrDict
 
 logger = logging.getLogger(__name__)
 
-def get_itgs(datas, mode='cum', Tc=None, Th=None):
-    mode = mode[0].lower()
-    if mode == 'p':
-        # p, poly, polynomial
-        if (Tc is None) or (Th is None) :
-            raise ValueError('Tc and Th are all required.')
-        return _get_itgs_poly(datas, Tc, Th)
-    elif mode in {'s', 'c'}:
-        # s, single
-        # c, cum, cumulative
-        return _get_itgs_interp(datas, mode)
-    else:
-        raise ValueError('Value of mode is invalid.')
-
-def _get_itgs_interp(datas_TCSK, mode='cum'):
-    T, C, S, K = datas_TCSK
-    Rho = 1E4 / C           # S/cm to uOhm.m
-    
-    mode = mode[0].lower()
-    if mode == 's':
-        Tc, Th = T[0], T[-1]
-        Sc, Sh = S[0], S[-1]
-        integral = trapz
-    elif mode == 'c':
-        Tc, Th = T[0], T[1:]
-        Sc, Sh = S[0], S[1:]
-        integral = cumtrapz
-    else:
-        raise ValueError('Value of mode is invalid.')
+def get_itgs(datas, Tc, Th, isPoly=False):
+    '''
+    calculate integrals of porperties
+    '''
     
     itgs = AttrDict()
     itgs['Tc']     = Tc
     itgs['Th']     = Th
-    itgs['Sc']     = Sc
-    itgs['Sh']     = Sh
     itgs['deltaT'] = Th - Tc
-    itgs['Rho']    = integral(Rho, T)         # <Rho>
-    itgs['S']      = integral(S, T)           # <S>
-    itgs['K']      = integral(K, T)           # <K>
-    itgs['RhoT']   = integral(T*Rho, T)       # <T*Rho>
-    itgs['ST']     = integral(T*S, T)         # <T*S>
-    return itgs
-
-def _get_itgs_poly(datas_RSK, Tc, Th):
-    Rho, S, K = datas_RSK
-    RhoT = Poly([0,1]) * Rho
-    ST   = Poly([0,1]) * Rho
     
-    itgs = AttrDict()
-    itgs['Tc']     = Tc
-    itgs['Th']     = Th
-    itgs['Sc']     = S(Tc)
-    itgs['Sh']     = S(Th)
-    itgs['deltaT'] = Th - Tc
-    itgs['Rho']    = __poly_itg(Rho, Tc, Th)        # <Rho>
-    itgs['S']      = __poly_itg(S, Tc, Th)          # <S>
-    itgs['K']      = __poly_itg(K, Tc, Th)          # <K>
-    itgs['RhoT']   = __poly_itg(RhoT, Tc, Th)       # <T*Rho>
-    itgs['ST']     = __poly_itg(ST, Tc, Th)         # <T*S>
+    if isPoly:
+        Rho, S, K = datas
+        T = Polynomial([0,1])
+        RhoT = T * Rho
+        ST   = T * Rho
+        Rho_itg = Rho.integ()
+        S_itg = S.integ()
+        K_itg = K.integ()
+        RhoT_itg = RhoT.integ()
+        ST_itg = ST.integ()
+        
+        itgs['Sc'] = S(Tc)
+        itgs['Sh'] = S(Th)
+        itgs['Rho']  = Rho_itg(Th)  - Rho_itg(Tc)       # <Rho>
+        itgs['S']    = S_itg(Th)    - S_itg(Tc)         # <S>
+        itgs['K']    = K_itg(Th)    - K_itg(Tc)         # <K>
+        itgs['RhoT'] = RhoT_itg(Th) - RhoT_itg(Tc)      # <T*Rho>
+        itgs['ST']   = ST_itg(Th)   - ST_itg(Tc)        # <T*S>
+    else:
+        T, C, S, K = datas
+        Rho = 1E4 / C           # S/cm to uOhm.m
+        RhoT = T * Rho
+        ST   = T * S
+        Rho_itg = cumtrapz(Rho, T, initial=0)
+        S_itg = cumtrapz(S, T, initial=0)
+        K_itg = cumtrapz(K, T, initial=0)
+        RhoT_itg = cumtrapz(RhoT, T, initial=0)
+        ST_itg = cumtrapz(ST, T, initial=0)
+        
+        interp = lambda Pint, Ti: np.interp(Ti, T, Pint)
+        
+        itgs['Sc'] = interp(S, Tc)
+        itgs['Sh'] = interp(S, Th)
+        itgs['Rho']  = interp(Rho_itg, Th)  - interp(Rho_itg, Tc)
+        itgs['S']    = interp(S_itg, Th)    - interp(S_itg, Tc)
+        itgs['K']    = interp(K_itg, Th)    - interp(K_itg, Tc)
+        itgs['RhoT'] = interp(RhoT_itg, Th) - interp(RhoT_itg, Tc)
+        itgs['ST']   = interp(ST_itg, Th)   - interp(ST_itg, Tc)
     return itgs
-
-def __poly_itg(poly, a, b):
-    polyint = poly.integ()
-    return polyint(b) - polyint(a)
 
 def get_mdfs(itgs):
     mdfs = AttrDict()
@@ -139,8 +124,8 @@ class BaseDevice(ABC):
     
 class Generator(BaseDevice):
     paras = {
-        'mode': 'cum',          # mode, cum | single | poly
-        'TEdatas': (None, None),        # TE datas
+        'isPoly': False,            # mode
+        'TEdatas': (None, None),    # TE datas
         'Tc': None,
         'Th': None,
         'L': 1,                 # length of TE leg
@@ -177,7 +162,7 @@ class Generator(BaseDevice):
                 # return super().__new__(cls)
                 pass
             else:
-                # return GenCouple(**paras)
+                # return GenCoupleCore(**paras)
                 pass
         else:
             if hasContact:
@@ -193,7 +178,7 @@ class Generator(BaseDevice):
 
 class GenElementCore(BaseDevice):
     paras = {
-        'mode': 'cum',          # cum | single | poly
+        'isPoly': False,        # mode
         'TEdatas': None,        # TE datas
         'Tc': None,
         'Th': None,
@@ -201,11 +186,11 @@ class GenElementCore(BaseDevice):
         'A': 100,               # the cross-sectional area in mm^2, default 1 cm^2
     }
     options = {
-        'calWeights': False,    # whether to calculate dimensionless weight factors of Joule and Thomson heat
+        'calWeights': False,    # whether to calculate dimensionless weight factors
         'returnProfiles': False,
     }
     configs = {
-        'I_r': 'optimal',       # optimal | scan(sweep) | array_like
+        'I_r': 'optimal',       # 'optimal' | 'scan'(or 'sweep') | array_like
         'numPoints': 101,
         'returnOutputs': False,
     }
@@ -213,28 +198,17 @@ class GenElementCore(BaseDevice):
     def __init__(self, **paras):
         logger.info('Begin initialization of {} ...'.format(self.__class__.__name__))
         
-        mode = paras.get('mode', self.paras['mode'])
-        mode_short = mode[0].lower()
-        if mode_short not in {'c', 's', 'p'}:
-            raise ValueError('Value of mode is invalid.')
-        else:
-            logger.info('Mode of data: {}'.format(self.paras['mode']))
-        
+        # check TEdatas
+        isPoly = paras.get('isPoly', self.paras['isPoly'])
         TEdatas = paras['TEdatas']
-        if mode_short == 'p':
+        if isPoly:
             Rho, S, K = TEdatas
-            check = lambda x: isinstance(x, Poly)
+            check = lambda x: isinstance(x, Polynomial)
             if not all(map(check, [Rho, S, K])):
                 raise ValueError('TEdatas requires three numpy.polynomial.Polynomial.')
             else:
                 logger.info('Read datas of TE properties in polynomial')
                 logger.debug('Value of TEdatas:\n%s', pformat(TEdatas))
-            
-            if {'Tc', 'Th'} <= paras:
-                Tc, Th = paras['Tc'], paras['Th']
-                logger.info('Tc is {}, and Th is {}'.format(Tc, Th))
-            else:
-                raise ValueError('Tc and Th are all required under polynomial properties.')
         else:
             T, C, S, K = TEdatas
             datas = np.vstack([T,C,S,K]).T
@@ -242,6 +216,18 @@ class GenElementCore(BaseDevice):
             logger.info('Read datas of TE properties')
             logger.debug('Value of TEdatas:\n%s', pformat(datas))
         
+        # check Tc, Th
+        for Ti in ('Tc', 'Th'):
+            if Ti in paras:
+                paras[Ti] = np.atleast_1d(paras[Ti])
+                if len(paras[Ti]) == 1:
+                    logger.info('{} is at {}'.format(Ti, paras[Ti][0]))
+                else:
+                    logger.info('{} are at \n{}'.format(Ti, paras[Ti]))
+            else:
+                 raise ValueError('{} is required.'.format(Ti))  
+        
+        # update paras and check Length, Area
         self.paras.update(paras)
         logger.info('Length of TE leg: {} mm'.format(self.paras['L']))
         logger.info('Area of TE leg: {} mm^2'.format(self.paras['A']))
@@ -254,10 +240,11 @@ class GenElementCore(BaseDevice):
         logger.info('Read options')
         logger.debug('Options:\n%s', pformat(options))
         
-        itgs = get_itgs(datas=self.paras['TEdatas'], 
-                        mode=self.paras['mode'],
+        itgs = get_itgs(datas=self.paras['TEdatas'],
                         Tc=self.paras['Tc'],
-                        Th=self.paras['Th'])
+                        Th=self.paras['Th'],
+                        isPoly=self.paras['isPoly'])
+
         mdfs = get_mdfs(itgs)
         logger.info('Calculate integrals and modification factors')
         
@@ -288,7 +275,7 @@ class GenElementCore(BaseDevice):
         profiles['itgs']   = itgs
         profiles['mdfs']   = mdfs
         logger.info('Calculate profiles of device')
-        logger.debug('Keys of profiles:\n%s', pformat(self.profiles.keys()))
+        logger.debug('Keys of profiles:\n%s', pformat(profiles.keys()))
         
         if options['calWeights']:
             wgts = get_wgts(itgs, mdfs)
@@ -308,18 +295,18 @@ class GenElementCore(BaseDevice):
         configs = self.configs
         
         # I_r='optimal', numPoints=101, returnOutputs=False
-        I_r = configs['I_r']
+        I_r = configs['I_r']      # 'optimal' | 'scan'(or 'sweep') | array_like
         if isinstance(I_r, str):
             if I_r.lower().startswith('o'):
                 I_r = None
-                logger.info('Work under optimial current density')
+                logger.info('Work under optimial current')
             elif I_r.lower().startswith('s'):
                 numPoints = configs['numPoints']
                 I_r = np.linspace(0, 1, numPoints)
-                logger.info('Work under auto-limition of current density')
+                logger.info('Work under auto-limition of current')
         else:
             I_r = np.array(I_r)
-            logger.info('Work under assigned current density')
+            logger.info('Work under assigned reduced current')
         
         deltaT = self.profiles['deltaT']
         Qx = self.profiles['Qx']
@@ -335,9 +322,10 @@ class GenElementCore(BaseDevice):
             outputs['Yita'] = 100 * deltaT * (m_opt-1)/(ST_RhoT_0*m_opt+ST_RhoT_2)
             logger.info('Calculate Pout and Yita')
         else:
-            if self.paras['mode'][0].lower() == 'c':
-                I_r = np.reshape(I_r, (-1,1))
-                logger.debug('Reshape I_r to (-1,1)')
+            if deltaT.size > 1:
+                shp = [-1,] + [1,]*deltaT.ndim
+                I_r = np.reshape(I_r, shp)
+                logger.debug('Reshape I_r to {}'.format(pformat(shp)))
             Vout_r = 1-I_r
             Pout_r = I_r * Vout_r
             Qhot_rt = (1/self.profiles['Zeng'] + mdfs['ST'] * I_r - mdfs['RhoT']*I_r*I_r)
@@ -355,14 +343,16 @@ class GenElementCore(BaseDevice):
     
     @classmethod
     def valuate(cls, datas_TCSK, L=1):
-        gen = cls(TEdatas=datas_TCSK, L=L)
+        T = datas_TCSK[0]
+        Tc, Th = T[0], T[1:]
+        gen = cls(TEdatas=datas_TCSK, Tc=Tc, Th=Th, L=L)
         gen.build()
         rst = gen.simulate(returnOutputs=True)
-        return rst.deltaT, rst.PFeng, rst.ZTeng, rst.Pout, rst.Yita
+        return gen.deltaT, gen.PFeng, gen.ZTeng, rst.Pout, rst.Yita
         
 class GenElement(BaseDevice):
     paras = {
-        'mode': 'poly',         # cum | single | poly
+        'isPoly': False,        # mode
         'TEdatas': None,        # TE datas
         'Tc': None,
         'Th': None,
