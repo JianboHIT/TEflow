@@ -70,7 +70,8 @@ def cal_opt_u(datas, allTemp=False, returnYita=False):
     datas : list | ndarray
         TE datas like [T, C, S, K]
     allTemp : bool, optional
-        return the actual OptimizeResult object that contains detailed optimization results (allTemp=True), or only the solution of the optimization and/or values of objective function (allTemp=False, default)
+        return the actual OptimizeResult object that contains detailed optimization results (allTemp=True), 
+        or only the solution of the optimization and/or values of objective function (allTemp=False, default)
     returnYita : bool, optional
         whether to return the corresponding single-point Yita at optimal u, by default False.
         Note: this will only work if allTemp=False.
@@ -115,7 +116,8 @@ def cal_opt_Yita(datas, allTemp=True):
     datas : list | ndarray
         TE datas like [T, C, S, K]
     allTemp : bool, optional
-        calculate maximum Yita at all temperatures (allTemp=True, default), or only at the hot temperature (allTemp=False)
+        calculate maximum Yita at all temperatures (allTemp=True, default), 
+        or only at the hot temperature (allTemp=False)
 
     Returns
     -------
@@ -151,7 +153,7 @@ def cal_ZTdev_from_Yita(Yita, Tc, Th):
     ZTdev = np.power(sub, 2) - 1
     return ZTdev
 
-def cal_ZTdev_from_data(datas, allTemp=True):
+def valuate(datas, allTemp=True):
     '''
     calculate ZTdev by TE datas
 
@@ -164,11 +166,16 @@ def cal_ZTdev_from_data(datas, allTemp=True):
 
     Returns
     -------
-    float | ndarray
-        device ZT (ZTdev)
+    deltaT : float | ndarray
+        temperature difference in K
+    ZTdev : float | ndarray
+        device ZT
+    Yita_opt : float | ndarray
+        optimal Yita in %
     '''
     T = datas[0]
+    deltaT = T - T[0]
     Yita_opt = cal_opt_Yita(datas, allTemp=allTemp)
     ZTdev = cal_ZTdev_from_Yita(Yita_opt, Tc=T[0], Th=T)
-    return ZTdev
+    return deltaT, ZTdev, Yita_opt
 
