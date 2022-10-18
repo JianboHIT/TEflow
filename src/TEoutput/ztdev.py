@@ -61,25 +61,6 @@ def cal_Yita(u,datas,details=False):
     else:
         return Yitas[-1]
 
-def _nega_Yita(u, datas):
-    '''
-    give negative Yita for minimize_scalar
-
-    Parameters
-    ----------
-    u : float
-        the relative current density in [1/V]
-    datas : list | ndarray
-        TE datas like [T, C, S, K]
-
-    Returns
-    -------
-    float | ndarray
-        negative efficiency (Yita) in [%], which is similar to cal_Yita()
-    '''        
-    Yita = cal_Yita(u, datas)
-    return (-1) * Yita
-
 def cal_opt_u(datas, details=False, returnYita=False):
     '''
     calculate optimal u to max Yita
@@ -107,7 +88,8 @@ def cal_opt_u(datas, details=False, returnYita=False):
     else:
         u_min = 1E-4 * S[0] * C[0] / K[0]
         u_max = -1E-2
-    rst = minimize_scalar(fun=_nega_Yita, 
+    nega_Yita = lambda u, datas: (-1) * cal_Yita(u, datas)
+    rst = minimize_scalar(fun=nega_Yita, 
                           bounds=(u_min, u_max), 
                           args=(datas,), 
                           method='bounded')
