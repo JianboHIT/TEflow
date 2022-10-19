@@ -72,7 +72,9 @@ def get_mdfs(itgs):
     mdfs['ST_RhoT_2'] = mdfs['ST_RhoT_1'] - mdfs['RhoT']    # modified Tc
     return mdfs
 
-def get_wgts(itgs, mdfs):    
+def get_wgts(itgs, mdfs=None):
+    if mdfs is None:
+        mdfs = get_mdfs(itgs)
     Rho_w = mdfs['Rho']
     TSc   = itgs['Tc'] * itgs['Sc']
     TSh   = itgs['Th'] * itgs['Sh']
@@ -85,6 +87,27 @@ def get_wgts(itgs, mdfs):
     wgts['alpha_1'] = mdfs['ST_RhoT_1'] / itgs['Sh']
     wgts['alpha_2'] = mdfs['ST_RhoT_2'] / itgs['Sh']
     return wgts
+
+def get_prfs(itgs, L=1, A=100, mdfs=None):
+    if mdfs is None:
+        mdfs = get_mdfs(itgs)
+    deltaT = itgs['deltaT']
+    PFeng = 1E-6 * itgs['S']*itgs['S']/itgs['Rho']
+    Zeng = PFeng / itgs['K']
+    
+    prfs = AttrDict()
+    prfs['deltaT'] = deltaT
+    prfs['PFeng']  = PFeng
+    prfs['Zeng']   = Zeng
+    prfs['ZTeng']  = Zeng * deltaT
+    prfs['ZTp']    = Zeng * mdfs['ST_RhoT_1']
+    prfs['m_opt']  = np.sqrt(1+prfs['ZTp'])
+    prfs['Voc']    = 1E-3 * itgs['S']        # mV
+    prfs['Isc']    = 1E-3 * deltaT*itgs['S']/(itgs['Rho']*L)*A   # A
+    prfs['Qx']     = 1E-3 * PFeng*deltaT/L*A        # W
+    prfs['itgs']   = itgs
+    prfs['mdfs']   = mdfs
+    return prfs
 
 class BaseDevice(ABC):
     paras    = dict()   # input-init
@@ -175,7 +198,6 @@ class Generator(BaseDevice):
                'the original one is called GenElementCore now.')
         raise NotImplementedError(dsp, cls.__name__)
 
-
 class GenElementCore(BaseDevice):
     paras = {
         'isPoly': False,        # mode
@@ -248,32 +270,9 @@ class GenElementCore(BaseDevice):
         mdfs = get_mdfs(itgs)
         logger.info('Calculate integrals and modification factors')
         
-        L = self.paras['L']         # mm
-        A = self.paras['A'] / 100   # mm^2 to cm^2
-        deltaT = itgs['deltaT']
-        PFeng = 1E-6 * itgs['S']*itgs['S']/itgs['Rho']
-        Zeng = PFeng / itgs['K']
-        ZTeng = Zeng * deltaT
-        ZTp = Zeng * mdfs['ST_RhoT_1']
-        m_opt = np.sqrt(1+ZTp)
-        Voc = 1E-3 * itgs['S']        # mV
-        Jsc = 1E-1 * deltaT*itgs['S']/(itgs['Rho']*L)   # A/cm^2
-        qx = 0.1 * PFeng*deltaT/L      # W/cm^2, q_flux
-        Isc = A*Jsc
-        Qx = A*qx
-        
-        profiles = AttrDict()
-        profiles['deltaT'] = deltaT
-        profiles['PFeng']  = PFeng
-        profiles['ZTeng']  = ZTeng
-        profiles['Zeng']   = Zeng
-        profiles['ZTp']    = ZTp
-        profiles['m_opt']  = m_opt
-        profiles['Voc']    = Voc
-        profiles['Isc']    = Isc
-        profiles['Qx']     = Qx
-        profiles['itgs']   = itgs
-        profiles['mdfs']   = mdfs
+        L = self.paras['L']     # mm
+        A = self.paras['A']     # mm^2
+        profiles = get_prfs(itgs, L, A, mdfs)
         logger.info('Calculate profiles of device')
         logger.debug('Keys of profiles:\n%s', pformat(profiles.keys()))
         
@@ -370,3 +369,78 @@ class GenElement(BaseDevice):
     }
     def __init__(self, **paras):
         raise NotImplementedError('Under-developed')
+
+class GenCoupleCore(BaseDevice):
+    paras = {
+        'isPoly': (False, False),   # mode
+        'TEdatas': (None, None),    # TE datas
+        'Tc': None,
+        'Th': None,
+        'L': 1,       # refer length of TE couple in mm
+        'A': 100,     # total cross-sectional area in mm^2, default 1 cm^2
+    }
+    options = {
+        'calWeights': False,    # whether to calculate dimensionless weight factors
+        'returnProfiles': False,
+    }
+    configs = {
+        'I_r': 'optimal',       # 'optimal' | 'scan'(or 'sweep') | array_like
+        'ratioLength': 1,       # L1 / L0
+        'ratioArea': 'optimal', # A1 / A0
+        'numPoints': 101,
+        'returnOutputs': False,
+    }
+    
+    def __init__(self, **paras):
+        logger.info('Begin initialization of {} ...'.format(self.__class__.__name__))
+        
+        # check TEdatass
+        isPolys = paras.get('isPoly', self.paras['isPoly'])
+        TEdatass = paras['TEdatas']
+        for index in range(2):
+            isPoly = isPolys[index]
+            TEdatas = TEdatass[index]
+            if isPoly:
+                Rho, S, K = TEdatas
+                check = lambda x: isinstance(x, Polynomial)
+                if not all(map(check, [Rho, S, K])):
+                    dsp = 'TEdatas #{} requires three numpy.polynomial.Polynomial.'
+                    raise ValueError(dsp.format(index))
+                else:
+                    dsp = 'Read datas #{} of TE properties in polynomial'
+                    logger.info(dsp.format(index))
+                    logger.debug('Value of TEdatas:\n%s', pformat(TEdatas))
+            else:
+                T, C, S, K = TEdatas
+                datas = np.vstack([T,C,S,K]).T
+                dsp = 'Read datas #{} of TE properties'
+                logger.info(dsp.format(index))
+                logger.debug('Value of TEdatas:\n%s', pformat(datas))
+        
+        # check Tc, Th
+        for Ti in ('Tc', 'Th'):
+            if Ti in paras:
+                paras[Ti] = np.atleast_1d(paras[Ti])
+                if len(paras[Ti]) == 1:
+                    logger.info('{} is at {}'.format(Ti, paras[Ti][0]))
+                else:
+                    logger.info('{} are at \n{}'.format(Ti, paras[Ti]))
+            else:
+                 raise ValueError('{} is required.'.format(Ti))  
+        
+        # update paras and check Length_0, Area_0
+        self.paras.update(paras)
+        logger.info('Refer length of TE couple: {} mm'.format(self.paras['L']))
+        logger.info('Total area of TE couple: {} mm^2'.format(self.paras['A']))
+        logger.info('Finish initialization')
+        
+    def build(self, **options):
+        raise NotImplementedError('Under-developed')
+    
+    def simulate(self, **configs):
+        raise NotImplementedError('Under-developed')
+    
+    @classmethod
+    def valuate(cls, datas_TCSK, L=1, rA='optimal'):
+        raise NotImplementedError('Under-developed')
+    
