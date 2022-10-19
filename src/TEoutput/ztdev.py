@@ -162,13 +162,13 @@ def cal_opt_Yita(datas, allTemp=True):
     logger.info('Calculate corresponding Yita at the optimized u')
     return Yita_opt
 
-def valuate(datas, allTemp=True):
+def valuate(datas_TCSK, allTemp=True):
     '''
     calculate ZTdev by TE datas
 
     Parameters
     ----------
-    datas : list | ndarray
+    datas_TCSK : list | ndarray
         TE datas like [T, C, S, K]
     allTemp : bool, optional
         pass to cal_opt_Yita()
@@ -188,9 +188,9 @@ def valuate(datas, allTemp=True):
     logger.info('Calculate ZTdev by TE datas at %s temperature', dsp)
     
     rst = AttrDict()
-    T = datas[0]
+    T = datas_TCSK[0]
     rst['deltaT'] = T - T[0]
-    rst['Yita'] = cal_opt_Yita(datas, allTemp=allTemp)
+    rst['Yita'] = cal_opt_Yita(datas_TCSK, allTemp=allTemp)
     rst['ZTdev'] = cal_ZTdev(rst['Yita'], Tc=T[0], Th=T)
     
     logger.info('Finish calculation of ZTdev and relative')
