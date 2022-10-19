@@ -347,8 +347,15 @@ class GenElementCore(BaseDevice):
         Tc, Th = T[0], T[1:]
         gen = cls(TEdatas=datas_TCSK, Tc=Tc, Th=Th, L=L)
         gen.build()
-        rst = gen.simulate(returnOutputs=True)
-        return gen.deltaT, gen.PFeng, gen.ZTeng, rst.Pout, rst.Yita
+        gen.simulate()
+
+        out = AttrDict()
+        out['deltaT'] = gen.deltaT
+        out['PFeng'] = gen.PFeng
+        out['ZTeng'] = gen.ZTeng
+        out['Pout'] = gen.Pout
+        out['Yita'] = gen.Yita
+        return out
         
 class GenElement(BaseDevice):
     paras = {
