@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import logging
+import os
 import numpy as np
 from pprint import pformat
 from TEoutput.engout import GenElementCore
@@ -14,12 +14,12 @@ height = 1    # unit: mm
 comment = ''
 ###########################################
 
-# config logging
-LEVEL = logging.INFO
+# config logger
+LEVELNUM = 20
 logger = get_root_logger()
-logger.setLevel(LEVEL)
+logger.setLevel(LEVELNUM)
 
-sname = '{} - eng_valuate_gen.py'.format(logger.name)
+sname = '{} - {}'.format(logger.name, os.path.basename(__file__))
 logger.info('Calcuate engineering performance of generator: {}'.format(sname))
 
 # read input datas
