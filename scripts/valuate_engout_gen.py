@@ -2,8 +2,7 @@
 
 import os
 import numpy as np
-from pprint import pformat
-from TEoutput.engout import GenElementCore
+from TEoutput.engout import GenElement
 from TEoutput.utils import get_root_logger
 
 
@@ -25,17 +24,17 @@ logger.info('Calcuate engineering performance of generator: %s', sname)
 # read input datas
 datas = np.loadtxt(filedatas, unpack=True, ndmin=2)
 logger.info('Read property datas from file %s', filedatas)
-data_spot = pformat(datas[:,::10].T)
-logger.debug('Data spot checking:\n%s', data_spot)
+data_spot = np.array_str(datas[:,::10].T, max_line_width=85)
+logger.debug('Data spot checking with step=10:\n%s', data_spot)
 
 # perform calculation
 logger.info('Perform simulating of thermoelectric generator.')
-out = GenElementCore.valuate(datas, L=height)
+out = GenElement.valuate(datas, L=height)
 props = ['deltaT', 'PFeng', 'ZTeng', 'Pout', 'Yita']
 outdata = np.vstack([out[prop] for prop in props]).T
 logger.info('Export results: %s', ', '.join(props))
-data_spot = pformat(outdata[::10,:])
-logger.debug('Data spot checking:\n%s', data_spot)
+data_spot = np.array_str(outdata[::10,:], max_line_width=85)
+logger.debug('Data spot checking with step=10:\n%s', data_spot)
 
 # output result
 if comment == '':
