@@ -57,7 +57,38 @@ def get_logger_handler(kind='CONSOLE',*args,**kwargs):
 
 class AttrDict(dict):
     def __getattr__(self, attr):
+        # define dot access mode like d.key
         return self[attr]
+    
+    def append(self, obj):
+        # define append operation
+        if isinstance(obj, dict):
+            for key in self.keys():
+                self[key].append(obj[key])
+        else:
+            raise ValueError('Only Dict() object can be appended')
+    
+    def extend(self, obj):
+        # define extend operation
+        if isinstance(obj, dict):
+            for key in self.keys():
+                self[key].extend(obj[key])
+        else:
+            raise ValueError('Only Dict() object can be extended')
+        
+    @classmethod
+    def merge(cls, obj, obj2):
+        # define merge operation: c = AttrDict.merge(a,b)
+        if isinstance(obj, dict) and isinstance(obj2, dict):
+            if obj.keys() == obj2.keys():
+                out = cls()
+                for key in obj.keys():
+                    out[key] = [obj[key], obj2[key]]
+                return out
+            else:
+                raise KeyError('Two object must have same keys')
+        else:
+            raise ValueError('Two Dict() object are required to merge')
 
 def interp(x, y, x2, method='linear', merge=False):
     '''
@@ -79,7 +110,7 @@ def interp(x, y, x2, method='linear', merge=False):
 
     Returns
     -------
-    ndarray
+    datas: ndarray
         The interpolated values, same shape as x.
     '''
     
@@ -97,13 +128,3 @@ def interp(x, y, x2, method='linear', merge=False):
         y2 = fx(x2)
         datas = np.vstack([x2,y2]) if merge else y2
     return datas
-
-def cutrange(datas_TXX, a, b):
-    T, *props = datas_TXX
-    v_a = np.array([np.interp(a,T,prop) for prop in props]).reshape((-1,1))
-    v_b = np.array([np.interp(b,T,prop) for prop in props]).reshape((-1,1))
-    
-    idx = (T > a) & (T < b)
-    v_props = np.hstack([v_a, np.array(props)[:, idx], v_b])
-    v_T = np.hstack([a, T[idx], b])
-    return np.vstack([v_T, v_props])
