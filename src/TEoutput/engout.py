@@ -95,7 +95,7 @@ class GenCore(BaseDevice):
         A = self.paras['A']     # mm^2
         profiles = self._get_prfs(itgs, mdfs, L, A)
         logger.info('Calculate profiles of device')
-        logger.debug('Keys of profiles:\n%s', pformat(profiles.keys()))
+        logger.debug('Keys of profiles:\n%s', pformat(list(profiles.keys())))
         
         if options['calWeights']:
             wgts = self._get_wgts(itgs, mdfs)
@@ -322,6 +322,7 @@ class GenElement(GenCore):
         else:
             T, C, S, K = TEdatas
             datas = np.vstack([T,C,S,K]).T
+            paras['TEdatas'] = datas
             logger.info('Read datas of TE properties ...')
             logger.debug('Value of TEdatas:\n%s', str(datas))
         
@@ -337,9 +338,9 @@ class GenElement(GenCore):
                  raise ValueError('{} is required.'.format(Ti))  
         
         # update paras and check Length, Area
+        self.paras.update(paras)
         logger.info('Length of TE leg: {} mm'.format(self.paras['L']))
         logger.info('Area of TE leg: {} mm^2'.format(self.paras['A']))
-        self.paras.update(paras)
         logger.info('Finish initialization')
     
     def build(self, **options):
@@ -412,7 +413,7 @@ class GenCouple(GenCore):
         'TEdatas_p': None,          # TE datas of p-type leg
         'TEdatas_n': None,          # TE datas of n-type leg
         'ratioLength': 1,           # Ln/Lp: float | array_like
-        'ratioArea': 'YitaMax',     # An/Ap: 'YitaMax' | 'PowerMax' | array_like
+        'ratioArea': 'ZTengMax',    # An/Ap: 'ZTengMax' | 'PFengMax' | array_like
     }
     def __init__(self, **paras):
         '''
@@ -425,52 +426,56 @@ class GenCouple(GenCore):
             'Th': None,             # temperature at hot side
             'L': 1,                 # length of p-type TE leg in mm
             'A': 100,               # total cross-sectional area in mm^2, default 1 cm^2
-            'ratioLength': 1,       # Ln/Lp: float | array_like
-            'ratioArea': 'YitaMax', # An/Ap: 'YitaMax' | 'PowerMax' | array_like
+            'ratioLength': 1,           # Ln/Lp: float | array_like
+            'ratioArea': 'ZTengMax',    # An/Ap: 'ZTengMax' | 'PFengMax' | array_like
         '''
         self.paras.update(self._paras)      # update default parameters
-        raise NotImplementedError('Under-developed')
-        # logger.info('Begin initialization of {} ...'.format(self.__class__.__name__))
+        logger.info('Begin initialization of {} ...'.format(self.__class__.__name__))
         
-        # # check TEdatass
-        # isPolys = paras.get('isPoly', self.paras['isPoly'])
-        # TEdatass = paras['TEdatas']
-        # for index in range(2):
-        #     isPoly = isPolys[index]
-        #     TEdatas = TEdatass[index]
-        #     if isPoly:
-        #         Rho, S, K = TEdatas
-        #         check = lambda x: isinstance(x, Polynomial)
-        #         if not all(map(check, [Rho, S, K])):
-        #             dsp = 'TEdatas #{} requires three numpy.polynomial.Polynomial.'
-        #             raise ValueError(dsp.format(index))
-        #         else:
-        #             dsp = 'Read datas #{} of TE properties in polynomial ...'
-        #             logger.info(dsp.format(index))
-        #             logger.debug('Value of TEdatas:\n%s', pformat(TEdatas))
-        #     else:
-        #         T, C, S, K = TEdatas
-        #         datas = np.vstack([T,C,S,K]).T
-        #         dsp = 'Read datas #{} of TE properties ...'
-        #         logger.info(dsp.format(index))
-        #         logger.debug('Value of TEdatas:\n%s', pformat(datas))
+        # check TEdatas_p, TEdatas_n
+        isPoly = paras.get('isPoly', self.paras['isPoly'])
+        TEdatas_np = dict(TEdatas_n=paras['TEdatas_n'],
+                          TEdatas_p=paras['TEdatas_p'])
         
-        # # check Tc, Th
-        # for Ti in ('Tc', 'Th'):
-        #     if Ti in paras:
-        #         paras[Ti] = np.atleast_1d(paras[Ti])
-        #         if len(paras[Ti]) == 1:
-        #             logger.info('{} is at {} K'.format(Ti, paras[Ti][0]))
-        #         else:
-        #             logger.info('{} are at {}..{} K'.format(Ti, paras[Ti][0], paras[Ti][-1]))
-        #     else:
-        #          raise ValueError('{} is required.'.format(Ti))  
+        if isPoly:
+            for leg, datas_RhoSK in TEdatas_np.items():
+                Rho, S, K = datas_RhoSK
+                check = lambda x: isinstance(x, Polynomial)
+                if not all(map(check, [Rho, S, K])):
+                    dsp = '{} requires three numpy.polynomial.Polynomial.'
+                    raise ValueError(dsp.format(leg))
+                else:
+                    dsp = 'Read TE properties datas of {}-type leg in polynomial ...'
+                    logger.info(dsp.format(leg[-1]))
+                    logger.debug('Value of %s:\n%s', leg, str(datas_RhoSK))
+        else:
+            for leg, datas_TCSK in TEdatas_np.items():
+                T, C, S, K = datas_TCSK
+                datas = np.vstack([T,C,S,K]).T
+                dsp = 'Read TE properties datas of {}-type leg ...'
+                logger.info(dsp.format(leg[-1]))
+                logger.debug('Value of %s:\n%s', leg, str(datas))
         
-        # # update paras and check Length_0, Area_0
-        # self.paras.update(paras)
-        # logger.info('Refer length of TE couple: {} mm'.format(self.paras['L']))
-        # logger.info('Total area of TE couple: {} mm^2'.format(self.paras['A']))
-        # logger.info('Finish initialization')
+        # check Tc, Th
+        for Ti in ('Tc', 'Th'):
+            if Ti in paras:
+                paras[Ti] = np.atleast_1d(paras[Ti])
+                if len(paras[Ti]) == 1:
+                    logger.info('{} is at {} K'.format(Ti, paras[Ti][0]))
+                else:
+                    logger.info('{} are at {}..{} K'.format(Ti, paras[Ti][0], paras[Ti][-1]))
+            else:
+                 raise ValueError('{} is required.'.format(Ti))  
+        
+        # update paras and check Length, Area
+        self.paras.update(paras)
+        dsps = {'L': 'Length of p-type TE leg: {} mm',
+                'A': 'Total cross-sectional area of TE unicouple: {} mm^2',
+                'ratioLength': 'Ratio of length (Ln/Lp): {}',
+                'ratioArea': 'Ratio of Area (An/Ap): {}',}
+        for key, dsp in dsps.items():
+            logger.info(dsp.format(self.paras[key]))
+        logger.info('Finish initialization')
         
     def build(self, **options):
         '''
@@ -478,12 +483,117 @@ class GenCouple(GenCore):
             'calWeights': False,    # whether to calculate dimensionless weight factors
             'returnProfiles': False,
         '''
-        # return super().build(**options)
-        # Couple(N+P) --> Element: assemble two leg to a unicouple
-        raise NotImplementedError('Under-developed')
+        
+        logger.info('Begin building process ...')
+        
+        logger.info('Determine the configuration of unicouple ...')
+        rL = self.paras['ratioLength']
+        rA = self.paras['ratioArea']
+        datas_p = self.paras['TEdatas_p']
+        datas_n = self.paras['TEdatas_n']
+        if isinstance(rA, str):
+            Tc = self.paras['Tc']
+            Th = self.paras['Th']
+            isPoly = self.paras['isPoly']
+            itgs_p = super()._get_itgs(datas_p, Tc, Th, isPoly)
+            itgs_n = super()._get_itgs(datas_n, Tc, Th, isPoly)
+            if rA.lower().startswith('z'):
+                rA = rL * np.sqrt(itgs_p['Rho']/itgs_n['Rho'] * itgs_n['K']/itgs_p['K'])
+                logger.info('Obtain the configuration to maximize ZTeng')
+                I_r = 'YitaMax'
+                self.configs['I_r'] = I_r
+                logger.debug("update default value of config['I_r'] to %s", I_r)
+            elif rA.lower().startswith('p'):
+                rA = np.sqrt(rL * itgs_p['Rho']/itgs_n['Rho'])
+                logger.info('Obtain the configuration to maximize PFeng')
+                I_r = 'PowerMax'
+                self.configs['I_r'] = 'PowerMax'
+                logger.debug("update default value of config['I_r'] to %s", I_r)
+            else:
+                raise ValueError('Invalid value of ratioArea')
+        else:
+            rA = np.array(rA)
+            logger.info('Obtain the configuration under assigned size')
+        self.paras['TEdatas'] = (itgs_p, itgs_n, rL, rA)
+        logger.debug("Set paras['TEdatas'] as (itgs_p, itgs_n, rL, rA) form")
+
+        profiles = self._build(options)
+        logger.info('Finish building process')
+        return profiles
+
+    def simulate(self, **configs):
+        '''
+        configs : dict
+            'I_r': 'YitaMax',       # 'YitaMax' | 'PowerMax' | 'scan'(or 'sweep') | array_like
+            'numPoints': 101,
+            'returnOutputs': False,
+        '''
+        
+        logger.info('Begin simulating ...')
+        outputs = self._simulate(configs)
+        logger.info('Finish simulating process')
+        return outputs
+    
+    @staticmethod
+    def _get_itgs(datas, Tc, Th, isPoly):
+        itgs_p, itgs_n, rL, rA = datas
+        
+        fx_t = lambda p, n: (p+n)/2
+        fx_s = lambda p, n: p - n
+        fx_r = lambda p, n: p*(1+rA) + n*rL/rA*(1+rA)
+        fx_k = lambda p, n: p/(1+rA) + n/(1+rA)*rA/rL
+        
+        combs = [[fx_t, ('Tc', 'Th', 'deltaT')],
+                 [fx_s, ('Sc', 'Sh', 'S', 'ST')],
+                 [fx_r, ('Rho', 'RhoT')],
+                 [fx_k, ('K',)]]
+        
+        itgs = AttrDict()
+        for fx, props in combs:
+            for prop in props:
+                itgs[prop] = fx(itgs_p[prop], itgs_n[prop])
+        return itgs
     
     @classmethod
-    def valuate(cls, **kwargs):
-        # return super().valuate(**kwargs)
-        raise NotImplementedError('Under-developed')
+    def valuate(cls, datas_p_TCSK, datas_n_TCSK, L=1):
+        '''
+        Convenient entry to evaluate thermoelectric unicouple of generator
+        '''
+        
+        T = datas_p_TCSK[0]
+        Tc, Th = T[0], T[1:]
+        
+        # initialling
+        rst = AttrDict()
+        logger.debug('Invoke valuate() method of %s', cls.__name__)
+        gen = cls(TEdatas_p=datas_p_TCSK, 
+                  TEdatas_n=datas_n_TCSK,
+                  Tc=Tc, Th=Th, L=L)
+        
+        # to maximize Yita
+        logger.info('>>> To get maximal Yita <<<')
+        gen.paras['ratioArea'] = 'ZTengMax'
+        prfs = gen.build(returnProfiles=True)
+        rst['deltaT'] = prfs.deltaT
+        rst['ZTeng']  = prfs.ZTeng
+        logger.info('Read out deltaT and ZTeng')
+        
+        outs = gen.simulate(I_r='YitaMax', returnOutputs=True)
+        rst['Yita'] = outs.Yita
+        logger.info('Read out Yita')
+        
+        # to maximize Pout
+        logger.info('>>> To get maximal Pout <<<')
+        gen.paras['ratioArea'] = 'PFengMax'
+        prfs = gen.build(returnProfiles=True)
+        rst['PFeng']  = prfs.PFeng
+        logger.info('Read out deltaT, PFeng, ZTeng')
+        
+        outs = gen.simulate(I_r='PowerMax', returnOutputs=True)
+        rst['Pout'] = outs.Pout
+        logger.info('Read out Pout')
 
+        # results
+        logger.debug('Exit valuate() method of %s', cls.__name__)
+        return rst
+    
