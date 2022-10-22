@@ -1,4 +1,4 @@
-import logging 
+import logging
 import numpy as np
 from numpy.polynomial import Polynomial as Poly
 from scipy.interpolate import interp1d
@@ -10,29 +10,21 @@ def get_pkg_name():
     '''
     return __name__.split('.')[0]
 
-def get_root_logger(stdout=True):
+def get_root_logger(stdout=True, filename=None, mode='a', level=None):
     '''
-    Get root logger with package name
+    Get root logger object
     '''
     logger = logging.getLogger(get_pkg_name())
     if stdout:
         console = get_logger_handler()
         logger.addHandler(console)
-    return logger
-
-def get_script_logger(name=None, level=None, stdout=True):
-    '''
-    Get a logger for scripts using
-    '''
-    if name is None:
-        name = '{}_script'.format(get_pkg_name())
-    logger = logging.getLogger(name)
-    
+    if filename is not None:
+        fh = get_logger_handler(kind='file',
+                                filename=filename,
+                                mode=mode)
+        logger.addHandler(fh)
     if level is not None:
         logger.setLevel(level)
-    if stdout:
-        console = get_logger_handler()
-        logger.addHandler(console)
     return logger
 
 def get_logger_handler(kind='CONSOLE',*args,**kwargs):
