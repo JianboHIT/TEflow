@@ -7,8 +7,8 @@ from TEoutput.utils import get_root_logger
 
 
 ############# Default Setting #############     
-filedatas_p = 'gen_datas_p.txt'
-filedatas_n = 'gen_datas_n.txt'
+fileinput_p = 'gen_input_p.txt'
+fileinput_n = 'gen_input_n.txt'
 fileoutput = 'gen_output.txt'
 height = 1    # unit: mm
 comment = ''
@@ -23,14 +23,14 @@ sname = '{} - {}'.format(logger.name, os.path.basename(__file__))
 logger.info('Calcuate engineering performance of generator: %s', sname)
 
 # read input datas_p
-datas_p = np.loadtxt(filedatas_p, unpack=True, ndmin=2)
-logger.info('Read property datas of p-type leg from file %s', filedatas_p)
+datas_p = np.loadtxt(fileinput_p, unpack=True, ndmin=2)
+logger.info('Read property datas of p-type leg from file %s', fileinput_p)
 data_spot = np.array_str(datas_p[:,::10].T, max_line_width=85)
 logger.debug('Data spot checking with step=10:\n%s', data_spot)
 
 # read input datas_n
-datas_n = np.loadtxt(filedatas_n, unpack=True, ndmin=2)
-logger.info('Read property datas of n-type leg from file %s', filedatas_n)
+datas_n = np.loadtxt(fileinput_n, unpack=True, ndmin=2)
+logger.info('Read property datas of n-type leg from file %s', fileinput_n)
 data_spot = np.array_str(datas_n[:,::10].T, max_line_width=85)
 logger.debug('Data spot checking with step=10:\n%s', data_spot)
 

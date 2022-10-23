@@ -8,7 +8,7 @@ from TEoutput.utils import get_root_logger
 
 
 ############# Default Setting #############     
-filedatas = 'ztdev_datas.txt'
+fileinput = 'ztdev_input.txt'
 fileoutput = 'ztdev_output.txt'
 comment = ''
 ###########################################
@@ -22,8 +22,8 @@ sname = '{} - {}'.format(logger.name, os.path.basename(__file__))
 logger.info('Calcuate device ZT (ZTdev): %s', sname)
 
 # read input datas
-datas = np.loadtxt(filedatas, unpack=True, ndmin=2)
-logger.info('Read property datas from file %s', filedatas)
+datas = np.loadtxt(fileinput, unpack=True, ndmin=2)
+logger.info('Read property datas from file %s', fileinput)
 data_spot = pformat(datas[:,::5].T)
 logger.debug('Data spot checking:\n%s', data_spot)
 

@@ -6,8 +6,8 @@ from TEoutput.utils import interp
 
 
 ############# Default Setting #############
-fileorigin = 'interp_origin.txt'      
-filedatas = 'interp_datas.txt'
+fileinput = 'interp_input.txt'      
+fileoutput = 'interp_output.txt'
 method = 'linear'
 npoints = 101
 comment = ''
@@ -29,15 +29,15 @@ FORMAT = '[%(levelname)s] %(message)s'
 logging.basicConfig( format=FORMAT, level=LEVEL)
 
 # read origin data
-x, *y = np.loadtxt(fileorigin, unpack=True, ndmin=2)
-logging.info('Read data_x and data_y from {}.'.format(fileorigin))
+x, *y = np.loadtxt(fileinput, unpack=True, ndmin=2)
+logging.info('Read data_x and data_y from {}.'.format(fileinput))
 
 # read sampling points
 try:
-    x2, *_ = np.loadtxt(filedatas, unpack=True, ndmin=2)
+    x2, *_ = np.loadtxt(fileoutput, unpack=True, ndmin=2)
 except IOError:
     # failed to read sampling points and set them automatically
-    logging.info('Failed to read sampling points from {}.'.format(filedatas))
+    logging.info('Failed to read sampling points from {}.'.format(fileoutput))
     
     x2 = np.linspace(x[0], x[-1], num=npoints)
     
@@ -48,7 +48,7 @@ except Exception as err:
     logging.error('Failed to read/generate sampling points.')
     raise(err)
 else:
-    logging.info('Read sampling points from {}.'.format(filedatas))
+    logging.info('Read sampling points from {}.'.format(fileoutput))
 finally:
     logging.debug('Get sampling successfully.')
 
@@ -73,5 +73,5 @@ else:
     logging.debug('Read comment info.\n{}'.format(comment))
 
 # save result
-np.savetxt(filedatas, datas.T, fmt='%.4f', header=comment)
-logging.info('Save interpolation results to {}. (Done)'.format(filedatas))
+np.savetxt(fileoutput, datas.T, fmt='%.4f', header=comment)
+logging.info('Save interpolation results to {}. (Done)'.format(fileoutput))

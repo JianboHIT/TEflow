@@ -7,7 +7,7 @@ from TEoutput.utils import get_root_logger
 
 
 ############# Default Setting #############     
-filedatas = 'gen_datas.txt'
+fileinput = 'gen_input.txt'
 fileoutput = 'gen_output.txt'
 height = 1    # unit: mm
 comment = ''
@@ -22,8 +22,8 @@ sname = '{} - {}'.format(logger.name, os.path.basename(__file__))
 logger.info('Calcuate engineering performance of generator: %s', sname)
 
 # read input datas
-datas = np.loadtxt(filedatas, unpack=True, ndmin=2)
-logger.info('Read property datas from file %s', filedatas)
+datas = np.loadtxt(fileinput, unpack=True, ndmin=2)
+logger.info('Read property datas from file %s', fileinput)
 data_spot = np.array_str(datas[:,::10].T, max_line_width=85)
 logger.debug('Data spot checking with step=10:\n%s', data_spot)
 
