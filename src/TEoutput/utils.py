@@ -82,6 +82,61 @@ class AttrDict(dict):
         else:
             raise ValueError('Two Dict() object are required to merge')
 
+class Metric():
+    kinds = {'MSE', 'RMSE', 'MAE', 'MAPE', 'SMAPE'}
+    def __init__(self, kind='MSE'):
+        kind = kind.upper()
+        if kind in self.kinds:
+            self._kind = kind
+            self._func = getattr(self, kind)
+        else:
+            raise ValueError('Invaild kind of metric')
+    
+    def __call__(self, y, y2, axis=-1):
+        return self._func(y, y2, axis)
+    
+    @staticmethod
+    def MSE(y, y2, axis=-1):
+        '''
+        Mean Square Error
+        '''
+        diff = np.array(y2) - np.array(y)
+        v2 = np.mean(np.square(diff), axis=axis)
+        return v2
+    
+    @staticmethod
+    def RMSE(y, y2, axis=-1):
+        diff = np.array(y2) - np.array(y)
+        v2 = np.mean(np.square(diff), axis=axis)
+        return np.sqrt(v2)
+    
+    @staticmethod
+    def MAE(y, y2, axis=-1):
+        '''
+        Mean Absolute Error
+        '''
+        diff = np.array(y2) - np.array(y)
+        v = np.mean(np.absolute(diff), axis=axis)
+        return v
+    
+    @staticmethod
+    def MAPE(y, y2, axis=-1):
+        '''
+        Mean Absolute Percentage Error
+        '''
+        rdiff = np.array(y2)/np.array(y)-1
+        v = np.mean(np.absolute(rdiff), axis=axis)
+        return v
+    
+    @staticmethod
+    def SMAPE(y, y2, axis=-1):
+        y = np.array(y)
+        y2 = np.array(y2)
+        diff = np.absolute(y2-y)
+        sum_ = np.absolute(y2)+np.absolute(y)
+        v = 2.0 * np.mean(diff/sum_, axis=axis)
+        return v
+    
 def interp(x, y, x2, method='linear', merge=False):
     '''
     A convenient method to implement scipy.interpolate.interp1d and Polynomial.fit
