@@ -2,7 +2,7 @@
 
 import os
 import numpy as np
-from TEoutput.engout import GenCouple
+from TEoutput.engout import GenPair
 from TEoutput.utils import get_root_logger
 
 
@@ -36,7 +36,7 @@ logger.debug('Data spot checking with step=10:\n%s', data_spot)
 
 # perform calculation
 logger.info('Perform simulating of thermoelectric generator.')
-out = GenCouple.valuate(datas_p, datas_n, L=height)
+out = GenPair.valuate(datas_p, datas_n, L=height)
 props = ['deltaT', 'PFeng', 'ZTeng', 'Pout', 'Yita']
 outdata = np.vstack([out[prop] for prop in props]).T
 props[3] = 'Pd'
