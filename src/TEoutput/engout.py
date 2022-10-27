@@ -291,9 +291,9 @@ class GenCore(BaseDevice):
         prfs['wgts']   = None
         return prfs
 
-class GenElement(GenCore):
+class GenLeg(GenCore):
     '''
-    Simulate thermoelectric element of generator
+    Simulate thermoelectric leg of generator
     '''
     def __init__(self, **paras):
         '''
@@ -322,7 +322,6 @@ class GenElement(GenCore):
         else:
             T, C, S, K = TEdatas
             datas = np.vstack([T,C,S,K]).T
-            paras['TEdatas'] = datas
             logger.info('Read datas of TE properties ...')
             logger.debug('Value of TEdatas:\n%s', str(datas))
         
@@ -371,7 +370,7 @@ class GenElement(GenCore):
     @classmethod
     def valuate(cls, datas_TCSK, L=1):
         '''
-        Convenient entry to evaluate thermoelectric element of generator
+        Convenient entry to evaluate thermoelectric leg of generator
         '''
         
         T = datas_TCSK[0]
@@ -405,9 +404,9 @@ class GenElement(GenCore):
         logger.debug('Exit valuate() method of %s', cls.__name__)
         return rst
 
-class GenCouple(GenCore):
+class GenPair(GenCore):
     '''
-    Simulate thermoelectric unicouple of generator
+    Simulate thermoelectric p-n pair of generator
     '''
     _paras = {
         'TEdatas_p': None,          # TE datas of p-type leg
@@ -470,7 +469,7 @@ class GenCouple(GenCore):
         # update paras and check Length, Area
         self.paras.update(paras)
         dsps = {'L': 'Length of p-type TE leg: {} mm',
-                'A': 'Total cross-sectional area of TE unicouple: {} mm^2',
+                'A': 'Total cross-sectional area of TE p-n pair: {} mm^2',
                 'ratioLength': 'Ratio of length (Ln/Lp): {}',
                 'ratioArea': 'Ratio of Area (An/Ap): {}',}
         for key, dsp in dsps.items():
@@ -486,7 +485,7 @@ class GenCouple(GenCore):
         
         logger.info('Begin building process ...')
         
-        logger.info('Determine the configuration of unicouple ...')
+        logger.info('Determine the configuration of p-n pair ...')
         rL = self.paras['ratioLength']
         rA = self.paras['ratioArea']
         datas_p = self.paras['TEdatas_p']
@@ -557,7 +556,7 @@ class GenCouple(GenCore):
     @classmethod
     def valuate(cls, datas_p_TCSK, datas_n_TCSK, L=1):
         '''
-        Convenient entry to evaluate thermoelectric unicouple of generator
+        Convenient entry to evaluate thermoelectric p-n pair of generator
         '''
         
         T = datas_p_TCSK[0]

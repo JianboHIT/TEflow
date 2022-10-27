@@ -2,7 +2,7 @@
 
 import os
 import numpy as np
-from TEoutput.engout import GenElement
+from TEoutput.engout import GenLeg
 from TEoutput.utils import get_root_logger
 
 
@@ -29,7 +29,7 @@ logger.debug('Data spot checking with step=10:\n%s', data_spot)
 
 # perform calculation
 logger.info('Perform simulating of thermoelectric generator.')
-out = GenElement.valuate(datas, L=height)
+out = GenLeg.valuate(datas, L=height)
 props = ['deltaT', 'PFeng', 'ZTeng', 'Pout', 'Yita']
 outdata = np.vstack([out[prop] for prop in props]).T
 logger.info('Export results: %s', ', '.join(props))
