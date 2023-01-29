@@ -72,18 +72,27 @@ class AttrDict(dict):
             raise ValueError('Only Dict() object can be extended')
         
     @classmethod
-    def merge(cls, obj, obj2):
-        # define merge operation: c = AttrDict.merge(a,b)
-        if isinstance(obj, dict) and isinstance(obj2, dict):
-            if obj.keys() == obj2.keys():
-                out = cls()
-                for key in obj.keys():
-                    out[key] = [obj[key], obj2[key]]
-                return out
-            else:
-                raise KeyError('Two object must have same keys')
+    def merge(cls, objs, keys=None, toArray=False):
+        # merge operation: rst = AttrDict.merge([a,b,c,...], [keys])
+        if not all(isinstance(obj, dict) for obj in objs):
+            raise ValueError('Dict() objects are required')
+        if keys is None:
+            keys = objs[0].keys()
+        if toArray:
+            rst = {key: np.array([obj[key] for obj in objs]) for key in keys}
         else:
-            raise ValueError('Two Dict() object are required to merge')
+            rst = {key: [obj[key] for obj in objs] for key in keys}
+        return cls(rst)
+    
+    @classmethod
+    def sum(cls, objs, start=0, keys=None):
+        # sum operation: rst = AttrDict.sum([a,b,c,...], [start])
+        if not all(isinstance(obj, dict) for obj in objs):
+            raise ValueError('Dict() objects are required')
+        if keys is None:
+            keys = objs[0].keys()
+        rst = {key: sum((obj[key] for obj in objs), start) for key in keys}
+        return cls(rst)
 
 class Metric():
     kinds = {'MSE', 'RMSE', 'MAE', 'MAPE', 'SMAPE'}
