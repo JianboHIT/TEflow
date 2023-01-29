@@ -10,16 +10,24 @@ def get_pkg_name():
     '''
     return __name__.split('.')[0]
 
-def get_root_logger(stdout=True, filename=None, mode='a', level=None):
+def get_root_logger(stdout=True, filename=None, mode='a', level=None, 
+                    fmt='[%(levelname)s] %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    file_fmt='%(asctime)s [%(levelname)s @ %(name)s] %(message)s',
+                    file_datafmt='%Y-%m-%d %H:%M:%S'):
     '''
     Get root logger object
     '''
     logger = logging.getLogger(get_pkg_name())
     if stdout:
-        console = get_logger_handler()
+        console = get_logger_handler(kind='console', 
+                                     fmt=fmt, 
+                                     datefmt=datefmt)
         logger.addHandler(console)
     if filename is not None:
         fh = get_logger_handler(kind='file',
+                                fmt=file_fmt,
+                                datefmt=file_datafmt,
                                 filename=filename,
                                 mode=mode)
         logger.addHandler(fh)
@@ -27,21 +35,16 @@ def get_root_logger(stdout=True, filename=None, mode='a', level=None):
         logger.setLevel(level)
     return logger
 
-def get_logger_handler(kind='CONSOLE',*args,**kwargs):
+def get_logger_handler(kind='CONSOLE', fmt=None, datefmt=None, filename='log.txt', mode='a'):
     '''
     Get kinds of handler of logging
     '''
+    formatter = logging.Formatter(fmt=fmt, datefmt=datefmt)
     kind = kind.lower()
     if kind in {'cons', 'console', 'stream'}:
-        formatter = logging.Formatter(
-            fmt='[%(levelname)s] %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S')
         handler = logging.StreamHandler()
     elif kind in {'file', 'logfile'}:
-        formatter = logging.Formatter(
-            fmt='%(asctime)s [%(levelname)s @ %(name)s] %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S')
-        handler = logging.FileHandler(*args, **kwargs)
+        handler = logging.FileHandler(filename, mode)
     else:
         raise ValueError('The kind of handler is invaild.')
     handler.setFormatter(formatter)
