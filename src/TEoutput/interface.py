@@ -27,9 +27,11 @@ DESCRIPTION = {
     'interp': 'Data interpolation and extrapolation',
     'mixing': 'Mixing the datafile with same array-shape',
     'ztdev' : 'Calculate ZTdev of thermoelectric generator',
+    'cutoff': 'Cut-off data at the threshold temperature',
 }
 
 logger = get_root_logger(level=20, fmt='[%(name)s] %(message)s')
+# logger = get_root_logger(level=10, fmt='[%(levelname)5s] %(message)s')
 
 
 def do_main(args=None):
@@ -47,6 +49,8 @@ def do_main(args=None):
             do_mixing(args[1:])
         elif task.startswith('ztdev'):
             do_ztdev(args[1:])
+        elif task.startswith('cutoff'):
+            do_cutoff(args[1:])
         else:
             print(dsp)
     else:
@@ -127,7 +131,7 @@ def do_interp(args=None):
         logger.debug(f'Using np.linspace({x[0]}, {x[-1]}, num={npoint}) .')
     except Exception as err:
         # catch other error
-        logger.error('Failed to read/generate sampling points.')
+        logger.error('Failed to read/generate sampling points.\n')
         raise(err)
     else:
         logger.info(f'Read sampling points from {outputfile}.')
@@ -140,7 +144,7 @@ def do_interp(args=None):
     method = options.method.lower()
     if method not in _METHODS:
         logger.error('Failed to recognize the method of interpolation.')
-        logger.error(f'Now is {method}, but methods shown below are allowed: \n{_METHODS}')
+        logger.error(f'Now is {method}, but methods shown below are allowed: \n{_METHODS}\n')
         raise ValueError("Value of 'method' is invalid.")
     
     # The strategy to extrapolate points outside the data range
@@ -275,3 +279,109 @@ def do_ztdev(args=None):
     ZTdev = cal_ZTdev(yita, Tc=tmin, Th=tmax)
     logger.info(f'ZTdev: {ZTdev:.4f}. (DONE)')
 
+def do_cutoff(args=None):
+    import numpy as np
+    
+    # # import when necessary
+    # from .analysis import boltzmann
+    # from .analysis import smoothstep
+    
+    task = 'cutoff'
+    DESC = DESCRIPTION[task]
+    parser = argparse.ArgumentParser(
+        prog=f'{CMD}-{task}',
+        description=f'{DESC} - {INFO}',
+        epilog='')
+    
+    parser.add_argument('t_cut', metavar='T-CUT', type=float,
+                        help='Threshold temperature')
+    
+    parser.add_argument('inputfile', metavar='INPUTFILE',
+                        help='Filename of input file (necessary)')
+    
+    parser.add_argument('outputfile', metavar='OUTPUTFILE', nargs='?',
+                        help='Filename of output file (default: Basename_suffix.Extname)')
+    
+    parser.add_argument('-b', '--bare', action='store_true',
+                        help='Output concerned columns, without header')
+    
+    parser.add_argument('-m', '--method', default='bz',
+                        help='The method of cut-off \
+                             (Boltzmann[bz], smoothstep[ss], default: bz)')
+    
+    parser.add_argument('-c', '--column', metavar='COLUMN',
+                        help="Specify indexes of column which are tailored (default: '1 2 .. N')")
+    
+    parser.add_argument('-w', '--width', type=float, default=20,
+                        help='The transition width of cut-off function (default: 20)')
+    
+    parser.add_argument('-s', '--suffix', default='cutoff', 
+                        help='The suffix to generate filename of output file (default: cutoff)')
+    
+    options = parser.parse_args(args)
+    # print(options)
+    
+    logger.info(f'{DESC} - {TIME}')
+    
+    # read origin data
+    inputfile = options.inputfile
+    datas = np.loadtxt(inputfile, ndmin=2)
+    logger.info('Read datas from {}.'.format(inputfile))
+    
+    # parse outputfile name
+    if options.outputfile is None:
+        name, ext = inputfile.rsplit('.', 1)
+        outputfile = f'{name}_{options.suffix}.{ext}'
+    else:
+        outputfile = options.outputfile
+    logger.debug(f'Confirm output filename: {outputfile}')
+    
+    # check method
+    _METHODS = {'bz', 'boltzmann', 
+                'ss', 'smoothstep'}
+    x = datas[:, 0:1]
+    tc = options.t_cut
+    wd = options.width / 4  # width from centre to position of 1/4 height
+    method = options.method.lower()
+    if method in {'bz', 'boltzmann'}:
+        from .analysis import boltzmann
+        # wr = boltzmann(0.25, inverse=True)
+        # print(wr)
+        wr = 1.0986122886681098
+        factor = boltzmann((x-tc)/wd*wr)
+        method = 'Boltzmann'
+    elif method in {'ss', 'smoothstep'}:
+        from .analysis import smoothstep
+        # wr = smoothstep(0.25, inverse=True)
+        # print(wr)
+        wr = 0.3472963553338607
+        factor = smoothstep((x-tc)/wd*wr)
+        method = 'SmoothStep'
+    else:
+        logger.error('Failed to recognize the method for cut-off')
+        logger.error(f'Now is {method}, but methods shown below are allowed: \n{_METHODS}\n')
+        raise ValueError("Value of 'method' is invalid.")
+    logger.info(f'Using {method} function to cut-off data')
+    logger.debug(f'Transition width: {4*wd:.4f}, Tcut: {tc:.4f}')
+        
+    # check column
+    if options.column is None:
+        index = None
+        logger.debug('All columns will be tailored')
+    elif options.column.isdecimal():
+        index = list(map(int, options.column))
+        logger.info(f"Column index(es): {' '.join(s for s in options.column)}")
+    else:
+        index = list(map(float, options.column.split()))
+        logger.info(f'Column indexes: {options.column}')
+    
+    if options.bare:
+        datas = datas[:, index] * factor
+        comment = ''
+    else:
+        datas[:, index] *= factor
+        comment = f'Mixed datafiles - {TIME} {INFO}'
+    
+    # save result
+    np.savetxt(outputfile, datas, fmt='%.4f', header=comment)
+    logger.info(f'Save cut-off data to {outputfile}. (Done)')
