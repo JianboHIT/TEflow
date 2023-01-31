@@ -28,6 +28,7 @@ DESCRIPTION = {
     'mixing': 'Mixing the datafile with same array-shape',
     'ztdev' : 'Calculate ZTdev of thermoelectric generator',
     'cutoff': 'Cut-off data at the threshold temperature',
+    'refine': 'Remove all comments and blank lines in file'
 }
 
 logger = get_root_logger(level=20, fmt='[%(name)s] %(message)s')
@@ -51,6 +52,8 @@ def do_main(args=None):
             do_ztdev(args[1:])
         elif task.startswith('cutoff'):
             do_cutoff(args[1:])
+        elif task.startswith('refine'):
+            do_refine(args[1:])
         else:
             print(dsp)
     else:
@@ -279,6 +282,7 @@ def do_ztdev(args=None):
     ZTdev = cal_ZTdev(yita, Tc=tmin, Th=tmax)
     logger.info(f'ZTdev: {ZTdev:.4f}. (DONE)')
 
+
 def do_cutoff(args=None):
     import numpy as np
     
@@ -385,3 +389,47 @@ def do_cutoff(args=None):
     # save result
     np.savetxt(outputfile, datas, fmt='%.4f', header=comment)
     logger.info(f'Save cut-off data to {outputfile}. (Done)')
+
+
+def do_refine(args=None):
+    import re
+    
+    task = 'refine'
+    DESC = DESCRIPTION[task]
+    parser = argparse.ArgumentParser(
+        prog=f'{CMD}-{task}',
+        description=f'{DESC} - {INFO}',
+        epilog='')
+    
+    parser.add_argument('datafile', metavar='DATAFILE', nargs='+',
+                        help='Filenames of datafile')
+    
+    parser.add_argument('-s', '--suffix', 
+                        help='The suffix to generate filename of output file. \
+                              If not specified, outputs are re-written datafiles')
+    
+    options = parser.parse_args(args)
+    
+    logger.info(f'{DESC} - {TIME}')
+    
+    suffix = options.suffix
+    pattern = re.compile('[^#\n]*')
+    for fn in options.datafile:
+        outs = []
+        with open(fn, 'r') as f:
+            for line in f:
+                content = pattern.match(line)
+                if content and content.group():
+                    outs.append(content.group()+'\n')
+        if suffix:
+            name, ext = fn.rsplit('.', 1)
+            fn2 = f'{name}_{suffix}.{ext}'
+            with open(fn2, 'w') as f:
+                f.writelines(outs)
+            logger.info(f'Refine {fn} ...   -> {fn2} OK')
+        else:
+            with open(fn, 'w') as f:
+                f.writelines(outs)
+            logger.info(f'Refine {fn} ... OK')
+    
+    logger.info('(DONE)')
