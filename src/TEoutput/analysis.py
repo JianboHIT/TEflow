@@ -109,3 +109,71 @@ def mixing(datas, weight=None, scale=None):
                              f'The shape of data #{i} is abnormal')
         data += scale * w * d
     return data
+
+def boltzmann(x, inverse=False):
+    '''
+    Boltzmann function:
+      1/(1+e^x)
+      
+    The inverse function:
+      ln(1/y-1)
+
+    Parameters
+    ----------
+    x : array_like
+        Argument of the Boltzmann function
+    inverse : bool, optional
+        Calculate the value of inverse function, by default False
+
+    Returns
+    -------
+    ndarray
+        An array of the same shape as x
+    '''
+    if inverse:
+        return np.log(1/x-1)
+    else:
+        return 1/2*(1-np.tanh(x/2)) # 1/(1+exp(u))
+
+def smoothstep(x, inverse=False, shift=True): 
+    '''
+    Smoothstep function:
+                  0 : x < 0
+        3*x^2-2*x^3 : 0 <= x <= 1
+                  1 : x > 1
+             
+    The inverse function:
+      1/2 - sin(arcsin(1-2*y)/3)
+    
+    It might be more convenient when the function is shifted x' = (1-x)/2,
+    which drops from 1 to 0 where -1 <= 0 <= 1.
+    
+    Parameters
+    ----------
+    x : array_like
+        Argument of the smoothstep function (https://en.wikipedia.org/wiki/Smoothstep) 
+    inverse : bool, optional
+        Calculate the value of inverse function, by default False
+    shift : bool, optional
+        shift the origin smoothstep function with x' = (1-x)/2, by default True
+
+    Returns
+    -------
+    ndarray
+        An array of the same shape as x
+    '''
+    if shift:
+        if inverse:
+            return 2*np.sin(np.arcsin(1-2*x)/3)
+        else:
+            x = np.minimum(np.maximum(x, -1), 1)
+            return (x-1)*(x-1)*(x+2)/4
+    else:
+        if inverse:
+            return 1/2 - np.sin(np.arcsin(1-2*x)/3)
+        else:
+            x = np.minimum(np.maximum(x, 0), 1)
+            return x*x*(3-2*x)
+
+
+
