@@ -28,7 +28,7 @@ DESCRIPTION = {
     'mixing': 'Mixing the datafile with same array-shape',
     'ztdev' : 'Calculate ZTdev of thermoelectric generator',
     'cutoff': 'Cut-off data at the threshold temperature',
-    'refine': 'Remove all comments and blank lines in file'
+    'refine': 'Remove all comments and blank lines in file',
 }
 
 logger = get_root_logger(level=20, fmt='[%(name)s] %(message)s')
@@ -402,7 +402,7 @@ def do_refine(args=None):
         epilog='')
     
     parser.add_argument('datafile', metavar='DATAFILE', nargs='+',
-                        help='Filenames of datafile')
+                        help="Filenames of datafile.")
     
     parser.add_argument('-s', '--suffix', 
                         help='The suffix to generate filename of output file. \
@@ -411,25 +411,30 @@ def do_refine(args=None):
     options = parser.parse_args(args)
     
     logger.info(f'{DESC} - {TIME}')
+    logger.debug(r"Regex sub: '[,\s]*#.*$' -> '', '^[,\s]*\n' -> ''")
+    logger.debug(r"(Ref `sed 's/[ ,\t]*#.*$//; /^[ ,\t]*$/d' DATAFILE`)")
     
+    rm_cmt = True   # remove comments
+    rm_blk = True   # remove blank lines
     suffix = options.suffix
-    pattern = re.compile('[^#\n]*')
+    pattern_cmt = re.compile(r'[,\s]*#.*$', flags=re.M)
+    pattern_blk = re.compile(r'^[,\s]*\n', flags=re.M)
     for fn in options.datafile:
-        outs = []
         with open(fn, 'r') as f:
-            for line in f:
-                content = pattern.match(line)
-                if content and content.group():
-                    outs.append(content.group()+'\n')
+            out = f.read()
+            if rm_cmt:
+                out = pattern_cmt.sub('', out)
+            if rm_blk:
+                out = pattern_blk.sub('', out)
         if suffix:
             name, ext = fn.rsplit('.', 1)
             fn2 = f'{name}_{suffix}.{ext}'
             with open(fn2, 'w') as f:
-                f.writelines(outs)
-            logger.info(f'Refine {fn} ...   -> {fn2} OK')
+                f.write(out)
+            logger.info(f'Refine {fn} ...   -> {fn2}  OK')
         else:
             with open(fn, 'w') as f:
-                f.writelines(outs)
+                f.write(out)
             logger.info(f'Refine {fn} ... OK')
     
     logger.info('(DONE)')
