@@ -12,6 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import sys
 import argparse
 from datetime import datetime
 
@@ -19,6 +20,7 @@ from ._version import __version__
 from .utils import get_pkg_name, get_root_logger
 
 CMD = 'teop'
+CPR = 'Copyright 2023 Jianbo ZHU'
 PKG = get_pkg_name()
 VISION = __version__
 INFO = f'{PKG}({VISION})'
@@ -30,18 +32,42 @@ DESCRIPTION = {
     'cutoff': 'Cut-off data at the threshold temperature',
     'refine': 'Remove all comments and blank lines in file',
 }
+DESCRIPTION_FMT = '\n'.join('{:>10s}    {}'.format(key, value) 
+                            for key, value in DESCRIPTION.items())
+# figlet -f slant TEoutput | boxes -d stark1
+INFO_HELP = f"""\
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+!     ____________            __              __    !
+!    /_  __/ ____/___  __  __/ /_____  __  __/ /_   !
+!     / / / __/ / __ \/ / / / __/ __ \/ / / / __/   !
+!    / / / /___/ /_/ / /_/ / /_/ /_/ / /_/ / /_     !
+!   /_/ /_____/\____/\__,_/\__/ .___/\__,_/\__/     !
+!                            /_/                    !
+!   {                 f'(v{VISION}, {CPR})':>45s}   !
+!                                                   !
+! ** A python3 package for thermoelectric output ** !
+! ********** performance calculations. ************ !
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-logger = get_root_logger(level=20, fmt='[%(name)s] %(message)s')
+Usage: {CMD}-xxxxxx ...
+
+Subcommands:
+{DESCRIPTION_FMT}
+"""
+FOOTNOTE = ''
+
+LOG_LEVEL = 20
+LOG_FMT = '[%(name)s] %(message)s'
+# logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
+# logger = get_root_logger(level=20, fmt='[%(name)s] %(message)s')
 # logger = get_root_logger(level=10, fmt='[%(levelname)5s] %(message)s')
 
 
 def do_main(args=None):
     # for test
-    import sys
     if args is None:
         args = sys.argv[1:]
     
-    dsp = f"{INFO} @ Python {sys.version}".replace('\n', '')
     if len(args) > 0:
         task = args[0].lower()
         if task.startswith('interp'):
@@ -55,9 +81,10 @@ def do_main(args=None):
         elif task.startswith('refine'):
             do_refine(args[1:])
         else:
-            print(dsp)
+            print(INFO_HELP)
+            print(FOOTNOTE)
     else:
-        print(dsp)
+        print(f"{INFO} @ Python {sys.version}".replace('\n', ''))
 
 
 def do_interp(args=None):
@@ -69,7 +96,7 @@ def do_interp(args=None):
     parser = argparse.ArgumentParser(
         prog=f'{CMD}-{task}', 
         description=f'{DESC} - {INFO}',
-        epilog='')
+        epilog=FOOTNOTE)
     
     parser.add_argument('inputfile', metavar='INPUTFILE',
                         help='Filename of input file (necessary)')
@@ -106,6 +133,7 @@ def do_interp(args=None):
 
     options = parser.parse_args(args)
     
+    logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
     logger.info(f'{DESC} - {TIME}')
     
     # read origin data
@@ -189,7 +217,7 @@ def do_mixing(args=None):
     parser = argparse.ArgumentParser(
         prog=f'{CMD}-{task}',
         description=f'{DESC} - {INFO}',
-        epilog='')
+        epilog=FOOTNOTE)
     
     parser.add_argument('-b', '--bare', action='store_true',
                         help='Output data without header')
@@ -211,6 +239,7 @@ def do_mixing(args=None):
         
     options = parser.parse_args(args)
     
+    logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
     logger.info(f'{DESC} - {TIME}')
     
     if options.output is None:
@@ -256,7 +285,7 @@ def do_ztdev(args=None):
     parser = argparse.ArgumentParser(
         prog=f'{CMD}-{task}',
         description=f'{DESC} - {INFO}',
-        epilog='')
+        epilog=FOOTNOTE)
     
     # parser.add_argument('yita', metavar='Yita', type=float,
     #                     help='Efficiency of thermoelectric generator(0 - 100)')
@@ -272,6 +301,7 @@ def do_ztdev(args=None):
     
     options = parser.parse_args(args)
     
+    logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
     logger.info(f'{DESC} - {TIME}')
     
     yita = options.yita
@@ -295,7 +325,7 @@ def do_cutoff(args=None):
     parser = argparse.ArgumentParser(
         prog=f'{CMD}-{task}',
         description=f'{DESC} - {INFO}',
-        epilog='')
+        epilog=FOOTNOTE)
     
     parser.add_argument('t_cut', metavar='T-CUT', type=float,
                         help='Threshold temperature')
@@ -325,6 +355,7 @@ def do_cutoff(args=None):
     options = parser.parse_args(args)
     # print(options)
     
+    logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
     logger.info(f'{DESC} - {TIME}')
     
     # read origin data
@@ -399,7 +430,7 @@ def do_refine(args=None):
     parser = argparse.ArgumentParser(
         prog=f'{CMD}-{task}',
         description=f'{DESC} - {INFO}',
-        epilog='')
+        epilog=FOOTNOTE)
     
     parser.add_argument('datafile', metavar='DATAFILE', nargs='+',
                         help="Filenames of datafile.")
@@ -410,6 +441,7 @@ def do_refine(args=None):
     
     options = parser.parse_args(args)
     
+    logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
     logger.info(f'{DESC} - {TIME}')
     logger.debug(r"Regex sub: '[,\s]*#.*$' -> '', '^[,\s]*\n' -> ''")
     logger.debug(r"(Ref `sed 's/[ ,\t]*#.*$//; /^[ ,\t]*$/d' DATAFILE`)")
