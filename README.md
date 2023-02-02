@@ -1,5 +1,5 @@
 # TEoutput (under-developed)
-A python3 code for thermoelectric(***TE***) ***output*** performance calculations
+A python3 package for thermoelectric(***TE***) ***output*** performance calculations
 
 ## Features
 - Engineering performance of thermoelectric generator[^1]
