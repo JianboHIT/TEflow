@@ -24,6 +24,7 @@ CPR = 'Copyright 2023 Jianbo ZHU'
 PKG = get_pkg_name()
 VISION = __version__
 INFO = f'{PKG}({VISION})'
+PLATFORM = f"{INFO} @ Python {sys.version}".replace('\n', '')
 TIME = datetime.now().strftime('%Y.%m.%d %H:%M:%S')
 DESCRIPTION = {
     'interp': 'Data interpolation and extrapolation',
@@ -86,10 +87,14 @@ def do_main(args=None):
         elif task.startswith('refine'):
             do_refine(args[1:])
         else:
-            print(INFO_HELP)
-            print(FOOTNOTE)
+            do_help()
     else:
-        print(f"{INFO} @ Python {sys.version}".replace('\n', ''))
+        print(PLATFORM)
+
+
+def do_help():
+    print(INFO_HELP)
+    print(FOOTNOTE)    
 
 
 def do_interp(args=None):
