@@ -68,6 +68,10 @@ def do_main(args=None):
         args = sys.argv[1:]
     
     if len(args) > 0:
+        global LOG_LEVEL, LOG_FMT
+        LOG_LEVEL = 10
+        LOG_FMT = '[%(levelname)5s] %(message)s'
+        
         task = args[0].lower()
         if task.startswith('interp'):
             do_interp(args[1:])
