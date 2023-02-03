@@ -58,10 +58,8 @@ Subcommands:
 FOOTNOTE = ''
 
 LOG_LEVEL = 20
-LOG_FMT = '[%(name)s] %(message)s'
+LOG_FMT = '[%(name)s] %(message)s'      # '[%(levelname)5s] %(message)s'
 # logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
-# logger = get_root_logger(level=20, fmt='[%(name)s] %(message)s')
-# logger = get_root_logger(level=10, fmt='[%(levelname)5s] %(message)s')
 
 
 def do_main(args=None):
@@ -481,8 +479,8 @@ def do_cutoff(args=None):
     parser.add_argument('-c', '--column', metavar='COLUMN',
                         help="Specify indexes of column which are tailored (default: '1 2 .. N')")
     
-    parser.add_argument('-w', '--width', type=float, default=20,
-                        help='The transition width of cut-off function (default: 20)')
+    parser.add_argument('-w', '--width', type=float, default=10,
+                        help='The transition width of cut-off function (default: 10)')
     
     parser.add_argument('-s', '--suffix', default='cutoff', 
                         help='The suffix to generate filename of output file (default: cutoff)')
@@ -538,11 +536,8 @@ def do_cutoff(args=None):
     if options.column is None:
         index = None
         logger.debug('All columns will be tailored')
-    elif options.column.isdecimal():
-        index = list(map(int, options.column))
-        logger.info(f"Column index(es): {' '.join(s for s in options.column)}")
     else:
-        index = list(map(float, options.column.split()))
+        index = list(map(int, options.column.split()))
         logger.info(f'Column indexes: {options.column}')
     
     if options.bare:
