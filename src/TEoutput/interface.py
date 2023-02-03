@@ -31,7 +31,7 @@ DESCRIPTION = {
     'ztdev' : 'Calculate ZTdev of thermoelectric generator',
     'format': 'Format thermoelectric properties data',
     'cutoff': 'Cut-off data at the threshold temperature',
-    'refine': 'Remove all comments and blank lines in file',
+    'refine': 'Remove redundant & extract the concerned data',
 }
 DESCRIPTION_FMT = '\n'.join('{:>10s}    {}'.format(key, value) 
                             for key, value in DESCRIPTION.items())
@@ -562,41 +562,56 @@ def do_refine(args=None):
         description=f'{DESC} - {INFO}',
         epilog=FOOTNOTE)
     
-    parser.add_argument('datafile', metavar='DATAFILE', nargs='+',
-                        help="Filenames of datafile.")
+    parser.add_argument('-b', '--bare', action='store_true',
+                        help='Output data without header')
     
-    parser.add_argument('-s', '--suffix', 
-                        help='The suffix to generate filename of output file. \
-                              If not specified, outputs are re-written datafiles')
+    parser.add_argument('inputfile', metavar='INPUTFILE',
+                        help='Filename of input file (necessary)')
+    
+    parser.add_argument('outputfile', metavar='OUTPUTFILE', nargs='?',
+                        help='Filename of output file (default: Basename_suffix.Extname)')
+    
+    parser.add_argument('-c', '--column', metavar='COLUMN',
+                        help="Specify indexes of column which are picked up (default: '0 1 2 .. N')")
+    
+    parser.add_argument('-s', '--suffix', default='refine', 
+                        help='The suffix to generate filename of output file (default: refine)')
     
     options = parser.parse_args(args)
     
     logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
     logger.info(f'{DESC} - {TIME}')
-    logger.debug(r"Regex sub: '[,\s]*#.*$' -> '', '^[,\s]*\n' -> ''")
-    logger.debug(r"(Ref `sed 's/[ ,\t]*#.*$//; /^[ ,\t]*$/d' DATAFILE`)")
     
-    rm_cmt = True   # remove comments
-    rm_blk = True   # remove blank lines
-    suffix = options.suffix
-    pattern_cmt = re.compile(r'[,\s]*#.*$', flags=re.M)
-    pattern_blk = re.compile(r'^[,\s]*\n', flags=re.M)
-    for fn in options.datafile:
-        with open(fn, 'r') as f:
-            out = f.read()
-            if rm_cmt:
-                out = pattern_cmt.sub('', out)
-            if rm_blk:
-                out = pattern_blk.sub('', out)
-        if suffix:
-            name, ext = fn.rsplit('.', 1)
-            fn2 = f'{name}_{suffix}.{ext}'
-            with open(fn2, 'w') as f:
-                f.write(out)
-            logger.info(f'Refine {fn} ...   -> {fn2}  OK')
-        else:
-            with open(fn, 'w') as f:
-                f.write(out)
-            logger.info(f'Refine {fn} ... OK')
+    # read raw data
+    inputfile = options.inputfile
+    with open(inputfile, 'r') as f:
+        contents = f.readlines()
+    logger.info(f'Read raw data from {inputfile}')
     
-    logger.info('(DONE)')
+    # filter data
+    fetch_data = lambda line: line.split('#', 1)[0].strip().strip(',')
+    contents = filter(None, map(fetch_data, contents))
+    logger.info('Clear all comments and blank lines in file')
+    
+    # check columns
+    if options.column:
+        index = list(map(int, options.column.split()))
+        logger.info(f'Column indexes which are picked up: {options.column}')
+        pick_data = lambda items: ' '.join(items[i] for i in index)
+        contents = map(pick_data, map(str.split, contents))
+    
+    # parse outputfile name
+    if options.outputfile is None:
+        name, ext = inputfile.rsplit('.', 1)
+        outputfile = f'{name}_{options.suffix}.{ext}'
+    else:
+        outputfile = options.outputfile
+    logger.debug(f'Confirm output filename: {outputfile}')
+    
+    # write data
+    with open(outputfile, 'w') as f:
+        if not options.bare:
+            f.write(f"# Refined data - {TIME} {INFO}\n")
+        for line in contents:
+            f.write(line+'\n')
+    logger.info(f'Save refined data to {outputfile}. (Done)')
