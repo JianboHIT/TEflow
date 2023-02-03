@@ -29,6 +29,7 @@ DESCRIPTION = {
     'interp': 'Data interpolation and extrapolation',
     'mixing': 'Mixing the datafile with same array-shape',
     'ztdev' : 'Calculate ZTdev of thermoelectric generator',
+    'format': 'Format thermoelectric properties data',
     'cutoff': 'Cut-off data at the threshold temperature',
     'refine': 'Remove all comments and blank lines in file',
 }
@@ -76,6 +77,8 @@ def do_main(args=None):
             do_mixing(args[1:])
         elif task.startswith('ztdev'):
             do_ztdev(args[1:])
+        elif task.startswith('format'):
+            do_format(args[1:])
         elif task.startswith('cutoff'):
             do_cutoff(args[1:])
         elif task.startswith('refine'):
@@ -120,16 +123,6 @@ def do_interp(args=None):
 
     parser.add_argument('-s', '--suffix', default='interp', 
                         help='The suffix to generate filename of output file (default: interp)')
-
-    # parser.add_argument('-p', '--paired', action='store_true', 
-    #                     help='Identify input data in paired format')
-
-    # parser.add_argument('-g', '--group', default='TCSK', 
-    #                     help='Group identifiers for paired data (e.g. TCSK, TCTSTK, TKXXTSC, \
-    #                          default: TCSK)')
-    
-    # parser.add_argument('-c', '--cal', action='store_true', 
-    #                     help='Calculate thermoelectric power factor and figure-of-merit')
 
     options = parser.parse_args(args)
     
@@ -313,10 +306,152 @@ def do_ztdev(args=None):
     logger.info(f'ZTdev: {ZTdev:.4f}. (DONE)')
 
 
+def do_format(args=None):
+    import numpy as np
+    from .analysis import parse_TEdatas, interp
+    
+    task = 'format'
+    DESC = DESCRIPTION[task]
+    parser = argparse.ArgumentParser(
+        prog=f'{CMD}-{task}',
+        description=f'{DESC} - {INFO}',
+        epilog=FOOTNOTE)
+    
+    parser.add_argument('-b', '--bare', action='store_true',
+                        help='Output data without header')
+    
+    parser.add_argument('-c', '--calculate', action='store_true', 
+                        help='Calculate thermoelectric power factor and figure-of-merit')
+    
+    parser.add_argument('inputfile', metavar='INPUTFILE',
+                        help='Filename of input file (necessary)')
+    
+    parser.add_argument('outputfile', metavar='OUTPUTFILE', nargs='?',
+                        help='Filename of output file (default: Basename_suffix.Extname)')
+    
+    parser.add_argument('-m', '--method', default='cubic', 
+                        help='Interpolation method, only linear and cubic allowed \
+                             (default: cubic)')
+
+    parser.add_argument('-g', '--group', default='TCTSTK', 
+                        help='Group identifiers for paired data (e.g. TCTSTK, TCSK, TKXXTSC, \
+                             default: TCTSTK)')
+    
+    parser.add_argument('-s', '--suffix', default='format', 
+                        help='The suffix to generate filename of output file (default: format)')
+    
+    options = parser.parse_args(args)
+    # print(options)
+    
+    # logger = get_root_logger(level=10, fmt=LOG_FMT)
+    logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
+    logger.info(f'{DESC} - {TIME}')
+    
+    # read origin data
+    _SEPS = [('whitespace', None),
+             ('comma', ','),
+             ('tab', '\t')]
+    inputfile = options.inputfile
+    for name, sep in _SEPS:
+        try:
+            logger.debug(f'Using {name} as delimiter to read data')
+            datas = np.genfromtxt(inputfile, delimiter=sep, unpack=True, ndmin=2)
+            if np.all(np.isnan(datas)):
+                raise ValueError('Failed to split up the data')
+        except Exception:
+            logger.debug(f"Failed to read data from file")
+        else:
+            logger.info(f"Read data from {inputfile} successfully")
+            datas_fmt = np.array_str(datas.T, max_line_width=78, precision=2)
+            logger.debug(f"Data details: \n{datas_fmt}")
+            break
+    else:
+        raise IOError(f'Failed to read datas from {inputfile}')
+    
+    # parse TEdatas
+    group = options.group
+    TEdatas = parse_TEdatas(datas=datas, group=group)
+    logger.info(f"Column identifiers: {', '.join(group)}")
+    logger.info('Parse thermoelectric properties and corresponding temperatures')
+    
+    # parse outputfile name
+    if options.outputfile is None:
+        name, ext = inputfile.rsplit('.', 1)
+        outputfile = f'{name}_{options.suffix}.{ext}'
+    else:
+        outputfile = options.outputfile
+    
+    # read temperatures
+    try:
+        T, *_ = np.loadtxt(outputfile, unpack=True, ndmin=2)
+    except IOError:
+        # failed to read temperatures and set them automatically
+        logger.info(f'Failed to read temperatures from {outputfile}.')
+        
+        t_max = TEdatas['Tmax']
+        T = np.arange(298, t_max+1, 25)
+        T[0] = 300
+        
+        logger.info(f'Generate temperatures automatically where Tmax = {t_max} K.')
+        logger.debug(f'Tempeartures: 300, 323, 348, 373, ..., {t_max}')
+    except Exception as err:
+        # catch other error
+        logger.error('Failed to read/generate temperatures.\n')
+        raise(err)
+    else:
+        logger.info(f'Read temperatures from {outputfile}.')
+    
+    # check method and interp
+    _METHODS = {'linear', 'cubic',}
+    method = options.method.lower()
+    if method not in _METHODS:
+        logger.error('Failed to recognize the method of interpolation.')
+        logger.error(f'Now is {method}, but methods shown below are allowed: \n{_METHODS}\n')
+        raise ValueError("Value of 'method' is invalid.")
+    fdata = [T, ]
+    for pp in ('C', 'S', 'K'):
+        fdata.append(interp(*TEdatas[pp], T, method=method))
+    
+    # calculate PF, ZT and PF
+    props = ['T', 'C', 'S', 'K']
+    if options.calculate:
+        from scipy.integrate import cumtrapz
+        
+        props.extend(['PF', 'ZT', 'ZTave', 'CF'])
+        # props.extend(['PF', 'ZT', 'ZTave_H', 'ZTave_C', 'CF'])
+        
+        fdata.append(fdata[1]*fdata[2]*fdata[2]*1E-6) # PF
+        fdata.append(fdata[4]/fdata[3]*fdata[0]*1E-4) # ZT
+        RTh = cumtrapz(1E4/fdata[1], fdata[0], initial=0)
+        STh = cumtrapz(fdata[2], fdata[0], initial=0)
+        KTh = cumtrapz(fdata[3], fdata[0], initial=0)
+        TTh = (fdata[0][0]+fdata[0])/2
+        ZTave_H = np.divide(1E-6*np.power(STh, 2)*TTh, RTh*KTh, 
+                            out=1.0*fdata[5],
+                            where=(np.abs(KTh)>1E-3))
+        fdata.append(ZTave_H)
+        # RTc = RTh[-1]-RTh
+        # STc = STh[-1]-STh
+        # KTc = KTh[-1]-KTh
+        # TTc = (fdata[0]+fdata[0][-1])/2
+        # ZTave_C = np.divide(1E-6*np.power(STc, 2)*TTc, RTc*KTc, 
+        #                     out=1.0*fdata[5],
+        #                     where=(np.abs(KTc)>1E-3))
+        # fdata.append(ZTave_C)
+        fdata.append(1E6*(np.sqrt(1+fdata[5])-1)/(fdata[0]*fdata[2]))
+        logger.info('Calculate thermoelectric PF, ZT, etc.')
+    pp_fmt = ', '.join(props)
+    
+    # data result
+    comment = '' if options.bare else f"Formated TE data - {TIME} {INFO}\n{pp_fmt}"
+    np.savetxt(outputfile, np.vstack(fdata).T, fmt='%.4f', header=comment)
+    logger.info(f'Save formated data to {outputfile}. (Done)')
+
+
 def do_cutoff(args=None):
     import numpy as np
     
-    # # import when necessary
+    # >>>>> import when necessary <<<<<<
     # from .analysis import boltzmann
     # from .analysis import smoothstep
     
