@@ -165,8 +165,7 @@ class Metric():
 
 def suffixed(outputname, inputname, suffix, withparent=False):
     '''
-    Append suffix to input filename is output filename is absent, else the original 
-    one. 
+    Append suffix to inputname if outputname is absent, otherwise return itself. 
     '''
     if outputname:
         return outputname
@@ -180,3 +179,10 @@ def suffixed(outputname, inputname, suffix, withparent=False):
             return str(p.with_name(out))
         else:
             return out
+
+def purify(fp, chars=None):
+    '''
+    Remove # comments and strip line, then return a filter object
+    '''
+    _fetch = lambda line: line.split('#', 1)[0].strip(chars)
+    return filter(None, map(_fetch, fp))
