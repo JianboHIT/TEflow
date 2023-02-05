@@ -13,6 +13,8 @@
 #   limitations under the License.
 
 import logging
+from pathlib import PurePath
+
 import numpy as np
 
 
@@ -160,3 +162,21 @@ class Metric():
         sum_ = np.absolute(y2)+np.absolute(y)
         v = 2.0 * np.mean(diff/sum_, axis=axis)
         return v
+
+def suffixed(outputname, inputname, suffix, withparent=False):
+    '''
+    Append suffix to input filename is output filename is absent, else the original 
+    one. 
+    '''
+    if outputname:
+        return outputname
+    else:
+        p = PurePath(inputname)
+        if p.suffix:
+            out = f'{p.stem}_{suffix}.{p.suffix}'
+        else:
+            out = f'{p.stem}_{suffix}'
+        if withparent:
+            return str(p.with_name(out))
+        else:
+            return out
