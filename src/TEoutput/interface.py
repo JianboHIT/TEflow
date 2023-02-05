@@ -19,6 +19,8 @@ from datetime import datetime
 from ._version import __version__
 from .utils import get_pkg_name, get_root_logger
 
+# dprint = print      # for debug using
+
 CMD = 'teop'
 CPR = 'Copyright 2023 Jianbo ZHU'
 PKG = get_pkg_name()
@@ -518,32 +520,28 @@ def do_cutoff(args=None):
                 'ss', 'smoothstep'}
     x = datas[:, 0:1]
     tc = options.t_cut
-    wd = options.width / 4  # width from centre to position of 1/4 height
+    wd = options.width / 2  # half width, i.e. from 0 to bound
     method = options.method.lower()
     if method in {'bz', 'boltzmann'}:
         from .analysis import boltzmann
-        # wr = boltzmann(0.25, inverse=True)
-        # print(wr)
-        wr = 1.0986122886681098
-        factor = boltzmann((x-tc)/wd*wr)
+
+        factor = boltzmann(5*(x-tc)/wd)
         method = 'Boltzmann'
     elif method in {'ss', 'smoothstep'}:
         from .analysis import smoothstep
-        # wr = smoothstep(0.25, inverse=True)
-        # print(wr)
-        wr = 0.3472963553338607
-        factor = smoothstep((x-tc)/wd*wr)
+
+        factor = smoothstep((x-tc)/wd)
         method = 'SmoothStep'
     else:
         logger.error('Failed to recognize the method for cut-off')
         logger.error(f'Now is {method}, but methods shown below are allowed: \n{_METHODS}\n')
         raise ValueError("Value of 'method' is invalid.")
     logger.info(f'Using {method} function to cut-off data')
-    logger.debug(f'Transition width: {4*wd:.4f}, Tcut: {tc:.4f}')
-        
+    logger.debug(f'Transition width: {2*wd:.4f}, Tcut: {tc:.4f}')
+
     # check column
     if options.column is None:
-        index = None
+        index = list(range(1, datas.shape[-1]))
         logger.debug('All columns will be tailored')
     else:
         index = list(map(int, options.column.split()))
@@ -562,8 +560,6 @@ def do_cutoff(args=None):
 
 
 def do_refine(args=None):
-    import re
-    
     task = 'refine'
     DESC = DESCRIPTION[task]
     parser = argparse.ArgumentParser(
