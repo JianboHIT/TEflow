@@ -553,7 +553,7 @@ def do_cutoff(args=None):
 
 
 def do_refine(args=None):
-    from .utils import suffixed
+    from .utils import suffixed, purify
 
     task = 'refine'
     DESC = DESCRIPTION[task]
@@ -582,16 +582,11 @@ def do_refine(args=None):
     logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
     logger.info(f'{DESC} - {TIME}')
     
-    # read raw data
+    # read raw data and filter
     inputfile = options.inputfile
     with open(inputfile, 'r') as f:
-        contents = f.readlines()
-    logger.info(f'Read raw data from {inputfile}')
-    
-    # filter data
-    fetch_data = lambda line: line.split('#', 1)[0].strip().strip(',')
-    contents = filter(None, map(fetch_data, contents))
-    logger.info('Clear all comments and blank lines in file')
+        contents = purify(f.readlines())
+    logger.info(f'Clear all comments and blank lines in {inputfile}')
     
     # check columns
     if options.column:
