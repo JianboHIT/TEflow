@@ -96,12 +96,13 @@ def do_main(args=None):
 
 def do_help():
     print(INFO_HELP)
-    print(FOOTNOTE)    
+    print(FOOTNOTE)
 
 
 def do_interp(args=None):
     import numpy as np
     from .analysis import interp
+    from .utils import suffixed
     
     task = 'interp'
     DESC = DESCRIPTION[task]
@@ -141,33 +142,30 @@ def do_interp(args=None):
     # read origin data
     inputfile = options.inputfile
     x, *y = np.loadtxt(inputfile, unpack=True, ndmin=2)
-    logger.info('Read data_x and data_y from {}.'.format(inputfile))
+    logger.info('Read data_x and data_y from {}'.format(inputfile))
     
     # parse outputfile name
-    if options.outputfile is None:
-        name, ext = inputfile.rsplit('.', 1)
-        outputfile = f'{name}_{options.suffix}.{ext}'
-    else:
-        outputfile = options.outputfile
+    outputfile = suffixed(options.outputfile, inputfile, options.suffix)
+    logger.debug(f'Parse output filename: {outputfile}')
     
     # read sampling points
     try:
         x2, *_ = np.loadtxt(outputfile, unpack=True, ndmin=2)
     except IOError:
         # failed to read sampling points and set them automatically
-        logger.info(f'Failed to read sampling points from {outputfile}.')
+        logger.info(f'Failed to read sampling points from {outputfile}')
         
         npoint = options.npoint
         x2 = np.linspace(x[0], x[-1], num=npoint)
         
-        logger.info('Generate sampling points automatically.')
-        logger.debug(f'Using np.linspace({x[0]}, {x[-1]}, num={npoint}) .')
+        logger.info('Generate sampling points automatically')
+        logger.debug(f'Using np.linspace({x[0]}, {x[-1]}, num={npoint}) ')
     except Exception as err:
         # catch other error
         logger.error('Failed to read/generate sampling points.\n')
         raise(err)
     else:
-        logger.info(f'Read sampling points from {outputfile}.')
+        logger.info(f'Read sampling points from {outputfile}')
 
     # check method
     _METHODS = {'linear', 'nearest', 'nearest-up', 
@@ -176,14 +174,14 @@ def do_interp(args=None):
              'poly1', 'poly2','poly3','poly4','poly5',}
     method = options.method.lower()
     if method not in _METHODS:
-        logger.error('Failed to recognize the method of interpolation.')
+        logger.error('Failed to recognize the method of interpolation')
         logger.error(f'Now is {method}, but methods shown below are allowed: \n{_METHODS}\n')
         raise ValueError("Value of 'method' is invalid.")
     
     # The strategy to extrapolate points outside the data range
     extrapolate = options.extrapolate.lower()
     toMerge = (not options.bare)
-    dsp = 'Perform the interpolation operation with %s extrapolation.'
+    dsp = 'Perform the interpolation operation with %s extrapolation'
     if extrapolate.startswith('auto'):
         datas = interp(x, y, x2, method=method, merge=toMerge)
         logger.info(dsp, 'automatic')
@@ -207,7 +205,7 @@ def do_interp(args=None):
     # data result
     comment = '' if options.bare else f'Interpolate via {method} method - {TIME} {INFO}'
     np.savetxt(outputfile, datas.T, fmt='%.4f', header=comment)
-    logger.info(f'Save interpolation results to {outputfile}. (Done)')
+    logger.info(f'Save interpolation results to {outputfile} (Done)')
     
 
 def do_mixing(args=None):
@@ -237,7 +235,7 @@ def do_mixing(args=None):
     
     parser.add_argument('datafile', metavar='DATAFILE', nargs='+',
                         help='Filenames of datafile. Crucially, the last one will be \
-                             treated as output destination unless -o/--output option is given.')
+                             treated as output destination unless -o/--output option is given')
         
     options = parser.parse_args(args)
     
@@ -276,7 +274,7 @@ def do_mixing(args=None):
     # data result
     comment = '' if options.bare else f'Mixed datafiles - {TIME} {INFO}'
     np.savetxt(outputfile, data, fmt='%.4f', header=comment)
-    logger.info(f'Save mixed data to {outputfile}. (Done)')
+    logger.info(f'Save mixed data to {outputfile} (Done)')
 
 
 def do_ztdev(args=None):
@@ -312,12 +310,13 @@ def do_ztdev(args=None):
     logger.info(f'Yita: {yita:.2f} %,  Tmin: {tmin:.2f} K, Tmax: {tmax:.2f} K')
     
     ZTdev = cal_ZTdev(yita, Tc=tmin, Th=tmax)
-    logger.info(f'ZTdev: {ZTdev:.4f}. (DONE)')
+    logger.info(f'ZTdev: {ZTdev:.4f} (DONE)')
 
 
 def do_format(args=None):
     import numpy as np
     from .analysis import parse_TEdatas, interp
+    from .utils import suffixed
     
     task = 'format'
     DESC = DESCRIPTION[task]
@@ -384,37 +383,34 @@ def do_format(args=None):
     logger.info('Parse thermoelectric properties and corresponding temperatures')
     
     # parse outputfile name
-    if options.outputfile is None:
-        name, ext = inputfile.rsplit('.', 1)
-        outputfile = f'{name}_{options.suffix}.{ext}'
-    else:
-        outputfile = options.outputfile
+    outputfile = suffixed(options.outputfile, inputfile, options.suffix)
+    logger.debug(f'Parse output filename: {outputfile}')
     
     # read temperatures
     try:
         T, *_ = np.loadtxt(outputfile, unpack=True, ndmin=2)
     except IOError:
         # failed to read temperatures and set them automatically
-        logger.info(f'Failed to read temperatures from {outputfile}.')
+        logger.info(f'Failed to read temperatures from {outputfile}')
         
         t_max = TEdatas['Tmax']
         T = np.arange(298, t_max+1, 25)
         T[0] = 300
         
-        logger.info(f'Generate temperatures automatically where Tmax = {t_max} K.')
+        logger.info(f'Generate temperatures automatically where Tmax = {t_max} K')
         logger.debug(f'Tempeartures: 300, 323, 348, 373, ..., {t_max}')
     except Exception as err:
         # catch other error
         logger.error('Failed to read/generate temperatures.\n')
         raise(err)
     else:
-        logger.info(f'Read temperatures from {outputfile}.')
+        logger.info(f'Read temperatures from {outputfile}')
     
     # check method and interp
     _METHODS = {'linear', 'cubic',}
     method = options.method.lower()
     if method not in _METHODS:
-        logger.error('Failed to recognize the method of interpolation.')
+        logger.error('Failed to recognize the method of interpolation')
         logger.error(f'Now is {method}, but methods shown below are allowed: \n{_METHODS}\n')
         raise ValueError("Value of 'method' is invalid.")
     fdata = [T, ]
@@ -448,17 +444,18 @@ def do_format(args=None):
         #                     where=(np.abs(KTc)>1E-3))
         # fdata.append(ZTave_C)
         fdata.append(1E6*(np.sqrt(1+fdata[5])-1)/(fdata[0]*fdata[2]))
-        logger.info('Calculate thermoelectric PF, ZT, etc.')
+        logger.info('Calculate thermoelectric PF, ZT, etc')
     pp_fmt = ', '.join(props)
     
     # data result
     comment = '' if options.bare else f"Formated TE data - {TIME} {INFO}\n{pp_fmt}"
     np.savetxt(outputfile, np.vstack(fdata).T, fmt='%.4f', header=comment)
-    logger.info(f'Save formated data to {outputfile}. (Done)')
+    logger.info(f'Save formated data to {outputfile} (Done)')
 
 
 def do_cutoff(args=None):
     import numpy as np
+    from .utils import suffixed
     
     # >>>>> import when necessary <<<<<<
     # from .analysis import boltzmann
@@ -505,15 +502,11 @@ def do_cutoff(args=None):
     # read origin data
     inputfile = options.inputfile
     datas = np.loadtxt(inputfile, ndmin=2)
-    logger.info('Read datas from {}.'.format(inputfile))
+    logger.info('Read datas from {}'.format(inputfile))
     
     # parse outputfile name
-    if options.outputfile is None:
-        name, ext = inputfile.rsplit('.', 1)
-        outputfile = f'{name}_{options.suffix}.{ext}'
-    else:
-        outputfile = options.outputfile
-    logger.debug(f'Confirm output filename: {outputfile}')
+    outputfile = suffixed(options.outputfile, inputfile, options.suffix)
+    logger.debug(f'Parse output filename: {outputfile}')
     
     # check method
     _METHODS = {'bz', 'boltzmann', 
@@ -556,10 +549,12 @@ def do_cutoff(args=None):
     
     # save result
     np.savetxt(outputfile, datas, fmt='%.4f', header=comment)
-    logger.info(f'Save cut-off data to {outputfile}. (Done)')
+    logger.info(f'Save cut-off data to {outputfile} (Done)')
 
 
 def do_refine(args=None):
+    from .utils import suffixed
+
     task = 'refine'
     DESC = DESCRIPTION[task]
     parser = argparse.ArgumentParser(
@@ -606,12 +601,8 @@ def do_refine(args=None):
         contents = map(pick_data, map(str.split, contents))
     
     # parse outputfile name
-    if options.outputfile is None:
-        name, ext = inputfile.rsplit('.', 1)
-        outputfile = f'{name}_{options.suffix}.{ext}'
-    else:
-        outputfile = options.outputfile
-    logger.debug(f'Confirm output filename: {outputfile}')
+    outputfile = suffixed(options.outputfile, inputfile, options.suffix)
+    logger.debug(f'Parse output filename: {outputfile}')
     
     # write data
     with open(outputfile, 'w') as f:
@@ -619,4 +610,4 @@ def do_refine(args=None):
             f.write(f"# Refined data - {TIME} {INFO}\n")
         for line in contents:
             f.write(line+'\n')
-    logger.info(f'Save refined data to {outputfile}. (Done)')
+    logger.info(f'Save refined data to {outputfile} (Done)')
