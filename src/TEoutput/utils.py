@@ -180,9 +180,14 @@ def suffixed(outputname, inputname, suffix, withparent=False):
         else:
             return out
 
-def purify(fp, chars=None):
+def purify(fp, chars=None, usecols=None, sep=None):
     '''
-    Remove # comments and strip line, then return a filter object
+    Remove # comments and strip line, then return a filter/map object
     '''
-    _fetch = lambda line: line.split('#', 1)[0].strip(chars)
-    return filter(None, map(_fetch, fp))
+    if usecols:
+        _fetch = lambda line: line.split('#', 1)[0].strip(chars).split(sep)
+        _pick = lambda items: ' '.join(items[i] for i in usecols)
+        return map(_pick, filter(None, map(_fetch, fp)))
+    else:
+        _fetch = lambda line: line.split('#', 1)[0].strip(chars)
+        return filter(None, map(_fetch, fp))
