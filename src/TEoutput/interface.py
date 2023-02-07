@@ -585,15 +585,14 @@ def do_refine(args=None):
     # read raw data and filter
     inputfile = options.inputfile
     with open(inputfile, 'r') as f:
-        contents = purify(f.readlines())
+        # check columns
+        if options.column:
+            index = list(map(int, options.column.split()))
+            contents = purify(f.readlines(), usecols=index)
+            logger.info(f'Column indexes which are picked up: {options.column}')
+        else:
+            contents = purify(f.readlines())
     logger.info(f'Clear all comments and blank lines in {inputfile}')
-    
-    # check columns
-    if options.column:
-        index = list(map(int, options.column.split()))
-        logger.info(f'Column indexes which are picked up: {options.column}')
-        pick_data = lambda items: ' '.join(items[i] for i in index)
-        contents = map(pick_data, map(str.split, contents))
     
     # parse outputfile name
     outputfile = suffixed(options.outputfile, inputfile, options.suffix)
