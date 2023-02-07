@@ -541,7 +541,7 @@ def do_cutoff(args=None):
         comment = ''
     else:
         datas[:, index] *= factor
-        comment = f'Mixed datafiles - {TIME} {INFO}'
+        comment = f'Cut-off data at {tc:.2f} - {TIME} {INFO}'
     
     # save result
     np.savetxt(outputfile, datas, fmt='%.4f', header=comment)
