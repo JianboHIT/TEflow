@@ -228,25 +228,21 @@ def do_mixing(args=None):
     
     parser.add_argument('-s', '--scale', type=float, default=0, 
                         help='The scale factor (default: 1/sum(weights))')
+
+    parser.add_argument('inputfile', metavar='INPUTFILE', nargs='+',
+                        help='Filename of input file, which is usually more than one')
     
-    parser.add_argument('-o', '--output', metavar='FILENAME', 
-                        help='Specify the filename of output destination. By default, the last \
-                             DATAFILE will be treated as output destination')
-    
-    parser.add_argument('datafile', metavar='DATAFILE', nargs='+',
-                        help='Filenames of datafile. Crucially, the last one will be \
-                             treated as output destination unless -o/--output option is given')
+    parser.add_argument('outputfile', metavar='OUTPUTFILE', 
+                        help='A output filename is requrired here, which follows the inputfile(s)')
+
         
     options = parser.parse_args(args)
     
     logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
     logger.info(f'{DESC} - {TIME}')
     
-    if options.output is None:
-        *filenames, outputfile = options.datafile
-    else:
-        filenames = options.datafile
-        outputfile = options.output
+    filenames = options.inputfile
+    outputfile = options.outputfile
     logger.info(f"Datafiles: {', '.join(filenames)}")
     logger.info(f'Outputfile: {outputfile}')
     
