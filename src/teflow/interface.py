@@ -38,7 +38,7 @@ DESCRIPTION = {
 }
 DESCRIPTION_FMT = '\n'.join('{:>10s}    {}'.format(key, value) 
                             for key, value in DESCRIPTION.items())
-# figlet -f slant TEoutput | boxes -d stark1
+# figlet -f slant TEflow | boxes -d stark1
 INFO_HELP = f'''
      ________  ________                                          
      |        \|        \     ,...  ,,                           

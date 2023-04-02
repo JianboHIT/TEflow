@@ -1,5 +1,5 @@
-# TEoutput (under-developed)
-A python3 package for thermoelectric(***TE***) ***output*** performance calculations
+# TEflow (under-developed)
+A python3 package for streamlining thermoelectric workflow from materials to devices
 
 ## Features
 - Engineering performance of thermoelectric generator[^1]
