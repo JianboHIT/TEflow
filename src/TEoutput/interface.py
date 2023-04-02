@@ -21,9 +21,9 @@ from .utils import get_pkg_name, get_root_logger
 
 # dprint = print      # for debug using
 
-CMD = 'teop'
+CMD = 'tef'
 CPR = 'Copyright 2023 Jianbo ZHU'
-PKG = get_pkg_name()
+PKG = get_pkg_name().replace('te', 'TE')
 VISION = __version__
 INFO = f'{PKG}({VISION})'
 PLATFORM = f"{INFO} @ Python {sys.version}".replace('\n', '')
@@ -39,29 +39,30 @@ DESCRIPTION = {
 DESCRIPTION_FMT = '\n'.join('{:>10s}    {}'.format(key, value) 
                             for key, value in DESCRIPTION.items())
 # figlet -f slant TEoutput | boxes -d stark1
-INFO_HELP = f"""\
-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-!        ____________            __              __       !
-!       /_  __/ ____/___  __  __/ /_____  __  __/ /_      !
-!        / / / __/ / __ \/ / / / __/ __ \/ / / / __/      !
-!       / / / /___/ /_/ / /_/ / /_/ /_/ / /_/ / /_        !
-!      /_/ /_____/\____/\__,_/\__/ .___/\__,_/\__/        !
-!                               /_/                       !
-!      {                 f'(v{VISION}, {CPR})':>45s}      !
-!                                                         !
-! *** TEoutput - A python3 package for thermoelectric *** !
-! ********** output performance calculations. *********** !
-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+INFO_HELP = f'''
+     ________  ________                                          
+     |        \|        \     ,...  ,,                           
+      \$$$$$$$$| $$$$$$$$   .d' ""`7MM                           
+        | $$   | $$__       dM`     MM                           
+        | $$   | $$  \     mMMmm    MM  ,pW"Wq.`7M'    ,A    `MF'
+        | $$   | $$$$$      MM      MM 6W'   `Wb VA   ,VAA   ,V  
+        | $$   | $$_____    MM      MM 8M     M8  VA ,V  VA ,V   
+        | $$   | $$     \   MM      MM YA.   ,A9   VVV    VVV    
+         \$$    \$$$$$$$$ .JMML.  .JMML.`Ybmd9'     W      W     
+  
+                 {                 f'(v{VISION}, {CPR})':>45s}
+______________________________________________________________________
+>>> Streamline your thermoelectric workflow from materials to devices
 
 Usage: {CMD}-xxxxxx ...
 
 Subcommands:
 {DESCRIPTION_FMT}
-"""
+'''
 FOOTNOTE = ''
 
 LOG_LEVEL = 20
-LOG_FMT = '[%(name)s] %(message)s'      # '[%(levelname)5s] %(message)s'
+LOG_FMT = f'[{PKG}] %(message)s'      # '[%(levelname)5s] %(message)s'
 # logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
 
 
