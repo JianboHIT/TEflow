@@ -3,8 +3,8 @@
 import os
 import numpy as np
 from pprint import pformat
-from TEoutput import ztdev
-from TEoutput.utils import get_root_logger
+from teflow import ztdev
+from teflow.utils import get_root_logger
 
 
 ############# Default Setting #############     

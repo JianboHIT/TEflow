@@ -2,7 +2,7 @@
 
 import logging
 import numpy as np
-from TEoutput.utils import interp
+from teflow.utils import interp
 
 
 ############# Default Setting #############

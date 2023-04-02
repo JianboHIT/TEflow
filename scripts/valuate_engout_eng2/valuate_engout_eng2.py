@@ -2,8 +2,8 @@
 
 import os
 import numpy as np
-from TEoutput.engout import GenPair
-from TEoutput.utils import get_root_logger
+from teflow.engout import GenPair
+from teflow.utils import get_root_logger
 
 
 ############# Default Setting #############     
