@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from scipy.integrate import quad
 import numpy as np
 
-from .utils import kB, e0
+from .utils import kB, q0
 
 
 class BaseBand(ABC):
@@ -106,7 +106,7 @@ class BaseBand(ABC):
         '''cm^2/(V.s)'''
         pC = self.K_n(0, EF, T)     # S/cm
         pN = self.N(EF, T)          # 1E19 cm^-3
-        return pC/(e0*pN*1E19)
+        return pC/(q0*pN)
     
     def rH(self, EF, T):
         raise NotImplementedError('Undefined behaviour')
