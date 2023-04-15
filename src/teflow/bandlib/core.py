@@ -10,26 +10,18 @@ class BaseBand(ABC):
     
     @abstractmethod
     def dos(self, E):
-        '''SI: 1E19 state/(eV.cm^3)'''
+        '''1E19 state/(eV.cm^3)'''
         pass
     
     @abstractmethod
     def trs(self, E, T):
-        '''SI: S/cm'''
+        '''S/cm'''
         pass
     
-    def __K_n(self, __n, EF, T):
-        '''S/cm'''
-        # x = E/(kB*T),  E = x*kB*T
-        kernel = lambda x: self.trs(x*kB*T, T) * self.dfx(x - EF/(kB*T), __n)
-        return quad(kernel, 0, np.inf)[0]
-    
-    def K_n(self, __n, EF, T):
-        '''S/cm'''
-        if self._caching:
-            return self._caching['K_n'][__n]
-        else:
-            return np.vectorize(self.__K_n, excluded=['__n', ])(__n, EF, T)
+    @abstractmethod
+    def hall(self, E, T):
+        '''[S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)]'''
+        pass
     
     def __N(self, EF, T):
         '''1E19 cm^(-3)'''
@@ -44,13 +36,38 @@ class BaseBand(ABC):
         else:
             return np.vectorize(self.__N)(EF, T)
     
+    def __K_n(self, __n, EF, T):
+        '''S/cm'''
+        # x = E/(kB*T),  E = x*kB*T
+        kernel = lambda x: self.trs(x*kB*T, T) * self.dfx(x - EF/(kB*T), __n)
+        return quad(kernel, 0, np.inf)[0]
+    
+    def K_n(self, __n, EF, T):
+        '''S/cm'''
+        if self._caching:
+            return self._caching['K_n'][__n]
+        else:
+            return np.vectorize(self.__K_n, excluded=['__n', ])(__n, EF, T)
+
+    def __CCRH(self, EF, T):
+        '''[S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)]'''
+        kernel = lambda x: self.hall(x*kB*T, T) * self.dfx(x - EF/(kB*T))
+        return quad(kernel, 0, np.inf)[0]
+    
+    def CCRH(self, EF, T):
+        '''[S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)]'''
+        if self._caching:
+            return self._caching['CCRH']
+        else:
+            return np.vectorize(self.__CCRH)(EF, T)
+    
     def compile(self, EF, T, max_level=2):
-        self.clear()
         self._caching = {
-            'args': (EF, T), 
-            'K_n': [self.K_n(i, EF, T) for i in range(max_level+1)],
+            'args': (EF, T),
             'N': self.N(EF, T),
-            'property': ('N', 'C', 'CS', 'S', 'PF', 'L', 'Ke', 'U'),
+            'CCRH': self.CCRH(EF, T),
+            'K_n': [self.K_n(i, EF, T) for i in range(max_level+1)],
+            'property': ('N', 'CCRH', 'C', 'CS', 'S', 'PF', 'L', 'Ke', 'U', 'RH'),
         }
     
     def clear(self):
@@ -108,8 +125,9 @@ class BaseBand(ABC):
         pN = self.N(EF, T)          # 1E19 cm^-3
         return pC/(q0*pN)
     
-    def rH(self, EF, T):
-        raise NotImplementedError('Undefined behaviour')
+    def RH(self, EF, T):
+        '''cm^3/C'''
+        return self.CCRH(EF, T)/np.power(self.K_n(0, EF, T), 2)
     
     @staticmethod
     def fx(x):
@@ -148,6 +166,14 @@ class MultiBand(BaseBand):
             trs_tot += bd.trs(np.maximum(dt-E, 0), T)
         return trs_tot
     
+    def hall(self, E, T):
+        hall_tot = 0
+        for bd, dt in zip(self._bands, self._offsets):
+            hall_tot += bd.hall(np.maximum(E-dt, 0), T)
+        for bd, dt in zip(self._bands2, self._offsets2):
+            hall_tot += bd.hall(np.maximum(dt-E, 0), T)
+        return hall_tot
+    
     def K_n(self, __n, EF, T):
         if self._caching:
             K_tot = self._caching['K_n'][__n]
@@ -169,3 +195,14 @@ class MultiBand(BaseBand):
             for bd, dt in zip(self._bands2, self._offsets2):
                 N_tot += bd.N(dt-EF, T)
         return N_tot
+    
+    def CCRH(self, EF, T):
+        if self._caching:
+            H_tot = self._caching['CCRH']
+        else:
+            H_tot = 0
+            for bd, dt in zip(self._bands, self._offsets):
+                H_tot += bd.CCRH(EF-dt, T)
+            for bd, dt in zip(self._bands2, self._offsets2):
+                H_tot += bd.CCRH(dt-EF, T)
+        return H_tot
