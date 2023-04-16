@@ -146,6 +146,14 @@ class BaseBand(ABC):
         '''cm^3/C'''
         return self._CCRH(EF, T)/np.power(self._K_n(0, EF, T), 2)
     
+    def UH(self, EF=None, T=None):
+        '''cm^2/(V.s)'''
+        return self._CCRH(EF, T)/self._K_n(0, EF, T)
+    
+    def NH(self, EF=None, T=None):
+        '''1E19 cm^-3'''
+        return np.power(self._K_n(0, EF, T), 2)/self._CCRH(EF, T)/q0
+    
     @staticmethod
     def fx(x):
         return 1/2*(1-np.tanh(x/2))
