@@ -26,9 +26,6 @@ class BaseBand(ABC):
     def _N(self, EF, T):
         '''1E19 cm^(-3)'''
         # x = E/(kB*T),  E = x*kB*T
-        if self._caching:
-            return self._caching['_N']
-        
         kernel = lambda E, _EF, _T: self.dos(E) \
                                     * self.fx((E-_EF)/(kB*_T))
         itg = lambda _EF, _T: quad(kernel, 0, np.inf, args=(_EF, _T))[0]
@@ -37,19 +34,14 @@ class BaseBand(ABC):
     def _K_n(self, __n, EF, T):
         '''S/cm'''
         # x = E/(kB*T),  E = x*kB*T
-        if self._caching:
-            return self._caching['_K_n'][__n]
-        
-        kernel = lambda x, _n, _EF, _T: self.trs(x*kB*_T, _T) \
-                                        * self.dfx(x - _EF/(kB*_T), _n)
-        itg = lambda _n, _EF, _T: quad(kernel, 0, np.inf, args=(_n, _EF, _T))[0]
-        return np.vectorize(itg, excluded=['_n', ])(__n, EF, T)
+        __n = round(__n)
+        kernel = lambda x, _EF, _T: self.trs(x*kB*_T, _T) \
+                                    * self.dfx(x - _EF/(kB*_T), __n)
+        itg = lambda _EF, _T: quad(kernel, 0, np.inf, args=(_EF, _T))[0]
+        return np.vectorize(itg)(EF, T)
     
     def _CCRH(self, EF, T):
         '''[S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)]'''
-        if self._caching:
-            return self._caching['_CCRH']
-        
         kernel = lambda x, _EF, _T: self.hall(x*kB*_T, _T) \
                                     * self.dfx(x - _EF/(kB*_T))
         itg = lambda _EF, _T: quad(kernel, 0, np.inf, args=(_EF, _T))[0]
@@ -57,9 +49,9 @@ class BaseBand(ABC):
     
     def compile(self, EF, T, max_level=2):
         self._caching = {
-            '_N': self.N(EF, T),
+            '_N': self._N(EF, T),
             '_K_n': [self._K_n(i, EF, T) for i in range(max_level+1)],
-            '_CCRH': self.CCRH(EF, T),
+            '_CCRH': self._CCRH(EF, T),
         }
     
     def clear(self):
@@ -67,92 +59,107 @@ class BaseBand(ABC):
     
     def __getitem__(self, key):
         if not self._caching:
-            raise RuntimeError('Uncompiled Bands() class')
+            raise RuntimeError('Uncompiled class')
         elif not hasattr(self, key):
             raise KeyError(f'Failed to read undefined {key}')
         elif key.startswith('_'):
             raise KeyError(f'Failed to read protected {key}')
-        elif key in {'dos', 'trs', 'hall'}:
+        elif key in {'dos', 'trs', 'hall', 'compile', 'clear'}:
             raise KeyError(f'Failed to read metadata {key}')
         else:
             return getattr(self, key)()
     
     def N(self, EF=None, T=None):
         '''1E19 cm^(-3)'''
-        return self._N(EF, T)
+        if self._caching:
+            return self._caching['_N']
+        else:
+            return self._N(EF, T)
     
     def K_0(self, EF=None, T=None):
         '''S/cm'''
-        return self._K_n(0, EF, T)
+        if self._caching:
+            return self._caching['_K_n'][0]
+        else:
+            return self._K_n(0, EF, T)
     
     def K_1(self, EF=None, T=None):
         '''S/cm'''
-        return self._K_n(1, EF, T)
+        if self._caching:
+            return self._caching['_K_n'][1]
+        else:
+            return self._K_n(1, EF, T)
     
     def K_2(self, EF=None, T=None):
         '''S/cm'''
-        return self._K_n(2, EF, T)
+        if self._caching:
+            return self._caching['_K_n'][2]
+        else:
+            return self._K_n(2, EF, T)
     
     def CCRH(self, EF=None, T=None):
         '''[S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)]'''
-        return self._CCRH(EF, T)
+        if self._caching:
+            return self._caching['_CCRH']
+        else:
+            return self._CCRH(EF, T)
     
     def C(self, EF=None, T=None):
         '''S/cm'''
-        p0 = self._K_n(0, EF, T)
+        p0 = self.K_0(EF, T)
         return p0
     
     def CS(self, EF=None, T=None):
         '''[S/cm]*[uV/K]'''
-        p1 = self._K_n(1, EF, T)
+        p1 = self.K_1(EF, T)
         return 1E6 * kB * p1
     
     def S(self, EF=None, T=None):
         '''uV/K'''
-        p0 = self._K_n(0, EF, T)
-        p1 = self._K_n(1, EF, T)
+        p0 = self.K_0(EF, T)
+        p1 = self.K_1(EF, T)
         return 1E6 * kB * p1/p0
     
     def PF(self, EF=None, T=None):
         '''uW/(cm.K^2)'''
-        p0 = self._K_n(0, EF, T)
-        p1 = self._K_n(1, EF, T)
+        p0 = self.K_0(EF, T)
+        p1 = self.K_1(EF, T)
         pr = np.power(p1, 2) / p0
         return 1E6 * kB * kB * pr
     
     def L(self, EF=None, T=None):
         '''1E-8 W.Ohm/K^2'''
-        p0 = self._K_n(0, EF, T)
-        p1 = self._K_n(1, EF, T)
-        p2 = self._K_n(2, EF, T)
+        p0 = self.K_0(EF, T)
+        p1 = self.K_1(EF, T)
+        p2 = self.K_2(EF, T)
         pr = p2/p0 - np.power(p1/p0, 2)
         return 1E8 * kB * kB * pr
     
     def Ke(self, EF=None, T=None):
         '''W/(m.K)'''
-        p0 = self._K_n(0, EF, T)
-        p1 = self._K_n(1, EF, T)
-        p2 = self._K_n(2, EF, T)
+        p0 = self.K_0(EF, T)
+        p1 = self.K_1(EF, T)
+        p2 = self.K_2(EF, T)
         pr = p2 - np.power(p1, 2)/p0
         return 1E2 * kB * kB * pr * T
     
     def U(self, EF=None, T=None):
         '''cm^2/(V.s)'''
-        pC = self._K_n(0, EF, T)     # S/cm
-        pN = self._N(EF, T)          # 1E19 cm^-3
+        pC = self.K_0(EF, T)     # S/cm
+        pN = self.N(EF, T)          # 1E19 cm^-3
         return pC/(q0*pN)
     
     def RH(self, EF=None, T=None):
         '''cm^3/C'''
-        return self._CCRH(EF, T)/np.power(self._K_n(0, EF, T), 2)
+        return self.CCRH(EF, T)/np.power(self.K_0(EF, T), 2)
     
     def UH(self, EF=None, T=None):
         '''cm^2/(V.s)'''
-        return self._CCRH(EF, T)/self._K_n(0, EF, T)
+        return self.CCRH(EF, T)/self.K_0(EF, T)
     
     def NH(self, EF=None, T=None):
         '''1E19 cm^-3'''
-        return np.power(self._K_n(0, EF, T), 2)/self._CCRH(EF, T)/q0
+        return np.power(self.K_0(EF, T), 2)/self.CCRH(EF, T)/q0
     
     @staticmethod
     def fx(x):
@@ -204,34 +211,25 @@ class MultiBand(BaseBand):
         return hall_tot
     
     def _N(self, EF, T):
-        if self._caching:
-            N_tot = self._caching['_N']
-        else:
-            N_tot = 0
-            for bd, dt in zip(self._bands, self._offsets):
-                N_tot += bd._N(EF-dt, T)
-            for bd, dt in zip(self._bands2, self._offsets2):
-                N_tot += bd._N(dt-EF, T)
+        N_tot = 0
+        for bd, dt in zip(self._bands, self._offsets):
+            N_tot += bd._N(EF-dt, T)
+        for bd, dt in zip(self._bands2, self._offsets2):
+            N_tot += bd._N(dt-EF, T)
         return N_tot
     
     def _K_n(self, __n, EF, T):
-        if self._caching:
-            K_tot = self._caching['_K_n'][__n]
-        else:
-            K_tot = 0
-            for bd, dt in zip(self._bands, self._offsets):
-                K_tot += bd._K_n(__n, EF-dt, T)
-            for bd, dt in zip(self._bands2, self._offsets2):
-                K_tot += np.power(-1, __n) * bd._K_n(__n, dt-EF, T)
+        K_tot = 0
+        for bd, dt in zip(self._bands, self._offsets):
+            K_tot += bd._K_n(__n, EF-dt, T)
+        for bd, dt in zip(self._bands2, self._offsets2):
+            K_tot += np.power(-1, __n) * bd._K_n(__n, dt-EF, T)
         return K_tot
     
     def _CCRH(self, EF, T):
-        if self._caching:
-            H_tot = self._caching['_CCRH']
-        else:
-            H_tot = 0
-            for bd, dt in zip(self._bands, self._offsets):
-                H_tot += bd._CCRH(EF-dt, T)
-            for bd, dt in zip(self._bands2, self._offsets2):
-                H_tot += bd._CCRH(dt-EF, T)
+        H_tot = 0
+        for bd, dt in zip(self._bands, self._offsets):
+            H_tot += bd._CCRH(EF-dt, T)
+        for bd, dt in zip(self._bands2, self._offsets2):
+            H_tot += bd._CCRH(dt-EF, T)
         return H_tot
