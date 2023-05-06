@@ -57,6 +57,17 @@ class BaseBand(ABC):
     def clear(self):
         self._caching = None
     
+    def compute(self, __prop, args=(), index=None):
+        if self._caching:
+            if __prop not in self._caching:
+                raise KeyError(f'Failed to read uncompiled {__prop}')
+            if index is None:
+                return self._caching[__prop]
+            else:
+                return self._caching[__prop][index]
+        else:
+            return getattr(self, __prop)(*args)
+    
     def __getitem__(self, key):
         if not self._caching:
             raise RuntimeError('Uncompiled class')
@@ -64,45 +75,30 @@ class BaseBand(ABC):
             raise KeyError(f'Failed to read undefined {key}')
         elif key.startswith('_'):
             raise KeyError(f'Failed to read protected {key}')
-        elif key in {'dos', 'trs', 'hall', 'compile', 'clear'}:
+        elif key in {'dos', 'trs', 'hall', 'compile', 'clear', 'compute'}:
             raise KeyError(f'Failed to read metadata {key}')
         else:
             return getattr(self, key)()
     
     def N(self, EF=None, T=None):
         '''1E19 cm^(-3)'''
-        if self._caching:
-            return self._caching['_N']
-        else:
-            return self._N(EF, T)
+        return self.compute('_N', args=(EF, T))
     
     def K_0(self, EF=None, T=None):
         '''S/cm'''
-        if self._caching:
-            return self._caching['_K_n'][0]
-        else:
-            return self._K_n(0, EF, T)
+        return self.compute('_K_n', args=(0, EF, T), index=0)
     
     def K_1(self, EF=None, T=None):
         '''S/cm'''
-        if self._caching:
-            return self._caching['_K_n'][1]
-        else:
-            return self._K_n(1, EF, T)
+        return self.compute('_K_n', args=(1, EF, T), index=1)
     
     def K_2(self, EF=None, T=None):
         '''S/cm'''
-        if self._caching:
-            return self._caching['_K_n'][2]
-        else:
-            return self._K_n(2, EF, T)
+        return self.compute('_K_n', args=(2, EF, T), index=2)
     
     def CCRH(self, EF=None, T=None):
         '''[S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)]'''
-        if self._caching:
-            return self._caching['_CCRH']
-        else:
-            return self._CCRH(EF, T)
+        return self.compute('_CCRH', args=(EF, T))
     
     def C(self, EF=None, T=None):
         '''S/cm'''
@@ -183,6 +179,10 @@ class MultiBand(BaseBand):
         self._offsets2 = offsets2
     
     @property
+    def bands(self):
+        return tuple(self._bands), tuple(self._bands2)
+    
+    @property
     def offsets(self):
         return tuple(self._offsets), tuple(self._offsets2)
     
@@ -211,25 +211,39 @@ class MultiBand(BaseBand):
         return hall_tot
     
     def _N(self, EF, T):
-        N_tot = 0
+        N_tot, N_tot2 = 0, 0
         for bd, dt in zip(self._bands, self._offsets):
-            N_tot += bd._N(EF-dt, T)
+            N_tot += bd.compute('_N', args=(EF-dt, T))
         for bd, dt in zip(self._bands2, self._offsets2):
-            N_tot += bd._N(dt-EF, T)
-        return N_tot
+            N_tot2 += bd.compute('_N', args=(dt-EF, T))
+        return N_tot + N_tot2
     
     def _K_n(self, __n, EF, T):
-        K_tot = 0
+        K_tot, K_tot2 = 0, 0
         for bd, dt in zip(self._bands, self._offsets):
-            K_tot += bd._K_n(__n, EF-dt, T)
+            K_tot += bd.compute('_K_n', args=(__n, EF-dt, T), index=__n)
         for bd, dt in zip(self._bands2, self._offsets2):
-            K_tot += np.power(-1, __n) * bd._K_n(__n, dt-EF, T)
-        return K_tot
+            K_tot2 += bd.compute('_K_n', args=(__n, dt-EF, T), index=__n)
+        return K_tot + np.power(-1, __n) * K_tot2
     
     def _CCRH(self, EF, T):
-        H_tot = 0
+        H_tot, H_tot2 = 0, 0
         for bd, dt in zip(self._bands, self._offsets):
-            H_tot += bd._CCRH(EF-dt, T)
+            H_tot += bd.compute('_CCRH', args=(EF-dt, T))
         for bd, dt in zip(self._bands2, self._offsets2):
-            H_tot += bd._CCRH(dt-EF, T)
-        return H_tot
+            H_tot2 += bd.compute('_CCRH', args=(dt-EF, T))
+        return H_tot - H_tot2
+    
+    def compile(self, EF, T, max_level=2):
+        for bd, dt in zip(self._bands, self._offsets):
+            bd.compile(EF-dt, T, max_level)
+        for bd, dt in zip(self._bands2, self._offsets2):
+            bd.compile(dt-EF, T, max_level)
+        return super().compile(EF, T, max_level)
+    
+    def clear(self):
+        for bd in self._bands:
+            bd.clear()
+        for bd in self._bands2:
+            bd.clear()
+        return super().clear()
