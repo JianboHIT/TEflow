@@ -239,3 +239,31 @@ class MultiBand(BaseBand):
         for band in self.bands:
             band.clear()
         return super().clear()
+    
+    def Kbip(self, EF=None, T=None):
+        Nc, Nv = 0, 0
+        p0_c, p0_v, p1_c, p1_v = 0, 0, 0, 0
+        for band, delta in zip(self.bands, self.deltas):
+            if band._q_sign < 0:
+                Nc += 1
+                EFr = None if EF is None else EF-delta
+                p0_c += band.K_0(EFr, T)
+                p1_c += band.K_1(EFr, T)
+            else:
+                Nv += 1
+                EFr = None if EF is None else delta-EF
+                p0_v += band.K_0(EFr, T)
+                p1_v += band.K_1(EFr, T)
+
+        if Nc == 0:
+            if Nv == 0:
+                return 0
+            else:
+                return np.zeros_like(p0_v)
+        else:
+            if Nv == 0:
+                return np.zeros_like(p0_c)
+            else:
+                pr = (np.power(p1_c, 2)/p0_c + np.power(p1_v, 2)/p0_v) \
+                     - np.power(p1_c+p1_v, 2)/(p0_c+p0_v)
+                return 1E2 * kB * kB * pr * T
