@@ -170,83 +170,72 @@ class BaseBand(ABC):
 
 
 class MultiBand(BaseBand):
-    def __init__(self, bands=(), offsets=(), bands2=(), offsets2=()):
+    def __init__(self, cbands=(), cdeltas=(), 
+                       vbands=(), vdeltas=(),):
         dsp = 'Length of {} is not the same as the number of {}'
-        if len(bands) != len(offsets):
-            raise ValueError(dsp.format('bands', 'offsets'))
-        if len(bands2) != len(offsets2):
-            raise ValueError(dsp.format('bands2', 'offsets2'))
-        self._bands = bands
-        self._bands2 = bands2
-        self._offsets = offsets
-        self._offsets2 = offsets2
-    
-    @property
-    def bands(self):
-        return tuple(self._bands), tuple(self._bands2)
-    
-    @property
-    def offsets(self):
-        return tuple(self._offsets), tuple(self._offsets2)
+        if len(cbands) != len(cdeltas):
+            raise ValueError(dsp.format('cbands', 'cdeltas'))
+        if len(vbands) != len(vdeltas):
+            raise ValueError(dsp.format('vbands', 'vdeltas'))
+
+        for band in cbands:
+            band._q_sign = -1
+        for band in vbands:
+            band._q_sign = 1
+
+        self.bands = cbands+vbands
+        self.deltas = cdeltas+vdeltas
     
     def dos(self, E):
         dos_tot = 0
-        for bd, dt in zip(self._bands, self._offsets):
-            dos_tot += bd.dos(np.maximum(E-dt, 0))
-        for bd, dt in zip(self._bands2, self._offsets2):
-            dos_tot += bd.dos(np.maximum(dt-E, 0))
+        for band, delta in zip(self.bands, self.deltas):
+            Er = np.maximum(-1*band._q_sign*(E-delta), 0)
+            dos_tot += band.dos(Er)
         return dos_tot
     
     def trs(self, E, T):
         trs_tot = 0
-        for bd, dt in zip(self._bands, self._offsets):
-            trs_tot += bd.trs(np.maximum(E-dt, 0), T)
-        for bd, dt in zip(self._bands2, self._offsets2):
-            trs_tot += bd.trs(np.maximum(dt-E, 0), T)
+        for band, delta in zip(self.bands, self.deltas):
+            Er = np.maximum(-1*band._q_sign*(E-delta), 0)
+            trs_tot += band.trs(Er, T)
         return trs_tot
     
     def hall(self, E, T):
         hall_tot = 0
-        for bd, dt in zip(self._bands, self._offsets):
-            hall_tot += bd.hall(np.maximum(E-dt, 0), T)
-        for bd, dt in zip(self._bands2, self._offsets2):
-            hall_tot += bd.hall(np.maximum(dt-E, 0), T)
+        for band, delta in zip(self.bands, self.deltas):
+            Er = np.maximum(-1*band._q_sign*(E-delta), 0)
+            hall_tot += band.hall(Er, T)
         return hall_tot
     
     def _N(self, EF, T):
-        N_tot, N_tot2 = 0, 0
-        for bd, dt in zip(self._bands, self._offsets):
-            N_tot += bd.compute('_N', args=(EF-dt, T))
-        for bd, dt in zip(self._bands2, self._offsets2):
-            N_tot2 += bd.compute('_N', args=(dt-EF, T))
-        return N_tot + N_tot2
+        N_tot = 0
+        for band, delta in zip(self.bands, self.deltas):
+            EFr = -1*band._q_sign*(EF-delta)
+            N_tot += band.compute('_N', args=(EFr, T))
+        return N_tot
     
     def _K_n(self, __n, EF, T):
-        K_tot, K_tot2 = 0, 0
-        for bd, dt in zip(self._bands, self._offsets):
-            K_tot += bd.compute('_K_n', args=(__n, EF-dt, T), index=__n)
-        for bd, dt in zip(self._bands2, self._offsets2):
-            K_tot2 += bd.compute('_K_n', args=(__n, dt-EF, T), index=__n)
-        return K_tot + np.power(-1, __n) * K_tot2
+        K_tot = 0
+        for band, delta in zip(self.bands, self.deltas):
+            EFr = -1*band._q_sign*(EF-delta)
+            K_tot += np.power(band._q_sign, __n) \
+                     * band.compute('_K_n', args=(__n, EFr, T), index=__n)
+        return K_tot
     
     def _CCRH(self, EF, T):
-        H_tot, H_tot2 = 0, 0
-        for bd, dt in zip(self._bands, self._offsets):
-            H_tot += bd.compute('_CCRH', args=(EF-dt, T))
-        for bd, dt in zip(self._bands2, self._offsets2):
-            H_tot2 += bd.compute('_CCRH', args=(dt-EF, T))
-        return H_tot - H_tot2
+        H_tot = 0
+        for band, delta in zip(self.bands, self.deltas):
+            EFr = -1*band._q_sign*(EF-delta)
+            H_tot += band.compute('_CCRH', args=(EFr, T))
+        return H_tot
     
     def compile(self, EF, T, max_level=2):
-        for bd, dt in zip(self._bands, self._offsets):
-            bd.compile(EF-dt, T, max_level)
-        for bd, dt in zip(self._bands2, self._offsets2):
-            bd.compile(dt-EF, T, max_level)
+        for band, delta in zip(self.bands, self.deltas):
+            EFr = -1*band._q_sign*(EF-delta)
+            band.compile(EFr, T, max_level)
         return super().compile(EF, T, max_level)
     
     def clear(self):
-        for bd in self._bands:
-            bd.clear()
-        for bd in self._bands2:
-            bd.clear()
+        for band in self.bands:
+            band.clear()
         return super().clear()
