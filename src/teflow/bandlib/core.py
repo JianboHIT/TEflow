@@ -50,6 +50,8 @@ class BaseBand(ABC):
     
     def compile(self, EF, T, max_level=2):
         self._caching = {
+            '_EF': EF,
+            '_T': T,
             '_N': self._N(EF, T),
             '_K_n': [self._K_n(i, EF, T) for i in range(max_level+1)],
             '_CCRH': self._CCRH(EF, T),
@@ -58,7 +60,7 @@ class BaseBand(ABC):
     def clear(self):
         self._caching = None
     
-    def compute(self, __prop, args=(), index=None):
+    def fetch(self, __prop, args=(), index=None, default=None):
         if self._caching:
             if __prop not in self._caching:
                 raise KeyError(f'Failed to read uncompiled {__prop}')
@@ -66,8 +68,10 @@ class BaseBand(ABC):
                 return self._caching[__prop]
             else:
                 return self._caching[__prop][index]
-        else:
+        elif hasattr(self, __prop):
             return getattr(self, __prop)(*args)
+        else:
+            return default
     
     def __getitem__(self, key):
         if not self._caching:
@@ -76,30 +80,30 @@ class BaseBand(ABC):
             raise KeyError(f'Failed to read undefined {key}')
         elif key.startswith('_'):
             raise KeyError(f'Failed to read protected {key}')
-        elif key in {'dos', 'trs', 'hall', 'compile', 'clear', 'compute'}:
+        elif key in {'dos', 'trs', 'hall', 'compile', 'clear', 'fetch'}:
             raise KeyError(f'Failed to read metadata {key}')
         else:
             return getattr(self, key)()
     
     def N(self, EF=None, T=None):
         '''1E19 cm^(-3)'''
-        return self.compute('_N', args=(EF, T))
+        return self.fetch('_N', args=(EF, T))
     
     def K_0(self, EF=None, T=None):
         '''S/cm'''
-        return self.compute('_K_n', args=(0, EF, T), index=0)
+        return self.fetch('_K_n', args=(0, EF, T), index=0)
     
     def K_1(self, EF=None, T=None):
         '''S/cm'''
-        return self.compute('_K_n', args=(1, EF, T), index=1)
+        return self.fetch('_K_n', args=(1, EF, T), index=1)
     
     def K_2(self, EF=None, T=None):
         '''S/cm'''
-        return self.compute('_K_n', args=(2, EF, T), index=2)
+        return self.fetch('_K_n', args=(2, EF, T), index=2)
     
     def CCRH(self, EF=None, T=None):
         '''[S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)]'''
-        return self.compute('_CCRH', args=(EF, T))
+        return self.fetch('_CCRH', args=(EF, T))
     
     def C(self, EF=None, T=None):
         '''S/cm'''
@@ -138,7 +142,8 @@ class BaseBand(ABC):
         p1 = self.K_1(EF, T)
         p2 = self.K_2(EF, T)
         pr = p2 - np.power(p1, 2)/p0
-        return 1E2 * kB * kB * pr * T
+        pT = self.fetch('_T', default=T)
+        return 1E2 * kB * kB * pr * pT
     
     def U(self, EF=None, T=None):
         '''cm^2/(V.s)'''
@@ -211,7 +216,7 @@ class MultiBand(BaseBand):
         N_tot = 0
         for band, delta in zip(self.bands, self.deltas):
             EFr = -1*band._q_sign*(EF-delta)
-            N_tot += band.compute('_N', args=(EFr, T))
+            N_tot += band.fetch('_N', args=(EFr, T))
         return N_tot
     
     def _K_n(self, __n, EF, T):
@@ -219,14 +224,14 @@ class MultiBand(BaseBand):
         for band, delta in zip(self.bands, self.deltas):
             EFr = -1*band._q_sign*(EF-delta)
             K_tot += np.power(band._q_sign, __n) \
-                     * band.compute('_K_n', args=(__n, EFr, T), index=__n)
+                     * band.fetch('_K_n', args=(__n, EFr, T), index=__n)
         return K_tot
     
     def _CCRH(self, EF, T):
         H_tot = 0
         for band, delta in zip(self.bands, self.deltas):
             EFr = -1*band._q_sign*(EF-delta)
-            H_tot += band.compute('_CCRH', args=(EFr, T))
+            H_tot += band.fetch('_CCRH', args=(EFr, T))
         return H_tot
     
     def compile(self, EF, T, max_level=2):
@@ -248,7 +253,7 @@ class MultiBand(BaseBand):
                 Nc += 1
                 EFr = None if EF is None else EF-delta
                 p0_c += band.K_0(EFr, T)
-                p1_c += band.K_1(EFr, T)
+                p1_c -= band.K_1(EFr, T)
             else:
                 Nv += 1
                 EFr = None if EF is None else delta-EF
@@ -266,4 +271,5 @@ class MultiBand(BaseBand):
             else:
                 pr = (np.power(p1_c, 2)/p0_c + np.power(p1_v, 2)/p0_v) \
                      - np.power(p1_c+p1_v, 2)/(p0_c+p0_v)
-                return 1E2 * kB * kB * pr * T
+                pT = self.fetch('_T', default=T)
+                return 1E2 * kB * kB * pr * pT
