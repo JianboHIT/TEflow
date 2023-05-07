@@ -6,6 +6,7 @@ from .utils import kB, q0
 
 
 class BaseBand(ABC):
+    _q_sign = 1
     _caching = None
     
     @abstractmethod
@@ -45,7 +46,7 @@ class BaseBand(ABC):
         kernel = lambda x, _EF, _T: self.hall(x*kB*_T, _T) \
                                     * self.dfx(x - _EF/(kB*_T))
         itg = lambda _EF, _T: quad(kernel, 0, np.inf, args=(_EF, _T))[0]
-        return np.vectorize(itg)(EF, T)
+        return self._q_sign * np.vectorize(itg)(EF, T)
     
     def compile(self, EF, T, max_level=2):
         self._caching = {
@@ -108,13 +109,13 @@ class BaseBand(ABC):
     def CS(self, EF=None, T=None):
         '''[S/cm]*[uV/K]'''
         p1 = self.K_1(EF, T)
-        return 1E6 * kB * p1
+        return self._q_sign * 1E6 * kB * p1
     
     def S(self, EF=None, T=None):
         '''uV/K'''
         p0 = self.K_0(EF, T)
         p1 = self.K_1(EF, T)
-        return 1E6 * kB * p1/p0
+        return self._q_sign * 1E6 * kB * p1/p0
     
     def PF(self, EF=None, T=None):
         '''uW/(cm.K^2)'''
@@ -143,7 +144,8 @@ class BaseBand(ABC):
         '''cm^2/(V.s)'''
         pC = self.K_0(EF, T)     # S/cm
         pN = self.N(EF, T)          # 1E19 cm^-3
-        return pC/(q0*pN)
+        pQ = self._q_sign * q0
+        return pC/(pQ*pN)
     
     def RH(self, EF=None, T=None):
         '''cm^3/C'''
@@ -155,7 +157,8 @@ class BaseBand(ABC):
     
     def NH(self, EF=None, T=None):
         '''1E19 cm^-3'''
-        return np.power(self.K_0(EF, T), 2)/self.CCRH(EF, T)/q0
+        pQ = self._q_sign * q0
+        return np.power(self.K_0(EF, T), 2)/self.CCRH(EF, T)/pQ
     
     @staticmethod
     def fx(x):
