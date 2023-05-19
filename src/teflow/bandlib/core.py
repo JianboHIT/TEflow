@@ -135,6 +135,14 @@ class BaseBand(ABC):
         pr = np.power(p1, 2) / p0
         return 1E6 * kB_eV * kB_eV * pr
     
+    def CL(self, EF=None, T=None):
+        '''[W/(m.K)] / [T]'''
+        p0 = self.K_0(EF, T)
+        p1 = self.K_1(EF, T)
+        p2 = self.K_2(EF, T)
+        pr = p2 - np.power(p1, 2)/p0
+        return 1E2 * kB_eV * kB_eV * pr
+    
     def L(self, EF=None, T=None):
         '''1E-8 W.Ohm/K^2'''
         p0 = self.K_0(EF, T)
