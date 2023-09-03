@@ -1,7 +1,7 @@
 import numpy as np
 
 from .core import BaseBand
-from .utils import kB, m_e, hbar, e0 
+from .utils import kB_eV, m_e, hbar, e0
 
 
 class APSSPB(BaseBand):
@@ -19,12 +19,12 @@ class APSSPB(BaseBand):
         return factor * g0 * np.sqrt(E)
     
     def trs(self, E, T):
-        return self.sigma0 * E/(kB*T)
+        return self.sigma0 * E/(kB_eV*T)
     
     def hall(self, E, T):
-        N0 = np.power(2*self.m_d*m_e*kB*e0*T, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
+        N0 = np.power(2*self.m_d*m_e*kB_eV*e0*T, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
         facotr = np.power(self.sigma0, 2) / (2/3 * 1E-6*N0 * e0)  # N0: m^-3 --> cm^-3
-        return self.Kstar * facotr * np.sqrt(E/(kB*T))
+        return self.Kstar * facotr * np.sqrt(E/(kB_eV*T))
     
     @property
     def Kstar(self):
@@ -55,7 +55,7 @@ class APSSPB(BaseBand):
         # m_d: m_e
         # UWT: cm^2/(V.s)
         # factor = np.sqrt(np.pi)/2 * e0 \
-        #          * np.power(2*m_e*kB*e0*300, 3/2) \
+        #          * np.power(2*m_e*kB_eV*e0*300, 3/2) \
         #          / (2*np.pi*np.pi*np.power(hbar, 3)) * 1E-4 /100  # S/cm
         factor = 4.020521639724753      # S/cm
         sigma0 = factor * UWT
@@ -84,13 +84,13 @@ class APSSKB(BaseBand):
     
     def trs(self, E, T):
         kane = 3*(1+E/self.Eg)/(np.power(1+2*E/self.Eg, 2)+2)
-        return self.sigma0 * E/(kB*T) * kane
+        return self.sigma0 * E/(kB_eV*T) * kane
     
     def hall(self, E, T):
-        N0 = np.power(2*self.m_d*m_e*kB*e0*T, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
+        N0 = np.power(2*self.m_d*m_e*kB_eV*e0*T, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
         facotr = np.power(self.sigma0, 2) / (2/3 * 1E-6*N0 * e0)  # N0: m^-3 --> cm^-3
         kane = 9*np.sqrt(1+E/self.Eg)/np.power(np.power(1+2*E/self.Eg, 2)+2, 2)
-        return self.Kstar * facotr * np.sqrt(E/(kB*T)) * kane
+        return self.Kstar * facotr * np.sqrt(E/(kB_eV*T)) * kane
     
     @property
     def Kstar(self):
@@ -123,7 +123,7 @@ class APSSKB(BaseBand):
         # UWT: cm^2/(V.s)
         # Eg: eV
         # factor = np.sqrt(np.pi)/2 * e0 \
-        #          * np.power(2*m_e*kB*e0*300, 3/2) \
+        #          * np.power(2*m_e*kB_eV*e0*300, 3/2) \
         #          / (2*np.pi*np.pi*np.power(hbar, 3)) \
         #          * 1E-6 # C/m^3 --> C/cm^3
         factor = 4.020521639724753      # [S/cm] / [cm^2/(V.s)]

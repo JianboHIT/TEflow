@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from scipy.integrate import quad
 import numpy as np
 
-from .utils import kB, q0
+from .utils import kB_eV, e0
 
 
 class BaseBand(ABC):
@@ -26,25 +26,25 @@ class BaseBand(ABC):
     
     def _N(self, EF, T):
         '''1E19 cm^(-3)'''
-        # x = E/(kB*T),  E = x*kB*T
+        # x = E/(kB_eV*T),  E = x*kB_eV*T
         kernel = lambda E, _EF, _T: self.dos(E) \
-                                    * self.fx((E-_EF)/(kB*_T))
+                                    * self.fx((E-_EF)/(kB_eV*_T))
         itg = lambda _EF, _T: quad(kernel, 0, np.inf, args=(_EF, _T))[0]
         return np.vectorize(itg)(EF, T)
     
     def _K_n(self, __n, EF, T):
         '''S/cm'''
-        # x = E/(kB*T),  E = x*kB*T
+        # x = E/(kB_eV*T),  E = x*kB_eV*T
         __n = round(__n)
-        kernel = lambda x, _EF, _T: self.trs(x*kB*_T, _T) \
-                                    * self.dfx(x - _EF/(kB*_T), __n)
+        kernel = lambda x, _EF, _T: self.trs(x*kB_eV*_T, _T) \
+                                    * self.dfx(x - _EF/(kB_eV*_T), __n)
         itg = lambda _EF, _T: quad(kernel, 0, np.inf, args=(_EF, _T))[0]
         return np.vectorize(itg)(EF, T)
     
     def _CCRH(self, EF, T):
         '''[S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)]'''
-        kernel = lambda x, _EF, _T: self.hall(x*kB*_T, _T) \
-                                    * self.dfx(x - _EF/(kB*_T))
+        kernel = lambda x, _EF, _T: self.hall(x*kB_eV*_T, _T) \
+                                    * self.dfx(x - _EF/(kB_eV*_T))
         itg = lambda _EF, _T: quad(kernel, 0, np.inf, args=(_EF, _T))[0]
         return self._q_sign * np.vectorize(itg)(EF, T)
     
@@ -120,20 +120,20 @@ class BaseBand(ABC):
     def CS(self, EF=None, T=None):
         '''[S/cm]*[uV/K]'''
         p1 = self.K_1(EF, T)
-        return self._q_sign * 1E6 * kB * p1
+        return self._q_sign * 1E6 * kB_eV * p1
     
     def S(self, EF=None, T=None):
         '''uV/K'''
         p0 = self.K_0(EF, T)
         p1 = self.K_1(EF, T)
-        return self._q_sign * 1E6 * kB * p1/p0
+        return self._q_sign * 1E6 * kB_eV * p1/p0
     
     def PF(self, EF=None, T=None):
         '''uW/(cm.K^2)'''
         p0 = self.K_0(EF, T)
         p1 = self.K_1(EF, T)
         pr = np.power(p1, 2) / p0
-        return 1E6 * kB * kB * pr
+        return 1E6 * kB_eV * kB_eV * pr
     
     def L(self, EF=None, T=None):
         '''1E-8 W.Ohm/K^2'''
@@ -141,7 +141,7 @@ class BaseBand(ABC):
         p1 = self.K_1(EF, T)
         p2 = self.K_2(EF, T)
         pr = p2/p0 - np.power(p1/p0, 2)
-        return 1E8 * kB * kB * pr
+        return 1E8 * kB_eV * kB_eV * pr
     
     def Ke(self, EF=None, T=None):
         '''W/(m.K)'''
@@ -150,14 +150,14 @@ class BaseBand(ABC):
         p2 = self.K_2(EF, T)
         pr = p2 - np.power(p1, 2)/p0
         pT = self.fetch('_T', default=T)
-        return 1E2 * kB * kB * pr * pT
+        return 1E2 * kB_eV * kB_eV * pr * pT
     
     def U(self, EF=None, T=None):
         '''cm^2/(V.s)'''
         pC = self.K_0(EF, T)     # S/cm
         pN = self.N(EF, T)          # 1E19 cm^-3
-        pQ = self._q_sign * q0
-        return pC/(pQ*pN)
+        pQ = self._q_sign * e0
+        return pC/(pQ*pN*1E19)
     
     def RH(self, EF=None, T=None):
         '''cm^3/C'''
@@ -169,8 +169,8 @@ class BaseBand(ABC):
     
     def NH(self, EF=None, T=None):
         '''1E19 cm^-3'''
-        pQ = self._q_sign * q0
-        return np.power(self.K_0(EF, T), 2)/self.CCRH(EF, T)/pQ
+        pQ = self._q_sign * e0
+        return 1E-19*np.power(self.K_0(EF, T), 2)/self.CCRH(EF, T)/pQ
     
     @staticmethod
     def fx(x):
@@ -279,4 +279,4 @@ class MultiBand(BaseBand):
                 pr = (np.power(p1_c, 2)/p0_c + np.power(p1_v, 2)/p0_v) \
                      - np.power(p1_c+p1_v, 2)/(p0_c+p0_v)
                 pT = self.fetch('_T', default=T)
-                return 1E2 * kB * kB * pr * pT
+                return 1E2 * kB_eV * kB_eV * pr * pT
