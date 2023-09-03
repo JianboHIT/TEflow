@@ -64,12 +64,17 @@ class BaseBand(ABC):
         if self._caching:
             if __prop not in self._caching:
                 raise KeyError(f'Failed to read uncompiled {__prop}')
+            if any(arg is not None for arg in args):
+                raise ValueError(f'Unusable arguments for cached {__prop}')
             if index is None:
                 return self._caching[__prop]
             else:
                 return self._caching[__prop][index]
         elif hasattr(self, __prop):
-            return getattr(self, __prop)(*args)
+            if index is None:
+                return getattr(self, __prop)(*args)
+            else:
+                return getattr(self, __prop)(index, *args)
         else:
             return default
     
@@ -91,15 +96,15 @@ class BaseBand(ABC):
     
     def K_0(self, EF=None, T=None):
         '''S/cm'''
-        return self.fetch('_K_n', args=(0, EF, T), index=0)
+        return self.fetch('_K_n', args=(EF, T), index=0)
     
     def K_1(self, EF=None, T=None):
         '''S/cm'''
-        return self.fetch('_K_n', args=(1, EF, T), index=1)
+        return self.fetch('_K_n', args=(EF, T), index=1)
     
     def K_2(self, EF=None, T=None):
         '''S/cm'''
-        return self.fetch('_K_n', args=(2, EF, T), index=2)
+        return self.fetch('_K_n', args=(EF, T), index=2)
     
     def CCRH(self, EF=None, T=None):
         '''[S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)]'''
@@ -224,7 +229,7 @@ class MultiBand(BaseBand):
         for band, delta in zip(self.bands, self.deltas):
             EFr = -1*band._q_sign*(EF-delta)
             K_tot += np.power(band._q_sign, __n) \
-                     * band.fetch('_K_n', args=(__n, EFr, T), index=__n)
+                     * band.fetch('_K_n', args=(EFr, T), index=__n)
         return K_tot
     
     def _CCRH(self, EF, T):
