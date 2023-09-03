@@ -81,12 +81,14 @@ class BaseBand(ABC):
     def __getitem__(self, key):
         if not self._caching:
             raise RuntimeError('Uncompiled class')
+        elif key in {'EF', 'T'}:
+            return self._caching[f'_{key}']
         elif not hasattr(self, key):
             raise KeyError(f'Failed to read undefined {key}')
         elif key.startswith('_'):
             raise KeyError(f'Failed to read protected {key}')
         elif key in {'dos', 'trs', 'hall', 'compile', 'clear', 'fetch'}:
-            raise KeyError(f'Failed to read metadata {key}')
+            raise KeyError(f'Failed to read meta attributes {key}')
         else:
             return getattr(self, key)()
     
