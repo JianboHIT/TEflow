@@ -24,34 +24,3 @@ UNIT = {
     'HALL': 'S.cm/(V.s)',
 }
 
-def vectorize(__pyfunc=None, **kwargs):
-    '''
-    A wraper of numpy.vectorize 
-
-    Parameters
-    ----------
-    __pyfunc : callable, optional
-        A python callable object
-
-    Returns
-    -------
-    A wraped numpy.vectorize
-    
-    Example 1:
-    @vectorize
-    def func(...):
-        ...
-    
-    Example 2:
-    @vectorize(otype=...)
-    def func(...):
-        ...
-        
-    Example 2:
-    func = vectorize(func, ...)
-    '''
-    if __pyfunc is None:
-        return partial(vectorize, **kwargs)
-    else:
-        return wraps(__pyfunc)(np.vectorize(__pyfunc, **kwargs))
-
