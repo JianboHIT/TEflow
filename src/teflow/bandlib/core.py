@@ -8,6 +8,12 @@ from .utils import kB_eV, e0
 class BaseBand(ABC):
     _q_sign = 1
     _caching = None
+    cacheable = {'EF', 'T',
+                 'N', 'K_0', 'K_1', 'K_2', 'CCRH',
+                 'C', 'CS', 'S', 'PF',
+                 'L', 'CL', 'Ke',
+                 'U', 'RH', 'UH', 'NH',
+                 }
     
     @abstractmethod
     def dos(self, E):
@@ -60,21 +66,21 @@ class BaseBand(ABC):
     def clear(self):
         self._caching = None
     
-    def fetch(self, __prop, args=(), index=None, default=None):
+    def fetch(self, _prop, args=(), index=None, default=None):
         if self._caching:
-            if __prop not in self._caching:
-                raise KeyError(f'Failed to read uncompiled {__prop}')
+            if _prop not in self._caching:
+                raise KeyError(f'Failed to read uncompiled {_prop}')
             if any(arg is not None for arg in args):
-                raise ValueError(f'Unusable arguments for cached {__prop}')
+                raise ValueError(f'Unusable arguments for cached {_prop}')
             if index is None:
-                return self._caching[__prop]
+                return self._caching[_prop]
             else:
-                return self._caching[__prop][index]
-        elif hasattr(self, __prop):
+                return self._caching[_prop][index]
+        elif _prop in {'_N', '_K_n', '_CCRH'}:
             if index is None:
-                return getattr(self, __prop)(*args)
+                return getattr(self, _prop)(*args)
             else:
-                return getattr(self, __prop)(index, *args)
+                return getattr(self, _prop)(index, *args)
         else:
             return default
     
@@ -83,14 +89,10 @@ class BaseBand(ABC):
             raise RuntimeError('Uncompiled class')
         elif key in {'EF', 'T'}:
             return self._caching[f'_{key}']
-        elif not hasattr(self, key):
-            raise KeyError(f'Failed to read undefined {key}')
-        elif key.startswith('_'):
-            raise KeyError(f'Failed to read protected {key}')
-        elif key in {'dos', 'trs', 'hall', 'compile', 'clear', 'fetch'}:
-            raise KeyError(f'Failed to read meta attributes {key}')
-        else:
+        elif key in self.cacheable:
             return getattr(self, key)()
+        else:
+            raise KeyError(f'Uncacheable property {key}')
     
     def N(self, EF=None, T=None):
         '''1E19 cm^(-3)'''
@@ -190,6 +192,8 @@ class BaseBand(ABC):
 
 
 class MultiBand(BaseBand):
+    cacheable = BaseBand.cacheable | {'Kbip'}
+
     def __init__(self, cbands=(), cdeltas=(), 
                        vbands=(), vdeltas=(),):
         dsp = 'Length of {} is not the same as the number of {}'
