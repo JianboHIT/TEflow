@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from scipy.integrate import quad
+from scipy.optimize import root_scalar
 import numpy as np
 
 from .utils import kB_eV, e0
@@ -196,6 +197,17 @@ class BaseBand(ABC):
         '''1E19 cm^-3'''
         pQ = self._q_sign * e0
         return 1E-19*np.power(self.K_0(EF, T), 2)/self.CCRH(EF, T)/pQ
+
+    def slove_EF(self, prop, value, T, near=0, between=None, **kwargs):
+        para = {'x0': near,
+                'x1': None if near is None else near+1,
+                'bracket': between}
+        para.update(kwargs)
+        def _slove(iVal, iT):
+            residual = lambda x: getattr(self, prop)(x*kB_eV*iT, iT) - iVal
+            out = root_scalar(residual, **para)
+            return out.root*kB_eV*iT if out.converged else np.nan
+        return np.vectorize(_slove)(value, T)
     
     @staticmethod
     def fx(x):
