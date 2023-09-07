@@ -61,6 +61,16 @@ class APSSPB(BaseBand):
         sigma0 = factor * UWT
         return cls(m_d=m_d, sigma0=sigma0, Kmass=Kmass)
 
+    @classmethod
+    def slove_m_d(cls, dataS, dataN, dataT, hall=False, Kmass=1):
+        rspb = cls(Kmass=Kmass)
+        dataEF = rspb.slove_EF('S', dataS, dataT)
+        if hall:
+            N0 = rspb.NH(dataEF, dataT)
+        else:
+            N0 = rspb.N(dataEF, dataT)
+        return np.power(dataN/N0, 2/3)
+
 
 class APSSKB(BaseBand):
     m_d = 1         # m_e
