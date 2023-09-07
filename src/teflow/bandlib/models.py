@@ -63,13 +63,20 @@ class APSSPB(BaseBand):
 
     @classmethod
     def slove_m_d(cls, dataS, dataN, dataT, hall=False, Kmass=1):
-        rspb = cls(Kmass=Kmass)
-        dataEF = rspb.slove_EF('S', dataS, dataT)
+        spb = cls(Kmass=Kmass)
+        dataEF = spb.slove_EF('S', dataS, dataT)
         if hall:
-            N0 = rspb.NH(dataEF, dataT)
+            N0 = spb.NH(dataEF, dataT)
         else:
-            N0 = rspb.N(dataEF, dataT)
+            N0 = spb.N(dataEF, dataT)
         return np.power(dataN/N0, 2/3)
+
+    @classmethod
+    def slove_L(cls, dataS):
+        spb = cls()
+        TEMP = 1/kB_eV
+        yita = spb.slove_EF('S', dataS, TEMP)
+        return spb.L(yita, TEMP)
 
 
 class APSSKB(BaseBand):
