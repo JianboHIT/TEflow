@@ -5,6 +5,23 @@ import numpy as np
 from .utils import kB_eV, e0
 
 
+_CUTOFF_FD = 30
+
+def _quad_fd(kernel, Y, T):
+    # kernel(x, Y, T)
+    def itg(y, t):
+        left  = quad(kernel,
+                     np.maximum(0, y-_CUTOFF_FD),
+                     np.maximum(0, y),
+                     args=(y, t))[0]
+        right = quad(kernel, 
+                     np.maximum(0, y),
+                     np.maximum(0, y+_CUTOFF_FD),
+                     args=(y, t))[0]
+        return left + right
+    return np.vectorize(itg)(Y, T)
+
+
 class BaseBand(ABC):
     _q_sign = 1
     _caching = None
@@ -40,20 +57,18 @@ class BaseBand(ABC):
     
     def _K_n(self, __n, EF, T):
         '''S/cm'''
-        # x = E/(kB_eV*T),  E = x*kB_eV*T
-        __n = round(__n)
-        kernel = lambda x, _EF, _T: self.trs(x*kB_eV*_T, _T) \
-                                    * self.dfx(x - _EF/(kB_eV*_T), __n)
-        itg = lambda _EF, _T: quad(kernel, 0, np.inf, args=(_EF, _T))[0]
-        return np.vectorize(itg)(EF, T)
+        # x = E/(kB_eV*T),  E = x*kB_eV*T, Y = EF/(kB_eV*T)
+        n = round(__n)
+        def kernel(x, Y, T):
+            return self.trs(x*kB_eV*T, T) * self.dfx(x-Y, n)
+        return _quad_fd(kernel, EF/(kB_eV*T), T)
     
     def _CCRH(self, EF, T):
         '''[S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)]'''
-        kernel = lambda x, _EF, _T: self.hall(x*kB_eV*_T, _T) \
-                                    * self.dfx(x - _EF/(kB_eV*_T))
-        itg = lambda _EF, _T: quad(kernel, 0, np.inf, args=(_EF, _T))[0]
-        return self._q_sign * np.vectorize(itg)(EF, T)
-    
+        def kernel(x, Y, T):
+            return self.hall(x*kB_eV*T, T) * self.dfx(x-Y)
+        return self._q_sign * _quad_fd(kernel, EF/(kB_eV*T), T)
+   
     def compile(self, EF, T, max_level=2):
         self._caching = {
             '_EF': EF,
