@@ -73,9 +73,16 @@ class APSSPB(BaseBand):
 
     @classmethod
     def slove_L(cls, dataS):
-        spb = cls()
+        if np.any(dataS <= 0):
+            raise ValueError('Non-negative values are required for dataS '
+                             '(i.e. absolute Seebeck coefficient)')
+        else:
+            dataS = np.minimum(dataS, 1000)
+
+        spb = cls(sigma0=100)
         TEMP = 1/kB_eV
         yita = spb.slove_EF('S', dataS, TEMP)
+        L = spb.L(yita, TEMP)
         return spb.L(yita, TEMP)
 
 
