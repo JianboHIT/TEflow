@@ -225,11 +225,28 @@ class BaseBand(ABC):
     
     @staticmethod
     def fx(x):
-        return 1/2*(1-np.tanh(x/2))
+        p = np.tanh(x/2)
+        return 1/2*(1-p)
     
     @staticmethod
     def dfx(x, k=0):
-        return np.power(x, k) * 1/4*(1-np.power(np.tanh(x/2), 2))
+        k = round(k)
+        p = np.tanh(x/2)
+        if k == 0:
+            return 1/4*(1-p*p)
+        else:
+            return 1/4*(1-p*p) * np.power(x, k)
+
+    @staticmethod
+    def ddfx(x, k=0):
+        k = round(k)
+        p = np.tanh(x/2)
+        if k == 0:
+            return 1/4*(1-p*p) * (-p)
+        elif k == 1:
+            return 1/4*(1-p*p) * (1-x*p)
+        else:
+            return 1/4*(1-p*p) * (k-x*p)*np.power(x, k-1)
 
 
 class MultiBand(BaseBand):
