@@ -76,7 +76,7 @@ class APSSPB(BaseBand):
         return cls(m_d=m_d, sigma0=sigma0, Kmass=Kmass)
 
     @classmethod
-    def slove_m_d(cls, dataS, dataN, dataT, hall=False, Kmass=1):
+    def valuate_m_d(cls, dataS, dataN, dataT, hall=False, Kmass=1):
         spb = cls(Kmass=Kmass)
         dataEF = spb.slove_EF('S', dataS, dataT)
         if hall:
@@ -86,7 +86,7 @@ class APSSPB(BaseBand):
         return np.power(dataN/N0, 2/3)
 
     @classmethod
-    def slove_L(cls, dataS):
+    def valuate_L(cls, dataS):
         if np.any(dataS <= 0):
             raise ValueError('Non-negative values are required for dataS '
                              '(i.e. absolute Seebeck coefficient)')
