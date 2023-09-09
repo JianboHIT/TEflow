@@ -17,7 +17,7 @@ from scipy.integrate import quad
 from scipy.optimize import root_scalar
 import numpy as np
 
-from .utils import kB_eV, e0
+from .misc import kB_eV, e0
 
 
 _CUTOFF_FD = 30

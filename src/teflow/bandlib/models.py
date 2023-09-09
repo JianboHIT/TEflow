@@ -15,7 +15,7 @@
 import numpy as np
 
 from .core import BaseBand
-from .utils import kB_eV, m_e, hbar, e0
+from .misc import kB_eV, m_e, hbar, e0
 
 
 class APSSPB(BaseBand):
