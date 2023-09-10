@@ -15,7 +15,7 @@
 import numpy as np
 
 from .core import BaseBand
-from .misc import kB_eV, m_e, hbar, e0
+from .misc import kB_eV, m_e, hbar, q
 
 
 class APSSPB(BaseBand):
@@ -29,15 +29,15 @@ class APSSPB(BaseBand):
         
     def dos(self, E):
         factor = 1E-25      # state/(eV.m^3) --> 1E19 state/(eV.cm^3)
-        g0 = np.power(2*self.m_d*m_e*e0, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
+        g0 = np.power(2*self.m_d*m_e*q, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
         return factor * g0 * np.sqrt(E)
     
     def trs(self, E, T):
         return self.sigma0 * E/(kB_eV*T)
     
     def hall(self, E, T):
-        N0 = np.power(2*self.m_d*m_e*kB_eV*e0*T, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
-        facotr = np.power(self.sigma0, 2) / (2/3 * 1E-6*N0 * e0)  # N0: m^-3 --> cm^-3
+        N0 = np.power(2*self.m_d*m_e*kB_eV*q*T, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
+        facotr = np.power(self.sigma0, 2) / (2/3 * 1E-6*N0 * q)  # N0: m^-3 --> cm^-3
         return self.Kstar * facotr * np.sqrt(E/(kB_eV*T))
     
     @property
@@ -59,7 +59,7 @@ class APSSPB(BaseBand):
         m2 = (m2 or m1)
         m_c = 3/(1/m1+2/m2)
         m_d = np.cbrt(Nv*Nv * m1*m2*m2)
-        # factor = (2*e0*e0*hbar*1E9) / (3*m_e*np.pi*e0*e0) /100    # S/cm
+        # factor = (2*q*q*hbar*1E9) / (3*m_e*np.pi*q*q) /100    # S/cm
         factor = 245.66655370009886     # S/cm
         sigma0 = factor * (Nv*Cii)/(m_c*Ed*Ed)
         return cls(m_d=m_d, sigma0=sigma0, Kmass=m1/m2)
@@ -68,8 +68,8 @@ class APSSPB(BaseBand):
     def from_UWT(cls, m_d=1, UWT=1, Kmass=1):
         # m_d: m_e
         # UWT: cm^2/(V.s)
-        # factor = np.sqrt(np.pi)/2 * e0 \
-        #          * np.power(2*m_e*kB_eV*e0*300, 3/2) \
+        # factor = np.sqrt(np.pi)/2 * q \
+        #          * np.power(2*m_e*kB_eV*q*300, 3/2) \
         #          / (2*np.pi*np.pi*np.power(hbar, 3)) * 1E-4 /100  # S/cm
         factor = 4.020521639724753      # S/cm
         sigma0 = factor * UWT
@@ -116,7 +116,7 @@ class APSSKB(BaseBand):
         
     def dos(self, E):
         factor = 1E-25      # state/(eV.m^3) --> 1E19 state/(eV.cm^3)
-        g0 = np.power(2*self.m_d*m_e*e0, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
+        g0 = np.power(2*self.m_d*m_e*q, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
         kane = np.sqrt(1+E/self.Eg) * (1+2*E/self.Eg)
         return factor * g0 * np.sqrt(E) * kane
     
@@ -125,8 +125,8 @@ class APSSKB(BaseBand):
         return self.sigma0 * E/(kB_eV*T) * kane
     
     def hall(self, E, T):
-        N0 = np.power(2*self.m_d*m_e*kB_eV*e0*T, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
-        facotr = np.power(self.sigma0, 2) / (2/3 * 1E-6*N0 * e0)  # N0: m^-3 --> cm^-3
+        N0 = np.power(2*self.m_d*m_e*kB_eV*q*T, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
+        facotr = np.power(self.sigma0, 2) / (2/3 * 1E-6*N0 * q)  # N0: m^-3 --> cm^-3
         kane = 9*np.sqrt(1+E/self.Eg)/np.power(np.power(1+2*E/self.Eg, 2)+2, 2)
         return self.Kstar * facotr * np.sqrt(E/(kB_eV*T)) * kane
     
@@ -150,7 +150,7 @@ class APSSKB(BaseBand):
         m2 = (m2 or m1)
         m_c = 3/(1/m1+2/m2)
         m_d = np.cbrt(Nv*Nv * m1*m2*m2)
-        # factor = (2*e0*e0*hbar*1E9) / (3*m_e*np.pi*e0*e0) /100    # S/cm
+        # factor = (2*q*q*hbar*1E9) / (3*m_e*np.pi*q*q) /100    # S/cm
         factor = 245.66655370009886     # S/cm
         sigma0 = factor * (Nv*Cii)/(m_c*Ed*Ed)
         return cls(m_d=m_d, sigma0=sigma0, Eg=Eg, Kmass=m1/m2)
@@ -160,8 +160,8 @@ class APSSKB(BaseBand):
         # m_d: m_e
         # UWT: cm^2/(V.s)
         # Eg: eV
-        # factor = np.sqrt(np.pi)/2 * e0 \
-        #          * np.power(2*m_e*kB_eV*e0*300, 3/2) \
+        # factor = np.sqrt(np.pi)/2 * q \
+        #          * np.power(2*m_e*kB_eV*q*300, 3/2) \
         #          / (2*np.pi*np.pi*np.power(hbar, 3)) \
         #          * 1E-6 # C/m^3 --> C/cm^3
         factor = 4.020521639724753      # [S/cm] / [cm^2/(V.s)]

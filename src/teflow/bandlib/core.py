@@ -17,7 +17,7 @@ from scipy.integrate import quad
 from scipy.optimize import root_scalar
 import numpy as np
 
-from .misc import kB_eV, e0
+from .misc import kB_eV, q
 
 
 _CUTOFF_FD = 30
@@ -196,7 +196,7 @@ class BaseBand(ABC):
         '''cm^2/(V.s)'''
         pC = self.K_0(EF, T)     # S/cm
         pN = self.N(EF, T)          # 1E19 cm^-3
-        pQ = self._q_sign * e0
+        pQ = self._q_sign * q
         return pC/(pQ*pN*1E19)
     
     def RH(self, EF=None, T=None):
@@ -209,7 +209,7 @@ class BaseBand(ABC):
     
     def NH(self, EF=None, T=None):
         '''1E19 cm^-3'''
-        pQ = self._q_sign * e0
+        pQ = self._q_sign * q
         return 1E-19*np.power(self.K_0(EF, T), 2)/self.CCRH(EF, T)/pQ
 
     def slove_EF(self, prop, value, T, near=0, between=None, **kwargs):

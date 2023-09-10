@@ -14,5 +14,5 @@
 
 from .core import BaseBand, MultiBand
 from .models import APSSPB, APSSKB
-from .misc import kB_eV, m_e, hbar, e0, UNIT
+from .misc import kB_eV, m_e, hbar, q, UNIT
 
