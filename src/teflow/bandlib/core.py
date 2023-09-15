@@ -13,29 +13,59 @@
 #   limitations under the License.
 
 from abc import ABC, abstractmethod
-from scipy.integrate import quad
+from scipy.integrate import quad, romb
 from scipy.optimize import root_scalar
 import numpy as np
 
 from .misc import kB_eV, q
 
 
-_CUTOFF_FD = 30
+def romb_dfx(func, EF, T, k=0, ndiv=8, eps=1E-10):
+    '''
+    Calucate semi-infinity Fermi-Dirac integrals with dfx-type weight.
 
-def _quad_fd(kernel, Y, T):
-    # kernel(x, Y, T)
-    def itg(y, t):
-        left  = quad(kernel,
-                     np.maximum(0, y-_CUTOFF_FD),
-                     np.maximum(0, y),
-                     args=(y, t))[0]
-        right = quad(kernel, 
-                     np.maximum(0, y),
-                     np.maximum(0, y+_CUTOFF_FD),
-                     args=(y, t))[0]
-        return left + right
-    return np.vectorize(itg)(Y, T)
+    Parameters
+    ----------
+    func : callable
+        A callable object with form kernel(E, T), where E is energy in eV,
+        and T is temperature in Kelvin. It is assumed to it support
+        broadcasting properties.
+    EF : ndarray
+        Fermi level in eV.
+    T : ndarray
+        Temperature in Kelvin.
+    k : int
+        Exponent of the power term in the Fermi integral, and default is 0.
+    ndiv : int
+        Order of extrapolation for Romberg method. Default is 8.
+    eps : float
+        A tolerance used to prevent the integrand from becoming undefined
+        where E=0. Default is 1E-10.
 
+    Returns
+    -------
+    ndarray
+        Integral values.
+    '''
+
+    # func(E, T)
+    km = 2       # maybe the best choice for Fermi-Dirac integrals
+    kT = kB_eV * T
+    Y = EF/kT    # auto boardcast
+    width = 1/(1+np.exp(-Y/km))
+    nbins = np.round(np.power(2, ndiv))
+    tp = np.linspace(0, width, nbins+1)  # add new axis at first
+    
+    xp = np.zeros_like(tp) - Y + eps     # (E-EF)/(kB_eV*T)
+    fp = np.zeros_like(tp)
+    
+    xp[1:-1] = km * np.log(1/tp[1:-1]-1)
+    fp = func(kT*xp+EF, T)
+    
+    wt = np.power(xp, k) \
+         * km * np.power(tp*(1-tp), km-1) \
+         / np.power(np.power(tp, km) + np.power(1-tp, km), 2)
+    return romb(fp * wt, axis=0) * width/nbins
 
 class BaseBand(ABC):
     _q_sign = 1
@@ -72,17 +102,11 @@ class BaseBand(ABC):
     
     def _K_n(self, __n, EF, T):
         '''S/cm'''
-        # x = E/(kB_eV*T),  E = x*kB_eV*T, Y = EF/(kB_eV*T)
-        n = round(__n)
-        def kernel(x, Y, T):
-            return self.trs(x*kB_eV*T, T) * self.dfx(x-Y, n)
-        return _quad_fd(kernel, EF/(kB_eV*T), T)
+        return romb_dfx(self.trs, EF, T, k=round(__n))
     
     def _CCRH(self, EF, T):
         '''[S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)]'''
-        def kernel(x, Y, T):
-            return self.hall(x*kB_eV*T, T) * self.dfx(x-Y)
-        return self._q_sign * _quad_fd(kernel, EF/(kB_eV*T), T)
+        return self._q_sign * romb_dfx(self.hall, EF, T)
    
     def compile(self, EF, T, max_level=2):
         self._caching = {
