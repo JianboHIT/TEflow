@@ -67,7 +67,43 @@ def romb_dfx(func, EF, T, k=0, ndiv=8, eps=1E-10):
          / np.power(np.power(tp, km) + np.power(1-tp, km), 2)
     return romb(fp * wt, axis=0) * width/nbins
 
+
 class BaseBand(ABC):
+    '''
+    An abstract class about the band model. It offers the basic calculation
+    for thermoelectric transport properties, such as the Seebeck coefficient,
+    electrical conductivity, and electronic thermal conductivity. It generally
+    supports numpy-style broadcasting operations.
+    
+    To subclass, three methods need to be implemented:
+    
+    1. `dos(E)`: Density of states, in 1E19 states/(eV.cm^3). In physics, it
+    is usually denoted as :math:`g(E)` and defined as:
+    
+    .. math ::
+
+        g(E) = \\int \\delta(E-E(k)) \\frac{d^3k}{8 \\pi ^3}
+    
+    2. `trs(E, T)`: Transport distribution function, or spectral conductivity,
+    in S/cm. In physics, it is usually denoted as :math:`\\sigma_s(E, T)`, and
+    is defined as:
+    
+    .. math ::
+    
+        \\sigma_s(E, T) = q^2 \\tau v^2 g(E)
+    
+    3. `hall(E, T)`: Hall transport distribution function, in S.cm/(V.s)
+    (i.e., the product of S/cm and cm^2/(V.s)). Here, it is denoted as
+    :math:`\\sigma_H(E, T)`, and is expressed as:
+    
+    .. math ::
+    
+        \\sigma_H(E, T) = q \\frac{\\tau}{m_b^{\\ast}} \\cdot \\sigma_s(E, T)
+    
+    Notably, energy (`E`) and Fermi level (`EF`) are in (eV), and temperatures
+    (`T`) are in Kelvin (K), unless otherwise specified.
+    '''
+    
     _q_sign = 1
     _caching = None
     cacheable = {'EF', 'T',
@@ -79,21 +115,22 @@ class BaseBand(ABC):
     
     @abstractmethod
     def dos(self, E):
-        '''1E19 state/(eV.cm^3)'''
+        '''Density of states, in 1E19 state/(eV.cm^3).'''
         pass
     
     @abstractmethod
     def trs(self, E, T):
-        '''S/cm'''
+        '''Transport distribution function, in S/cm.'''
         pass
     
     @abstractmethod
     def hall(self, E, T):
-        '''[S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)]'''
+        '''Hall transport distribution function, in S.cm/(V.s), i.e.
+        [S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)].'''
         pass
     
     def _N(self, EF, T):
-        '''1E19 cm^(-3)'''
+        '''Carrier concentration, in 1E19 cm^(-3).'''
         # x = E/(kB_eV*T),  E = x*kB_eV*T
         kernel = lambda E, _EF, _T: self.dos(E) \
                                     * self.fx((E-_EF)/(kB_eV*_T))
@@ -101,14 +138,20 @@ class BaseBand(ABC):
         return np.vectorize(itg)(EF, T)
     
     def _K_n(self, __n, EF, T):
-        '''S/cm'''
+        '''Integration of transport distribution function, in S/cm.'''
         return romb_dfx(self.trs, EF, T, k=round(__n))
     
     def _CCRH(self, EF, T):
-        '''[S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)]'''
+        '''Integration of Hall transport distribution function,
+        in S.cm/(V.s).'''
         return self._q_sign * romb_dfx(self.hall, EF, T)
    
     def compile(self, EF, T, max_level=2):
+        '''Compile the object under specified Fermi energies (EF) and
+        temperatures (T) to avoid redundant integration computations.
+        The `max_level` parameter of integer type specifies the highest
+        exponent for caching data, with a default value of 2.'''
+
         self._caching = {
             '_EF': EF,
             '_T': T,
@@ -118,14 +161,37 @@ class BaseBand(ABC):
         }
     
     def clear(self):
+        '''Clear the cached data.'''
         self._caching = None
     
     def fetch(self, _prop, args=(), index=None, default=None):
+        '''
+        A proxy method to retrieve cached data (if compiled) or compute
+        it directly (if not compiled). Typically, cached properties are
+        named in the underscored form, i.e., as _XXX.
+
+        Parameters
+        ----------
+        _prop : str
+            Key of cached property.
+        args : tuple, optional
+            Parameters passed to the proxy method, by default ().
+        index : int, optional
+            The index of list or the order, by default None.
+        default : any, optional
+            The default value if failed to retrieve, by default None.
+
+        Returns
+        -------
+        any
+            Results.
+        '''
+
         if self._caching:
             if _prop not in self._caching:
                 raise KeyError(f'Failed to read uncompiled {_prop}')
             if any(arg is not None for arg in args):
-                raise ValueError(f'Unusable arguments for cached {_prop}')
+                raise ValueError(f'Conflicting arguments for compiled class')
             if index is None:
                 return self._caching[_prop]
             else:
@@ -149,50 +215,54 @@ class BaseBand(ABC):
             raise KeyError(f'Uncacheable property {key}')
     
     def N(self, EF=None, T=None):
-        '''1E19 cm^(-3)'''
+        '''Carrier concentration, in 1E19 cm^(-3).'''
         return self.fetch('_N', args=(EF, T))
     
     def K_0(self, EF=None, T=None):
-        '''S/cm'''
+        '''Integration of transport distribution function, in S/cm.'''
         return self.fetch('_K_n', args=(EF, T), index=0)
     
     def K_1(self, EF=None, T=None):
-        '''S/cm'''
+        '''Integration of transport distribution function, in S/cm.'''
         return self.fetch('_K_n', args=(EF, T), index=1)
     
     def K_2(self, EF=None, T=None):
-        '''S/cm'''
+        '''Integration of transport distribution function, in S/cm.'''
         return self.fetch('_K_n', args=(EF, T), index=2)
     
     def CCRH(self, EF=None, T=None):
-        '''[S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)]'''
+        '''Integration of Hall transport distribution function,
+        in S.cm/(V.s).'''
         return self.fetch('_CCRH', args=(EF, T))
     
     def C(self, EF=None, T=None):
-        '''S/cm'''
+        '''Electrical conductivity, in S/cm.'''
         p0 = self.K_0(EF, T)
         return p0
     
     def CS(self, EF=None, T=None):
-        '''[S/cm]*[uV/K]'''
+        '''The product of electrical conductivity and Seebeck
+        coefficient, in [S/cm]*[uV/K].'''
         p1 = self.K_1(EF, T)
         return self._q_sign * 1E6 * kB_eV * p1
     
     def S(self, EF=None, T=None):
-        '''uV/K'''
+        '''Seebeck coefficient, in uV/K.'''
         p0 = self.K_0(EF, T)
         p1 = self.K_1(EF, T)
         return self._q_sign * 1E6 * kB_eV * p1/p0
     
     def PF(self, EF=None, T=None):
-        '''uW/(cm.K^2)'''
+        '''Power factor, in uW/(cm.K^2).'''
         p0 = self.K_0(EF, T)
         p1 = self.K_1(EF, T)
         pr = np.power(p1, 2) / p0
         return 1E6 * kB_eV * kB_eV * pr
     
     def CL(self, EF=None, T=None):
-        '''[W/(m.K)] / [T]'''
+        '''The product of electrical conductivity and Lorenz
+        number (or electronic thermal conductivity divided by
+        absolute temperature), in [W/(m.K)] / [K].'''
         p0 = self.K_0(EF, T)
         p1 = self.K_1(EF, T)
         p2 = self.K_2(EF, T)
@@ -200,7 +270,7 @@ class BaseBand(ABC):
         return 1E2 * kB_eV * kB_eV * pr
     
     def L(self, EF=None, T=None):
-        '''1E-8 W.Ohm/K^2'''
+        '''Lorenz number, in 1E-8 W.Ohm/K^2.'''
         p0 = self.K_0(EF, T)
         p1 = self.K_1(EF, T)
         p2 = self.K_2(EF, T)
@@ -208,7 +278,7 @@ class BaseBand(ABC):
         return 1E8 * kB_eV * kB_eV * pr
     
     def Ke(self, EF=None, T=None):
-        '''W/(m.K)'''
+        '''Electronic thermal conductivity, in W/(m.K).'''
         p0 = self.K_0(EF, T)
         p1 = self.K_1(EF, T)
         p2 = self.K_2(EF, T)
@@ -217,26 +287,52 @@ class BaseBand(ABC):
         return 1E2 * kB_eV * kB_eV * pr * pT
     
     def U(self, EF=None, T=None):
-        '''cm^2/(V.s)'''
+        '''Carrier drift mobility, in cm^2/(V.s).'''
         pC = self.K_0(EF, T)     # S/cm
         pN = self.N(EF, T)          # 1E19 cm^-3
         pQ = self._q_sign * q
         return pC/(pQ*pN*1E19)
     
     def RH(self, EF=None, T=None):
-        '''cm^3/C'''
+        '''Hall coefficient, in cm^3/C.'''
         return self.CCRH(EF, T)/np.power(self.K_0(EF, T), 2)
     
     def UH(self, EF=None, T=None):
-        '''cm^2/(V.s)'''
+        '''Carrier Hall mobility, in cm^2/(V.s).'''
         return self.CCRH(EF, T)/self.K_0(EF, T)
     
     def NH(self, EF=None, T=None):
-        '''1E19 cm^-3'''
+        '''Hall carrier concentration, in 1E19 cm^-3.'''
         pQ = self._q_sign * q
         return 1E-19*np.power(self.K_0(EF, T), 2)/self.CCRH(EF, T)/pQ
 
     def slove_EF(self, prop, value, T, near=0, between=None, **kwargs):
+        '''
+        A wrapper for the scipy.optimize.root_scalar method used to solve
+        for the Fermi energy from specified thermoelectric transport
+        properties and temperatures.
+
+        Parameters
+        ----------
+        prop : str
+            The thermoelectric transport property, such as 'S', 'C'.
+        value : ndarray
+            The target value of the specified property.
+        T : ndarray
+            The absolute temperature.
+        near : float, optional
+            Initial guess for the Fermi energy value. Default is 0.
+        between : tuple like (float, float), optional
+            Guess range for the Fermi energy. Default is None.Recommended
+            for monotonic properties, use 'near'.
+        **kwargs : any, optional
+            Additional parameters to pass to scipy.optimize.root_scalar.
+
+        Returns
+        -------
+        ndarray
+            Fermi levels in eV.
+        '''
         para = {'x0': near,
                 'x1': None if near is None else near+1,
                 'bracket': between}
@@ -249,11 +345,14 @@ class BaseBand(ABC):
     
     @staticmethod
     def fx(x):
+        '''Reduced Fermi Dirac distribution.'''
         p = np.tanh(x/2)
         return 1/2*(1-p)
     
     @staticmethod
     def dfx(x, k=0):
+        '''The derivative of reduced Fermi-Dirac distribution multiplied
+        by the k-th power function.'''
         k = round(k)
         p = np.tanh(x/2)
         if k == 0:
@@ -263,6 +362,7 @@ class BaseBand(ABC):
 
     @staticmethod
     def ddfx(x, k=0):
+        '''The derivative of dfx.'''
         k = round(k)
         p = np.tanh(x/2)
         if k == 0:
@@ -274,10 +374,30 @@ class BaseBand(ABC):
 
 
 class MultiBand(BaseBand):
+    '''
+    A class for modeling multiple energy bands. Please note that its
+    property calculations are now derived from sub-bands, rather than
+    directly from the 'dos', 'trs', and 'hall' methods.
+    '''
     cacheable = BaseBand.cacheable | {'Kbip'}
 
     def __init__(self, cbands=(), cdeltas=(), 
                        vbands=(), vdeltas=(),):
+        '''
+        Initialize an instance of MultiBand.
+
+        Parameters
+        ----------
+        cbands : tuple of BandBase, optional
+            Conduction bands, by default ().
+        cdeltas : tuple of float, optional
+            Energy offsets of conduction bands, by default ().
+        vbands : tuple of BandBase, optional
+            Valence bands, by default ().
+        vdeltas : tuple of float, optional
+            Energy offsets of valence bands, by default ()
+        '''
+
         dsp = 'Length of {} is not the same as the number of {}'
         if len(cbands) != len(cdeltas):
             raise ValueError(dsp.format('cbands', 'cdeltas'))
@@ -293,6 +413,7 @@ class MultiBand(BaseBand):
         self.deltas = cdeltas+vdeltas
     
     def dos(self, E):
+        '''Density of states, in 1E19 state/(eV.cm^3).'''
         dos_tot = 0
         for band, delta in zip(self.bands, self.deltas):
             Er = np.maximum(-1*band._q_sign*(E-delta), 0)
@@ -300,6 +421,7 @@ class MultiBand(BaseBand):
         return dos_tot
     
     def trs(self, E, T):
+        '''Transport distribution function, in S/cm.'''
         trs_tot = 0
         for band, delta in zip(self.bands, self.deltas):
             Er = np.maximum(-1*band._q_sign*(E-delta), 0)
@@ -307,6 +429,8 @@ class MultiBand(BaseBand):
         return trs_tot
     
     def hall(self, E, T):
+        '''Hall transport distribution function, in S.cm/(V.s), i.e.
+        [S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)].'''
         hall_tot = 0
         for band, delta in zip(self.bands, self.deltas):
             Er = np.maximum(-1*band._q_sign*(E-delta), 0)
@@ -314,6 +438,7 @@ class MultiBand(BaseBand):
         return hall_tot
     
     def _N(self, EF, T):
+        '''Carrier concentration, in 1E19 cm^(-3).'''
         N_tot = 0
         for band, delta in zip(self.bands, self.deltas):
             EFr = -1*band._q_sign*(EF-delta)
@@ -321,6 +446,7 @@ class MultiBand(BaseBand):
         return N_tot
     
     def _K_n(self, __n, EF, T):
+        '''Integration of transport distribution function, in S/cm.'''
         K_tot = 0
         for band, delta in zip(self.bands, self.deltas):
             EFr = -1*band._q_sign*(EF-delta)
@@ -329,6 +455,8 @@ class MultiBand(BaseBand):
         return K_tot
     
     def _CCRH(self, EF, T):
+        '''Integration of Hall transport distribution function,
+        in S.cm/(V.s).'''
         H_tot = 0
         for band, delta in zip(self.bands, self.deltas):
             EFr = -1*band._q_sign*(EF-delta)
@@ -336,17 +464,24 @@ class MultiBand(BaseBand):
         return H_tot
     
     def compile(self, EF, T, max_level=2):
+        '''Compile the object under specified Fermi energies (EF) and
+        temperatures (T) to avoid redundant integration computations.
+        The `max_level` parameter of integer type specifies the highest
+        exponent for caching data, with a default value of 2.'''
+
         for band, delta in zip(self.bands, self.deltas):
             EFr = -1*band._q_sign*(EF-delta)
             band.compile(EFr, T, max_level)
         return super().compile(EF, T, max_level)
     
     def clear(self):
+        '''Clear the cached data.'''
         for band in self.bands:
             band.clear()
         return super().clear()
     
     def Kbip(self, EF=None, T=None):
+        '''Bipolar thermal conductivity, in W/(m.K).'''
         Nc, Nv = 0, 0
         p0_c, p0_v, p1_c, p1_v = 0, 0, 0, 0
         for band, delta in zip(self.bands, self.deltas):
