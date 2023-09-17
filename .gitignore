@@ -14,6 +14,9 @@ __pycache__/
 dist/
 *.egg-info/
 
+# Sphinx documentation
+docs/*/_build/
+
 # # C extensions
 # *.so
 # 
