@@ -19,46 +19,49 @@ from scipy.optimize import minimize_scalar
 
 from .utils import AttrDict
 
+
 logger = logging.getLogger(__name__)
 
 def cal_Phi(u, S, T):
     '''
-    calculate thermoelectric potential Phi
+    Calculate thermoelectric potential Phi.
 
     Parameters
     ----------
-    u : float
-        the relative current density in [1/V]
-    S : float
-        Seebeck coefficient
-    T : float
-        temperature
+    u : float | ndarray
+        The relative current density, in 1/V.
+    S : float | ndarray
+        Seebeck coefficient, in uV/K.
+    T : float | ndarray
+        Temperature, in K.
 
     Returns
     -------
-    Phi : float
-        thermoelectric potential (Phi) in [V]
+    float | ndarray
+        Thermoelectric potential (Phi) in V.
     '''
     Phi = 1E-6 * S*T + 1/u
     return Phi
 
-def cal_Yita(u,datas,allTemp=False):
+def cal_Yita(u, datas, allTemp=False):
     '''
-    calculate Yita by TE datas and initial u
+    Calculate Yita under given TE datas and initial u.
 
     Parameters
     ----------
     u : float
-        the relative current density in [1/V]
+        The relative current density, in 1/V.
     datas : list | ndarray
-        TE datas like [T, C, S, K]
+        TE datas like [T, C, S, K], which are in K, S/cm, uV/K, and W/(m.K), respectively.
+        The temperature values must increase monotonically.
     allTemp : bool, optional
-        calculate Yita at all temperatures (allTemp=True), or only at the hot temperature (allTemp=False, default)
+        Whether to return conversion efficiencies of other temperature points in addition
+        to the highest temperature point. Default value is `False`.
 
     Returns
     -------
-    Yita : float | ndarray
-        efficiency (Yita) in [%]
+    float | ndarray
+        Efficiency (Yita) in %.
     '''
     T, C, S, K = datas
     C = 1E2 * C
@@ -75,55 +78,56 @@ def cal_Yita(u,datas,allTemp=False):
         Yitas.append( 1-Phi_0/Phi_i )
     Yitas = 100 * np.array(Yitas)
     
-    if allTemp:
-        return Yitas
-    else:
-        return Yitas[-1]
+    return Yitas if allTemp else Yitas[-1]
 
 def cal_ZTdev(Yita, Tc, Th):
     '''
-    calculate ZTdev by a given Yita and corresponding temperatures at cold and hot sides
+    Calculate ZTdev under a given Yita and corresponding temperatures at cold and hot sides.
 
     Parameters
     ----------
     Yita : float | ndarray
-        efficiency (Yita) in [%]
-    Tc : float
-        temperature at cold side
-    Th : float
-        temperature at hot side
+        Efficiency (Yita), in %.
+    Tc : float | ndarray
+        Temperature at cold side, in K.
+    Th : float | ndarray
+        Temperature at hot side, in K.
 
     Returns
     -------
-    ZTdev : float | ndarray
-        device ZT
+    float | ndarray
+        Device ZT.
     '''
     # ZTdev = np.power((Th-Tc*(1-Yita/100))/(Th*(1-Yita/100)-Tc), 2) - 1
     sub_1 = Th-Tc*(1-Yita/100)
     sub_2 = Th*(1-Yita/100)-Tc
-    sub = np.divide(sub_1, sub_2, out=np.ones_like(sub_1), where=(np.abs(sub_2) > 1E-3))
+    sub = np.divide(sub_1, sub_2,
+                    out=np.ones_like(sub_1),
+                    where=(np.abs(sub_2) > 1E-3))
     ZTdev = np.power(sub, 2) - 1
     return ZTdev
 
-def cal_opt_u(datas, details=False, returnYita=False):
+def optim_u(datas, details=False, returnYita=False):
     '''
-    calculate optimal u to max Yita
+    Optimize u to maximize the last Yita.
 
     Parameters
     ----------
     datas : list | ndarray
-        TE datas like [T, C, S, K]
+        TE datas like [T, C, S, K], which are in K, S/cm, uV/K, and W/(m.K), respectively.
+        The temperature values must increase monotonically.
     details : bool, optional
-        return the actual OptimizeResult object that contains detailed optimization results (details=True), 
-        or only the solution of the optimization and/or values of objective function (details=False, default)
+        Return the actual OptimizeResult object that contains detailed optimization results
+        (`details=True`), or only the solution of the optimization and/or values of objective
+        function (`details=False`, default).
     returnYita : bool, optional
-        whether to return the corresponding single-point Yita at optimal u, by default False.
-        Note: this will only work if details=False.
+        Whether to return the corresponding single-point Yita at optimal u, by default `False`.
+        Note: This will only work if `details=False`.
 
     Returns
     -------
-    rst : float | tuple | OptimizeResult
-        result depends on input parameters
+    float | tuple | OptimizeResult
+        Result depends on input parameters.
     '''
     _, C, S, K = datas
 
@@ -139,7 +143,7 @@ def cal_opt_u(datas, details=False, returnYita=False):
                           args=(datas,), 
                           method='bounded')
     
-    logger.info('Optimize u to maximize Yita')
+    logger.info(f'Maximize Yita where u = {rst.x:.4f} V^(-1)')
     logger.debug('Returned OptimizeResult: \n%s', pformat(rst))
     if details:
         return rst
@@ -154,48 +158,52 @@ def cal_opt_u(datas, details=False, returnYita=False):
         else:
             return None
 
-def cal_opt_Yita(datas, allTemp=True):
+def optim_Yita(datas, allTemp=True):
     '''
-    calculate maximum at the optimal u
+    Invoke :func:`optim_u` to optimize the value of `u` and calculate the corresponding
+    conversion efficiency based on the given data.
 
     Parameters
     ----------
     datas : list | ndarray
-        TE datas like [T, C, S, K]
+        TE datas like [T, C, S, K], which are in K, S/cm, uV/K, and W/(m.K), respectively.
+        The temperature values must increase monotonically.
     allTemp : bool, optional
-        calculate maximum Yita at all temperatures (allTemp=True, default), 
-        or only at the hot temperature (allTemp=False)
+        Whether to return conversion efficiencies of other temperature points in addition
+        to the highest temperature point. Default value is `False`.
 
     Returns
     -------
-    Yita_opt : float | ndarray
-        maximum Yita
+    float | ndarray
+        Maximum efficiency (Yita) in %.
     '''
-    u_opt = cal_opt_u(datas)
+    u_opt = optim_u(datas)
     Yita_opt = cal_Yita(u_opt, datas, allTemp=allTemp)
     logger.info('Calculate corresponding Yita at the optimized u')
     return Yita_opt
 
 def valuate(datas_TCSK, allTemp=True):
     '''
-    calculate ZTdev by TE datas
+    Calculate ZTdev of given TE datas.
 
     Parameters
     ----------
     datas_TCSK : list | ndarray
-        TE datas like [T, C, S, K]
+        TE datas like [T, C, S, K], which are in K, S/cm, uV/K, and W/(m.K), respectively.
+        The temperature values must increase monotonically.
     allTemp : bool, optional
-        pass to cal_opt_Yita()
+        Whether to return conversion efficiencies of other temperature points in addition
+        to the highest temperature point. Default value is `False`.
 
     Returns
     -------
-    rst : AttrDict
-        deltaT : float | ndarray
-            temperature difference in [K]
-        ZTdev : float | ndarray
-            device ZT
-        Yita : float | ndarray
-            optimal Yita in [%]
+    AttrDict
+        A dict with below keys:
+            **deltaT**: (float | ndarray) Temperature difference in K.
+            
+            **ZTdev**: (float | ndarray) Device ZT.
+            
+            **Yita**: (float | ndarray) Optimal Yita in %.
     '''
     
     dsp = 'all' if allTemp else 'max.'
@@ -204,7 +212,7 @@ def valuate(datas_TCSK, allTemp=True):
     rst = AttrDict()
     T = datas_TCSK[0]
     rst['deltaT'] = T - T[0]
-    rst['Yita'] = cal_opt_Yita(datas_TCSK, allTemp=allTemp)
+    rst['Yita'] = optim_Yita(datas_TCSK, allTemp=allTemp)
     rst['ZTdev'] = cal_ZTdev(rst['Yita'], Tc=T[0], Th=T)
     
     logger.info('Finish calculation of ZTdev and relative')
