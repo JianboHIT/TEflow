@@ -19,7 +19,7 @@ from scipy.interpolate import interp1d
 
 def interp(x, y, x2, method='linear', axis=-1, bounds_error=None, fill_value='extrapolate', merge=False):
     '''
-    A convenient method to implement scipy.interpolate.interp1d and Polynomial.fit
+    A convenient method to implement scipy.interpolate.interp1d and Polynomial.fit.
 
     Parameters
     ----------
@@ -71,7 +71,7 @@ def interp(x, y, x2, method='linear', axis=-1, bounds_error=None, fill_value='ex
 
 def mixing(datas, weight=None, scale=None):
     '''
-    mix several data with the same shape
+    Mix several datas with the same shape.
 
     Parameters
     ----------
@@ -84,7 +84,7 @@ def mixing(datas, weight=None, scale=None):
 
     Returns
     -------
-    array_like
+    ndarray
         mixing result, with the same shape of data
     '''
     
@@ -112,7 +112,7 @@ def mixing(datas, weight=None, scale=None):
 
 def parse_TEdatas(datas, group='TCTSTK'):
     '''
-    Parse paired TEdatas, which is very useful when processing digitized plot data
+    Parse paired TEdatas, which is very useful when processing digitized plot data.
 
     Parameters
     ----------
@@ -207,11 +207,15 @@ def boltzmann(x, inverse=False):
 def smoothstep(x, inverse=False, shift=True): 
     '''
     Smoothstep function:
-                  0 : x < 0
-        3*x^2-2*x^3 : 0 <= x <= 1
-                  1 : x > 1
-             
+
+      0, x < 0
+
+      3x^2-2x^3, x <= 0 <= 1
+
+      1, x > 1
+
     The inverse function:
+
       1/2 - sin(arcsin(1-2*y)/3)
     
     It might be more convenient when the function is shifted x' = (1-x)/2,
