@@ -18,11 +18,6 @@ from scipy.optimize import root_scalar
 import numpy as np
 
 
-kB_eV = 8.617333262145179e-05   # eV/K
-m_e = 9.1093837015e-31          # kg
-hbar = 1.054571817e-34          # J.s
-q = 1.602176634e-19             # C
-
 UNIT = {
     'T': 'K',
     'E': 'eV',
@@ -33,12 +28,37 @@ UNIT = {
     'K': 'W/(m.K)',
     'L': '1E-8 W.Ohm/K^2',
     'PF': 'uW/(cm.K^2)',
-    'ZT': '1',
     'RH': 'cm^3/C',
     'DOS': '1E19 state/(eV.cm^3)',
     'TRS': 'S/cm',
     'HALL': 'S.cm/(V.s)',
 }
+'''
+====== ===================== =====================================
+Key    Value                 Notes
+====== ===================== =====================================
+T      K                     Temperature
+E      eV                    Energy
+N      1E19 cm^(-3)          Carrier concentration
+U      cm^2/(V.s)            Mobility
+C      S/cm                  Conductivity
+S      uV/K                  Seebeck coefficient
+K      W/(m.K)               Thermal conductivity
+L      1E-8 W.Ohm/K^2        Lorenz number
+PF     uW/(cm.K^2)           Power factor
+RH     cm^3/C                Hall coefficient
+DOS    1E19 state/(eV.cm^3)  Density of states
+TRS    S/cm                  Transport distribution function
+HALL   S.cm/(V.s)            Hall transport distribution function
+====== ===================== =====================================
+
+:meta hide-value:
+'''
+
+kB_eV = 8.617333262145179e-05   #: Unit:: eV/K
+m_e = 9.1093837015e-31          #: Unit:: kg
+hbar = 1.054571817e-34          #: Unit:: J.s
+q = 1.602176634e-19             #: Unit:: C
 
 
 def romb_dfx(func, EF, T, k=0, ndiv=8, eps=1E-10):
@@ -67,6 +87,8 @@ def romb_dfx(func, EF, T, k=0, ndiv=8, eps=1E-10):
     -------
     ndarray
         Integral values.
+
+    :meta private:
     '''
 
     # func(E, T)
@@ -103,7 +125,8 @@ class BaseBand(ABC):
     
     .. math ::
 
-        g(E) = \\int \\delta(E-E(k)) \\frac{d^3k}{8 \\pi ^3}
+        g(E) = 2 \\int_{\substack{\\text{BZ}}}
+               \\delta(E-E(k)) \\frac{d^3k}{8 \\pi ^3}
     
     2. `trs(E, T)`: Transport distribution function, or spectral conductivity,
     in S/cm. In physics, it is usually denoted as :math:`\\sigma_s(E, T)`, and
@@ -327,7 +350,7 @@ class BaseBand(ABC):
         pQ = self._q_sign * q
         return 1E-19*np.power(self.K_0(EF, T), 2)/self.CCRH(EF, T)/pQ
 
-    def slove_EF(self, prop, value, T, near=0, between=None, **kwargs):
+    def solve_EF(self, prop, value, T, near=0, between=None, **kwargs):
         '''
         A wrapper for the scipy.optimize.root_scalar method used to solve
         for the Fermi energy from specified thermoelectric transport
@@ -358,11 +381,11 @@ class BaseBand(ABC):
                 'x1': None if near is None else near+1,
                 'bracket': between}
         para.update(kwargs)
-        def _slove(iVal, iT):
+        def _solve(iVal, iT):
             residual = lambda x: getattr(self, prop)(x*kB_eV*iT, iT) - iVal
             out = root_scalar(residual, **para)
             return out.root*kB_eV*iT if out.converged else np.nan
-        return np.vectorize(_slove)(value, T)
+        return np.vectorize(_solve)(value, T)
     
     @staticmethod
     def fx(x):
@@ -485,10 +508,14 @@ class MultiBand(BaseBand):
         return H_tot
     
     def compile(self, EF, T, max_level=2):
-        '''Compile the object under specified Fermi energies (EF) and
+        '''
+        Compile the object under specified Fermi energies (EF) and
         temperatures (T) to avoid redundant integration computations.
         The `max_level` parameter of integer type specifies the highest
-        exponent for caching data, with a default value of 2.'''
+        exponent for caching data, with a default value of 2.
+
+        :meta private:
+        '''
 
         for band, delta in zip(self.bands, self.deltas):
             EFr = -1*band._q_sign*(EF-delta)
@@ -496,7 +523,11 @@ class MultiBand(BaseBand):
         return super().compile(EF, T, max_level)
     
     def clear(self):
-        '''Clear the cached data.'''
+        '''
+        Clear the cached data.
+
+        :meta private:
+        '''
         for band in self.bands:
             band.clear()
         return super().clear()
@@ -537,47 +568,39 @@ class APSSPB(BaseBand):
     A class for describing single parabolic band (SPB) model when the
     acoustic phonon scattering (APS) mechanism predominates. In this
     model, there are three key parameters determine thermoelectric
-    properties: (a) the effective mass of the density of states
-    :math:`m_d^{\\ask}`, (b) the intrinsic electrical conductivity
-    :math:`\\simga_0`, and (c) the ratio of longitudinal to transverse
-    effective masses :math:`K^{\\ask}`. These parameters correspond
-    to class attributes m_d, sigma0, and Kmass, respectively. The core
-    of constructing the class is obtaining the values of these parameters.
+    properties:
+    
+    (a) The effective mass of the density of states :math:`m_d^{\\ast}`
+    
+    (b) The intrinsic electrical conductivity :math:`\\sigma_0`
+    
+    (c) The ratio of longitudinal to transverse effective masses
+        :math:`K^{\\ast}`
+    
+    These parameters correspond to class attributes m_d, sigma0, and
+    Kmass, respectively. The core of constructing the class is
+    obtaining the values of these parameters.
 
     Attributes
     ----------
-    m_d : float
-        Effective mass of the density of states in :math:`m_e`, primarily
-        influencing carrier concentration calculations. It should be a
-        positive float.
-    sigma0 : float
-        Intrinsic electrical conductivity in `S/cm`, the core parameter
-        influencing thermoelectric transport properties. It should be a
-        positive float.
-    Kmass : float
-        The ratio of longitudinal to transverse effective mass, affecting
-        calculations related to Hall coefficients. It should be a positive
-        float.
+    m_d : float, optional
+        Effective mass of the density of states in :math:`m_e`,
+        primarily influencing carrier concentration calculations.
+        It should be a positive float, by default 1.
+    sigma0 : float, optional
+        Intrinsic electrical conductivity in `S/cm`, the core
+        parameter influencing thermoelectric transport properties.
+        It should be a positive float, by default 1.
+    Kmass : float, optional
+        The ratio of longitudinal to transverse effective mass,
+        affecting calculations related to Hall coefficients. It
+        should be a positive float, by default 1.
     '''
 
-    m_d = 1         # m_e
-    sigma0 = 1      # S/cm
-    Kmass = 1       # m1/m2
+    m_d = 1         #: :meta private: m_e
+    sigma0 = 1      #: :meta private: S/cm
+    Kmass = 1       #: :meta private: m1/m2
     def __init__(self, m_d=1, sigma0=1, Kmass=1):
-        '''
-        Initialize an instance by the specified parameters.
-
-        Parameters
-        ----------
-        m_d : float, optional
-            Effective mass of the density of states in static electron mass,
-            by default 1.
-        sigma0 : float, optional
-            Intrinsic electrical conductivity in S/cm, by default 1.
-        Kmass : float, optional
-            The ratio of longitudinal to transverse effective mass, by
-            default 1.
-        '''
         self.m_d = m_d
         self.sigma0 = sigma0
         self.Kmass = Kmass
@@ -670,7 +693,7 @@ class APSSPB(BaseBand):
     @classmethod
     def valuate_m_d(cls, dataS, dataN, dataT, hall=False, Kmass=1):
         spb = cls(Kmass=Kmass)
-        dataEF = spb.slove_EF('S', dataS, dataT)
+        dataEF = spb.solve_EF('S', dataS, dataT)
         if hall:
             N0 = spb.NH(dataEF, dataT)
         else:
@@ -701,7 +724,7 @@ class APSSPB(BaseBand):
 
         spb = cls(sigma0=100)
         TEMP = 1/kB_eV
-        yita = spb.slove_EF('S', dataS, TEMP)
+        yita = spb.solve_EF('S', dataS, TEMP)
         L = spb.L(yita, TEMP)
         return spb.L(yita, TEMP)
 
@@ -716,43 +739,28 @@ class APSSKB(BaseBand):
 
     Attributes
     ----------
-    m_d : float
-        Effective mass of the density of states in :math:`m_e`, primarily
-        influencing carrier concentration calculations. It should be a
-        positive float.
-    sigma0 : float
-        Intrinsic electrical conductivity in `S/cm`, the core parameter
-        influencing thermoelectric transport properties. It should be a
-        positive float.
-    Eg : float
-        Parameter bandgap in eV, which significantly influences various
-        transport properties.
-    Kmass : float
-        The ratio of longitudinal to transverse effective mass, affecting
-        calculations related to Hall coefficients. It should be a positive
-        float.
+    m_d : float, optional
+        Effective mass of the density of states in :math:`m_e`,
+        primarily influencing carrier concentration calculations.
+        It should be a positive float, by default 1.
+    sigma0 : float, optional
+        Intrinsic electrical conductivity in S/cm, the core
+        parameter influencing thermoelectric transport properties.
+        It should be a positive float, by default 1.
+    Eg : float, optional
+        Parameter bandgap in eV, which significantly influences
+        various transport properties. It should be a positive
+        float, by default 1.
+    Kmass : float, optional
+        The ratio of longitudinal to transverse effective mass,
+        affecting calculations related to Hall coefficients. It
+        should be a positive float, by default 1.
     '''
-    m_d = 1         # m_e
-    sigma0 = 1      # S/cm
-    Eg = 1          # eV
-    Kmass = 1       # m1/m2
+    m_d = 1         #: :meta private: m_e
+    sigma0 = 1      #: :meta private: S/cm
+    Eg = 1          #: :meta private: eV
+    Kmass = 1       #: :meta private: m1/m2
     def __init__(self, m_d=1, sigma0=1, Eg=1, Kmass=1):
-        '''
-        Initialize an instance by the specified parameters.
-
-        Parameters
-        ----------
-        m_d : float, optional
-            Effective mass of the density of states in static electron mass,
-            by default 1.
-        sigma0 : float, optional
-            Intrinsic electrical conductivity in S/cm, by default 1.
-        Eg : float, optional
-            Bandgap in eV, by default 1.
-        Kmass : float, optional
-            The ratio of longitudinal to transverse effective mass, by
-            default 1.
-        '''
         self.m_d = m_d
         self.sigma0 = sigma0
         if Eg > 0:
