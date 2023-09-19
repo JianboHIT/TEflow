@@ -54,7 +54,7 @@ INFO_HELP = f'''
 ______________________________________________________________________
 >>> Streamline your thermoelectric workflow from materials to devices
 
-Usage: {CMD}-xxxxxx ...
+Usage: {CMD}-subcommand [-h] ...
 
 Subcommands:
 {DESCRIPTION_FMT}
@@ -64,6 +64,26 @@ FOOTNOTE = ''
 LOG_LEVEL = 20
 LOG_FMT = f'[{PKG}] %(message)s'      # '[%(levelname)5s] %(message)s'
 # logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
+
+# some public options
+OPTS = {
+    'bare': dict(
+        action='store_true',
+        help='Output data without header',
+    ),
+    'inputf': dict(
+        metavar='INPUTFILE',
+        help='Filename of input file (necessary)',
+    ),
+    'outputf': dict(
+        metavar='OUTPUTFILE', nargs='?',
+        help='Filename of output file (default: Basename_suffix.Extname)',
+    ),
+    'suffix': lambda suf: dict(
+        default=f'{suf}',
+        help=f'The suffix to generate filename of output file (default: {suf})',
+    ),
+}
 
 
 def do_main(args=None):
@@ -112,28 +132,25 @@ def do_interp(args=None):
         description=f'{DESC} - {INFO}',
         epilog=FOOTNOTE)
     
-    parser.add_argument('inputfile', metavar='INPUTFILE',
-                        help='Filename of input file (necessary)')
+    parser.add_argument('inputfile', **OPTS['inputf'])
     
-    parser.add_argument('outputfile', metavar='OUTPUTFILE', nargs='?',
-                        help='Filename of output file (default: Basename_suffix.Extname)')
+    parser.add_argument('outputfile', **OPTS['outputf'])
     
     parser.add_argument('-b', '--bare', action='store_true',
-                        help='Output data without header and X-column')
+        help='Output data without header and X-column')
 
     parser.add_argument('-m', '--method', default='linear', 
-                        help='The method of interpolation and extrapolation \
-                             (e.g. linear, cubic, poly3, default: linear)')
+        help='The method of interpolation and extrapolation \
+              (e.g. linear, cubic, poly3, default: linear)')
     
     parser.add_argument('-e', '--extrapolate', default='auto',
-                        help='The strategy to extrapolate points outside the data range \
-                             (auto, const, or <value>, default: auto)')
+        help='The strategy to extrapolate points outside the data range \
+              (auto, const, or <value>, default: auto)')
     
     parser.add_argument('-n', '--npoint', type=int, default=101, 
-                        help='The number of interpolated data points (default: 101)')
+        help='The number of interpolated data points (default: 101)')
 
-    parser.add_argument('-s', '--suffix', default='interp', 
-                        help='The suffix to generate filename of output file (default: interp)')
+    parser.add_argument('-s', '--suffix', **OPTS['suffix']('interp'))
 
     options = parser.parse_args(args)
     
@@ -176,7 +193,8 @@ def do_interp(args=None):
     method = options.method.lower()
     if method not in _METHODS:
         logger.error('Failed to recognize the method of interpolation')
-        logger.error(f'Now is {method}, but methods shown below are allowed: \n{_METHODS}\n')
+        logger.error(f'Now is {method}, '
+                     f'but methods shown below are allowed: \n{_METHODS}\n')
         raise ValueError("Value of 'method' is invalid.")
     
     # The strategy to extrapolate points outside the data range
@@ -204,7 +222,8 @@ def do_interp(args=None):
         logger.info(dsp, f'specified constant ({extrapolate})')
 
     # data result
-    comment = '' if options.bare else f'Interpolate via {method} method - {TIME} {INFO}'
+    softinfo = f'Interpolate via {method} method - {TIME} {INFO}'
+    comment = '' if options.bare else softinfo
     np.savetxt(outputfile, datas.T, fmt='%.4f', header=comment)
     logger.info(f'Save interpolation results to {outputfile} (Done)')
     
@@ -220,23 +239,22 @@ def do_mixing(args=None):
         description=f'{DESC} - {INFO}',
         epilog=FOOTNOTE)
     
-    parser.add_argument('-b', '--bare', action='store_true',
-                        help='Output data without header')
+    parser.add_argument('-b', '--bare', **OPTS['bare'])
     
     parser.add_argument('-w', '--weight', metavar='WEIGHTS',
-                        help="Weights of mixing, with the same number of datafiles \
-                             (default:'1 1 1 ...')")
+        help="Weights of mixing, with the same number of datafiles \
+              (default:'1 1 1 ...')")
     
     parser.add_argument('-s', '--scale', type=float, default=0, 
-                        help='The scale factor (default: 1/sum(weights))')
+        help='The scale factor (default: 1/sum(weights))')
 
     parser.add_argument('inputfile', metavar='INPUTFILE', nargs='+',
-                        help='Filename of input file, which is usually more than one')
+        help='Filename of input file, which is usually more than one')
     
     parser.add_argument('outputfile', metavar='OUTPUTFILE', 
-                        help='A output filename is requrired here, which follows the inputfile(s)')
+        help='A output filename is requrired here, \
+              which follows the inputfile(s)')
 
-        
     options = parser.parse_args(args)
     
     logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
@@ -285,16 +303,16 @@ def do_ztdev(args=None):
         epilog=FOOTNOTE)
     
     # parser.add_argument('yita', metavar='Yita', type=float,
-    #                     help='Efficiency of thermoelectric generator(0 - 100)')
+    #     help='Efficiency of thermoelectric generator(0 - 100)')
     
     parser.add_argument('-y', '--yita', metavar='EFFICIENCY', type=float, 
-                        help='Efficiency of thermoelectric generator (0-100)')
+        help='Efficiency of thermoelectric generator (0-100)')
     
     parser.add_argument('tmin', type=float, 
-                        help='Temperature at cold side in K')
+        help='Temperature at cold side in K')
     
     parser.add_argument('tmax', type=float,
-                        help='Temperature at hot side in K')
+        help='Temperature at hot side in K')
     
     options = parser.parse_args(args)
     
@@ -322,28 +340,24 @@ def do_format(args=None):
         description=f'{DESC} - {INFO}',
         epilog=FOOTNOTE)
     
-    parser.add_argument('-b', '--bare', action='store_true',
-                        help='Output data without header')
+    parser.add_argument('-b', '--bare', **OPTS['bare'])
     
     parser.add_argument('-c', '--calculate', action='store_true', 
-                        help='Calculate thermoelectric power factor and figure-of-merit')
+        help='Calculate thermoelectric power factor and figure-of-merit')
     
-    parser.add_argument('inputfile', metavar='INPUTFILE',
-                        help='Filename of input file (necessary)')
+    parser.add_argument('inputfile', **OPTS['inputf'])
     
-    parser.add_argument('outputfile', metavar='OUTPUTFILE', nargs='?',
-                        help='Filename of output file (default: Basename_suffix.Extname)')
+    parser.add_argument('outputfile', **OPTS['outputf'])
     
     parser.add_argument('-m', '--method', default='cubic', 
-                        help='Interpolation method, only linear and cubic allowed \
-                             (default: cubic)')
+        help='Interpolation method, only linear and cubic allowed \
+              (default: cubic)')
 
     parser.add_argument('-g', '--group', default='TCTSTK', 
-                        help='Group identifiers for paired data (e.g. TCTSTK, TCSK, TKXXTSC, \
-                             default: TCTSTK)')
+        help='Group identifiers for paired data (e.g. TCTSTK, TCSK, \
+              TKXXTSC, default: TCTSTK)')
     
-    parser.add_argument('-s', '--suffix', default='format', 
-                        help='The suffix to generate filename of output file (default: format)')
+    parser.add_argument('-s', '--suffix', **OPTS['suffix']('format'))
     
     options = parser.parse_args(args)
     # print(options)
@@ -394,7 +408,8 @@ def do_format(args=None):
         T = np.arange(298, t_max+1, 25)
         T[0] = 300
         
-        logger.info(f'Generate temperatures automatically where Tmax = {t_max} K')
+        logger.info('Generate temperatures automatically where '
+                    f'Tmax = {t_max} K')
         logger.debug(f'Tempeartures: 300, 323, 348, 373, ..., {t_max}')
     except Exception as err:
         # catch other error
@@ -408,7 +423,8 @@ def do_format(args=None):
     method = options.method.lower()
     if method not in _METHODS:
         logger.error('Failed to recognize the method of interpolation')
-        logger.error(f'Now is {method}, but methods shown below are allowed: \n{_METHODS}\n')
+        logger.error(f'Now is {method}, '
+                     f'but methods shown below are allowed: \n{_METHODS}\n')
         raise ValueError("Value of 'method' is invalid.")
     fdata = [T, ]
     for pp in ('C', 'S', 'K'):
@@ -445,7 +461,8 @@ def do_format(args=None):
     pp_fmt = ', '.join(props)
     
     # data result
-    comment = '' if options.bare else f"Formated TE data - {TIME} {INFO}\n{pp_fmt}"
+    softinfo = f"Formated TE data - {TIME} {INFO}\n{pp_fmt}"
+    comment = '' if options.bare else softinfo
     np.savetxt(outputfile, np.vstack(fdata).T, fmt='%.4f', header=comment)
     logger.info(f'Save formated data to {outputfile} (Done)')
 
@@ -466,29 +483,25 @@ def do_cutoff(args=None):
         epilog=FOOTNOTE)
     
     parser.add_argument('t_cut', metavar='T-CUT', type=float,
-                        help='Threshold temperature')
+        help='Threshold temperature')
     
-    parser.add_argument('inputfile', metavar='INPUTFILE',
-                        help='Filename of input file (necessary)')
+    parser.add_argument('inputfile', **OPTS['inputf'])
     
-    parser.add_argument('outputfile', metavar='OUTPUTFILE', nargs='?',
-                        help='Filename of output file (default: Basename_suffix.Extname)')
+    parser.add_argument('outputfile', **OPTS['outputf'])
     
     parser.add_argument('-b', '--bare', action='store_true',
-                        help='Output concerned columns, without header')
+        help='Output concerned columns, without header')
     
     parser.add_argument('-m', '--method', default='bz',
-                        help='The method of cut-off \
-                             (Boltzmann[bz], smoothstep[ss], default: bz)')
+        help='Cut-off method (Boltzmann[bz], smoothstep[ss], default: bz)')
     
     parser.add_argument('-c', '--column', metavar='COLUMN',
-                        help="Specify indexes of column which are tailored (default: '1 2 .. N')")
+        help="Indexes of columns which are tailored (default: '1 2 .. N')")
     
     parser.add_argument('-w', '--width', type=float, default=10,
-                        help='The transition width of cut-off function (default: 10)')
+        help='The transition width of cut-off function (default: 10)')
     
-    parser.add_argument('-s', '--suffix', default='cutoff', 
-                        help='The suffix to generate filename of output file (default: cutoff)')
+    parser.add_argument('-s', '--suffix', **OPTS['suffix']('cutoff'))
     
     options = parser.parse_args(args)
     # print(options)
@@ -524,7 +537,8 @@ def do_cutoff(args=None):
         method = 'SmoothStep'
     else:
         logger.error('Failed to recognize the method for cut-off')
-        logger.error(f'Now is {method}, but methods shown below are allowed: \n{_METHODS}\n')
+        logger.error(f'Now is {method}, '
+                     f'but methods shown below are allowed: \n{_METHODS}\n')
         raise ValueError("Value of 'method' is invalid.")
     logger.info(f'Using {method} function to cut-off data')
     logger.debug(f'Transition width: {2*wd:.4f}, Tcut: {tc:.4f}')
@@ -559,20 +573,16 @@ def do_refine(args=None):
         description=f'{DESC} - {INFO}',
         epilog=FOOTNOTE)
     
-    parser.add_argument('-b', '--bare', action='store_true',
-                        help='Output data without header')
+    parser.add_argument('-b', '--bare', **OPTS['bare'])
     
-    parser.add_argument('inputfile', metavar='INPUTFILE',
-                        help='Filename of input file (necessary)')
+    parser.add_argument('inputfile', **OPTS['inputf'])
     
-    parser.add_argument('outputfile', metavar='OUTPUTFILE', nargs='?',
-                        help='Filename of output file (default: Basename_suffix.Extname)')
+    parser.add_argument('outputfile', **OPTS['outputf'])
     
     parser.add_argument('-c', '--column', metavar='COLUMN',
-                        help="Specify indexes of column which are picked up (default: '0 1 2 .. N')")
+        help="Indexes of columns which are picked up (default: '0 1 2 .. N')")
     
-    parser.add_argument('-s', '--suffix', default='refine', 
-                        help='The suffix to generate filename of output file (default: refine)')
+    parser.add_argument('-s', '--suffix', **OPTS['suffix']('refine'))
     
     options = parser.parse_args(args)
     
