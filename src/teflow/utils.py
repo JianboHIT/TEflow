@@ -65,12 +65,46 @@ def get_logger_handler(kind='CONSOLE', fmt=None, datefmt=None, filename='log.txt
     return handler
 
 class AttrDict(dict):
+    '''
+    AttrDict is an extension of Python's standard dictionary (dict)
+    that provides additional functionalities. It supports dot access
+    mode for direct attribute access to dictionary keys, as well as
+    other operations such as :meth:`append`, :meth:`extend`,
+    :meth:`merge`, and :meth:`sum`.
+
+    With AttrDict, you can directly access dictionary values using
+    dot notation.
+
+    Examples
+    --------
+    >>> d = AttrDict({'key1': 'value1'})
+    >>> d.key1
+    'value1'
+
+    Notes
+    -----
+    - Dot access mode only supports accessing existing keys.
+      Setting values using dot notation is not supported.
+    - This class may not handle nested dictionaries in dot access mode.
+    '''
     def __getattr__(self, attr):
         # define dot access mode like d.key
         return self[attr]
     
     def append(self, obj):
-        # define append operation
+        '''
+        Append values from another dictionary to the current AttrDict.
+
+        Parameters
+        ----------
+        obj : dict
+            Dictionary from which values are to be appended.
+
+        Raises
+        ------
+        ValueError
+            If the object to append is not a dictionary.
+        '''
         if isinstance(obj, dict):
             for key in self.keys():
                 self[key].append(obj[key])
@@ -78,7 +112,19 @@ class AttrDict(dict):
             raise ValueError('Only Dict() object can be appended')
     
     def extend(self, obj):
-        # define extend operation
+        '''
+        Extend values from another dictionary to the current AttrDict.
+
+        Parameters
+        ----------
+        obj : dict
+            Dictionary from which values are to be extended.
+
+        Raises
+        ------
+        ValueError
+            If the object to extend is not a dictionary.
+        '''
         if isinstance(obj, dict):
             for key in self.keys():
                 self[key].extend(obj[key])
@@ -87,7 +133,37 @@ class AttrDict(dict):
         
     @classmethod
     def merge(cls, objs, keys=None, toArray=False):
-        # merge operation: rst = AttrDict.merge([a,b,c,...], [keys])
+        '''
+        Merge a list of dictionaries.
+
+        Parameters
+        ----------
+        objs : list of dicts
+            List of dictionaries to merge.
+        keys : list of str, optional
+            Keys to consider for merging. If not provided, uses keys
+            from the first dictionary.
+        toArray : bool, optional
+            If True, converts the merged result into a numpy.ndarray.
+
+        Returns
+        -------
+        AttrDict
+            Merged dictionary.
+
+        Raises
+        ------
+        ValueError
+            If any object in objs is not a dictionary.
+
+        Examples
+        --------
+        >>> d1 = AttrDict({'a': 1, 'b': 2})
+        >>> d2 = AttrDict({'a': 3, 'b': 4})
+        >>> merged = AttrDict.merge([d1, d2])
+        >>> print(merged)
+        {'a': [1, 3], 'b': [2, 4]}
+        '''
         if not all(isinstance(obj, dict) for obj in objs):
             raise ValueError('Dict() objects are required')
         if keys is None:
@@ -100,7 +176,37 @@ class AttrDict(dict):
     
     @classmethod
     def sum(cls, objs, start=0, keys=None):
-        # sum operation: rst = AttrDict.sum([a,b,c,...], [start])
+        '''
+        Sum values from a list of dictionaries.
+
+        Parameters
+        ----------
+        objs : list of dicts
+            List of dictionaries to sum.
+        start : int or float, optional
+            Starting value for sum. Default is 0.
+        keys : list of str, optional
+            Keys to consider for summing. If not provided, uses keys
+            from the first dictionary.
+
+        Returns
+        -------
+        AttrDict
+            Dictionary with summed values.
+
+        Raises
+        ------
+        ValueError
+            If any object in objs is not a dictionary.
+
+        Examples
+        --------
+        >>> d1 = AttrDict({'a': 1, 'b': 2})
+        >>> d2 = AttrDict({'a': 3, 'b': 4})
+        >>> summed = AttrDict.sum([d1, d2])
+        >>> print(summed)
+        {'a': 4, 'b': 6}
+        '''
         if not all(isinstance(obj, dict) for obj in objs):
             raise ValueError('Dict() objects are required')
         if keys is None:
@@ -109,8 +215,31 @@ class AttrDict(dict):
         return cls(rst)
 
 class Metric():
-    kinds = {'MSE', 'RMSE', 'MAE', 'MAPE', 'SMAPE'}
+    '''
+    Metric class provides functionalities for computing various error
+    metrics. This class can be initialized with a specific kind of
+    metric (such as 'MSE', 'RMSE') and later be called directly to
+    compute the error based on the initialized metric kind. Additionally,
+    each metric kind can also be used directly as a static method.
+
+    Examples
+    --------
+    >>> metric = Metric('MSE')
+    >>> y = [1, 2, 3]
+    >>> y2 = [2, 4, 5]
+    >>> metric(y, y2)
+    3.0
+    >>> Metric.MSE(y, y2)
+    3.0
+    '''
+    kinds = {'MSE', 'RMSE', 'MAE', 'MAPE', 'SMAPE'}  #: :meta private:
     def __init__(self, kind='MSE'):
+        '''
+        Parameters
+        ----------
+        kind : str, optional
+            Kind of metric to be used. Default is 'MSE'.
+        '''
         kind = kind.upper()
         if kind in self.kinds:
             self._kind = kind
@@ -124,7 +253,11 @@ class Metric():
     @staticmethod
     def MSE(y, y2, axis=-1):
         '''
-        Mean Square Error
+        Mean-Square Error:
+        
+        .. math::
+        
+            \\frac{1}{n} \\sum_{i=1}^{n} (y_2[i] - y[i])^2
         '''
         diff = np.array(y2) - np.array(y)
         v2 = np.mean(np.square(diff), axis=axis)
@@ -132,6 +265,13 @@ class Metric():
     
     @staticmethod
     def RMSE(y, y2, axis=-1):
+        '''
+        Root-Mean-Square error:
+        
+        .. math:: 
+        
+            \\sqrt{\\frac{1}{n} \\sum_{i=1}^{n} (y_2[i] - y[i])^2}
+        '''
         diff = np.array(y2) - np.array(y)
         v2 = np.mean(np.square(diff), axis=axis)
         return np.sqrt(v2)
@@ -139,7 +279,11 @@ class Metric():
     @staticmethod
     def MAE(y, y2, axis=-1):
         '''
-        Mean Absolute Error
+        Mean Absolute Error:
+        
+        .. math:: 
+            
+            \\frac{1}{n} \\sum_{i=1}^{n} |y_2[i] - y[i]|
         '''
         diff = np.array(y2) - np.array(y)
         v = np.mean(np.absolute(diff), axis=axis)
@@ -148,7 +292,12 @@ class Metric():
     @staticmethod
     def MAPE(y, y2, axis=-1):
         '''
-        Mean Absolute Percentage Error
+        Mean Absolute Percentage Error:
+        
+        .. math:: 
+        
+            \\frac{1}{n} \\sum_{i=1}^{n} 
+                \\left| \\frac{y_2[i] - y[i]}{y[i]} \\right|
         '''
         rdiff = np.array(y2)/np.array(y)-1
         v = np.mean(np.absolute(rdiff), axis=axis)
@@ -156,6 +305,14 @@ class Metric():
     
     @staticmethod
     def SMAPE(y, y2, axis=-1):
+        '''
+        Symmetric Mean Absolute Percentage Error:
+        
+        .. math:: 
+        
+            \\frac{2}{n} \\sum_{i=1}^{n}
+                \\frac{|y_2[i] - y[i]|}{|y_2[i]| + |y[i]|}
+        '''
         y = np.array(y)
         y2 = np.array(y2)
         diff = np.absolute(y2-y)
@@ -182,7 +339,8 @@ def suffixed(outputname, inputname, suffix, withparent=False):
 
 def purify(fp, chars=None, usecols=None, sep=None):
     '''
-    Remove # comments and strip line, then return a filter/map object
+    Remove #-type comments and strip line, then return a built-in
+    `filter`/`map` object.
     '''
     if usecols:
         _fetch = lambda line: line.split('#', 1)[0].strip(chars).split(sep)
