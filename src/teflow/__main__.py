@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from .interface import do_main
+from .interface import _do_main
 
 if __name__ == '__main__':
-    do_main()
+    _do_main()

@@ -93,7 +93,7 @@ OPTS = {
 }
 
 
-def do_main(args=None):
+def _do_main(args=None):
     # for test
     if args is None:
         args = sys.argv[1:]
