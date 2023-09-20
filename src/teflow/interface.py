@@ -67,18 +67,25 @@ LOG_FMT = f'[{PKG}] %(message)s'      # '[%(levelname)5s] %(message)s'
 
 # some public options
 OPTS = {
+    # parser.add_argument('-b', '--bare', **OPTS['bare'])
     'bare': dict(
         action='store_true',
         help='Output data without header',
     ),
+    
+    # parser.add_argument('inputfile', **OPTS['inputf'])
     'inputf': dict(
         metavar='INPUTFILE',
         help='Filename of input file (necessary)',
     ),
+    
+    # parser.add_argument('outputfile', **OPTS['outputf'])
     'outputf': dict(
         metavar='OUTPUTFILE', nargs='?',
         help='Filename of output file (default: Basename_suffix.Extname)',
     ),
+    
+    # parser.add_argument('-s', '--suffix', **OPTS['suffix']('xxxxxx'))
     'suffix': lambda suf: dict(
         default=f'{suf}',
         help=f'The suffix to generate filename of output file (default: {suf})',
@@ -293,7 +300,9 @@ def do_mixing(args=None):
 
 
 def do_ztdev(args=None):
-    from .ztdev import cal_ZTdev
+    import numpy as np
+    from .ztdev import optim_Yita, cal_ZTdev
+    from .utils import suffixed
     
     task = 'ztdev'
     DESC = DESCRIPTION[task]
@@ -302,30 +311,50 @@ def do_ztdev(args=None):
         description=f'{DESC} - {INFO}',
         epilog=FOOTNOTE)
     
-    # parser.add_argument('yita', metavar='Yita', type=float,
-    #     help='Efficiency of thermoelectric generator(0 - 100)')
+    parser.add_argument('-b', '--bare', **OPTS['bare'])
     
-    parser.add_argument('-y', '--yita', metavar='EFFICIENCY', type=float, 
-        help='Efficiency of thermoelectric generator (0-100)')
+    parser.add_argument('-y', '--yita', action='store_true',
+        help='Read the data with columns Tc, Th, Yita in order, \
+              rather than the material properties T, C, S, K.')
     
-    parser.add_argument('tmin', type=float, 
-        help='Temperature at cold side in K')
+    parser.add_argument('inputfile', **OPTS['inputf'])
     
-    parser.add_argument('tmax', type=float,
-        help='Temperature at hot side in K')
+    parser.add_argument('outputfile', **OPTS['outputf'])
+    
+    parser.add_argument('-s', '--suffix', **OPTS['suffix']('ztdev'))
     
     options = parser.parse_args(args)
+    # print(options)
     
     logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
     logger.info(f'{DESC} - {TIME}')
     
-    yita = options.yita
-    tmin = options.tmin
-    tmax = options.tmax
-    logger.info(f'Yita: {yita:.2f} %,  Tmin: {tmin:.2f} K, Tmax: {tmax:.2f} K')
+    # read datas
+    inputfile = options.inputfile
+    if options.yita:
+        Tc, Th, Yita, *_ = np.loadtxt(inputfile, unpack=True, ndmin=2)
+        logger.info(f'Read data [Tc, Th, Yita] from {inputfile}')
+        if np.max(Yita) < 1:
+            logger.warning('Detected all input Yita less than 1.'
+                           'Its typical range is 0-100.')
+    else:
+        Th, C, S, K, *_ = np.loadtxt(inputfile, unpack=True, ndmin=2)
+        Tc = Th[0]*np.ones_like(Th)
+        logger.info(f'Read data [T, C, S, K] from {inputfile}')
+        Yita = optim_Yita([Th, C, S, K], allTemp=True)
     
-    ZTdev = cal_ZTdev(yita, Tc=tmin, Th=tmax)
-    logger.info(f'ZTdev: {ZTdev:.4f} (DONE)')
+    # calculate ZTdev
+    ZTdev = cal_ZTdev(Yita, Tc, Th)
+    logger.info('Calculate ZTdev from Yita')
+    
+    # output
+    outdata = np.c_[Tc, Th, Yita, ZTdev]
+    outputfile = suffixed(options.outputfile, inputfile, options.suffix)
+    pp_fmt = 'Tc     Th       Yita   ZTdev'
+    softinfo = f"Calculate ZTdev - {TIME} {INFO}\n{pp_fmt}"
+    comment = '' if options.bare else softinfo
+    np.savetxt(outputfile, outdata, fmt='%.4f', header=comment)
+    logger.info(f'Save ZTdev data to {outputfile} (Done)')
 
 
 def do_format(args=None):
