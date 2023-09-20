@@ -861,3 +861,72 @@ class APSSKB(BaseBand):
         factor = 4.020521639724753      # [S/cm] / [cm^2/(V.s)]
         sigma0 = factor * UWT
         return cls(m_d=m_d, sigma0=sigma0, Eg=Eg, Kmass=Kmass)
+
+
+def bandline(k, m_b=1, k0=0, E0=0, Eg=None):
+    '''
+    Model an idealized electronic dispersion relation based on
+    the given parameters.
+
+    Parameters
+    ----------
+    k : ndarray
+        Wave vector in rad/Ang (radians per angstrom), i.e.,
+        containing the :math:`2 \pi` factor.
+    m_b : ndarray, optional
+        Ratio of the band effective mass to the electron mass.
+        Defaults to 1.
+    k0 : ndarray, optional
+        Wave vector offset in rad/Ang. Defaults to 0.
+    E0 : ndarray, optional
+        Energy offset in eV. Defaults to 0.
+    Eg : ndarray, optional
+        Bandgap in eV. If set to None (default), it represents a parabolic band.
+
+    Returns
+    -------
+    ndarray
+        Energy values in eV.
+    '''
+    COEF_BAND = 7.619964222971923
+    parabolic = COEF_BAND * np.power(k - k0, 2) / m_b / 2
+    if Eg is None:
+        return parabolic + E0
+    else:
+        kane = np.sqrt(0.25 + np.abs(parabolic)/Eg) + 0.5
+        return parabolic / kane + E0
+
+
+def dosline(E, m_d=1, E0=0, Vcell=1, Eg=None):
+    '''
+    Model an idealized density-of-states (DOS) based on the given parameters.
+
+    Parameters
+    ----------
+    E : ndarray
+        Energy values in eV.
+    m_d : ndarray, optional
+        Ratio of the DOS effective mass to the electron mass.
+        Defaults to 1.
+    E0 : ndarray, optional
+        Energy offset in eV. Defaults to 0.
+    Vcell : ndarray, optional
+        Volume of the unit cell in cubic angstrom (Ang^3). Defaults to 1.
+    Eg : ndarray, optional
+        Bandgap in eV. If set to None (default), it represents a parabolic band.
+
+    Returns
+    -------
+    ndarray
+        Density-of-states values in states/(eV.cell).
+        When `Vcell` is set to its default value of 1,
+        the unit is also equivalent to states/(eV.Ang^3)
+        or 1E24 states/(eV.cm^3).
+    '''
+    COEF_DOS = 146.7959743657925
+    energy = np.maximum(np.sign(m_d)*(E-E0), 0)
+    coef = Vcell/COEF_DOS * np.power(np.abs(m_d), 3/2)
+    if Eg is None:
+        return coef * np.sqrt(energy)
+    else:
+        return coef * np.sqrt(E*(1+E/Eg))*(1+2*E/Eg)
