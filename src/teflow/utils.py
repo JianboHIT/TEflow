@@ -329,7 +329,7 @@ def suffixed(outputname, inputname, suffix, withparent=False):
     else:
         p = PurePath(inputname)
         if p.suffix:
-            out = f'{p.stem}_{suffix}.{p.suffix}'
+            out = f'{p.stem}_{suffix}{p.suffix}'
         else:
             out = f'{p.stem}_{suffix}'
         if withparent:
