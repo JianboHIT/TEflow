@@ -2,6 +2,11 @@
 A python3 package for streamlining thermoelectric workflow from materials to devices
 
 ## Features
+- Model carrier transport
+  - Single parabolic band (SPB) model
+  - Single Kane band (SKB) model
+  - Multiple bands model
+  - Customized band model
 - Engineering performance of thermoelectric generator[^1]
   - Engineering dimensionless figure of merit (ZT<sub>eng</sub>) and power factor (PF<sub>eng</sub>)
   - Maximum Efficiency (η<sub>max</sub>) and ouput power density (P<sub>d</sub>)
@@ -10,7 +15,7 @@ A python3 package for streamlining thermoelectric workflow from materials to dev
   - Maximum thermoelectric device efficiency
   - Optimized relative current density $u$
   - Thermoelectric potential $\Phi$
-- Thermoelectric data analysis
+- Thermoelectric data manipulation
   - Thermoelectric data interpolation and extrapolation
   - Cut-off thermoelectric data at the threshold temperature
   - Join and rearrange parallel data files
