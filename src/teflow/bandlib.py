@@ -17,6 +17,8 @@ from scipy.integrate import quad, romb
 from scipy.optimize import root_scalar
 import numpy as np
 
+from .utils import AttrDict
+
 
 UNIT = {
     'T': 'K',
@@ -863,6 +865,123 @@ class APSSKB(BaseBand):
         return cls(m_d=m_d, sigma0=sigma0, Eg=Eg, Kmass=Kmass)
 
 
+class RSPB:
+    '''
+    A class for modeling the Restructured Single Parabolic Band
+    (RSPB) model in thermoelectric materials. 
+    This class contains three types of attributes:
+    
+    * **Ending with 'r'**: Represents reduced properties, usually
+      requiring a reduced carrier concentration (`Nr`) as input. 
+      An optional parameter `factor` can also be passed in,
+      which defaults to 1. This indicates the return of
+      reduced material property values. 
+      If a factor corresponding to the material property
+      (indicated by attributes ending with '0') is passed in,
+      the material property values in common units will be returned.
+    * **Ending with '0'**: Represents factors for material properties
+      in common units.
+    * **Starting with 'i'**: Inverse functions of the reduced properties,
+      used to solve the reduced carrier concentration from
+      reduced material property values (or property values in
+      common units, determined by the optional parameter `factor`).
+
+    '''
+
+    N0 = 2.5094122298407914     #: Unit:: 1E19 cm^-3
+    S0 = 86.17333262145179      #: Unit:: uV/K
+    L0 = 0.7425843255087367     #: Unit:: 1E-8 W.Ohm/K^2
+    C0 = 4.020521639724753      #: Unit:: S/cm
+    PF0 = 0.029855763500282857  #: Unit:: uW/(cm.K^2)
+    
+    @staticmethod
+    def Nmr(Nr, factor=1, m_d=1, T=300):
+        return factor * np.power(m_d*T/300, 3/2) * Nr
+    
+    @staticmethod
+    def Sr(Nr, factor=1, delta=0.075):
+        return factor * np.log(1+delta+np.exp(2)/Nr)
+    
+    @staticmethod
+    def iSr(Sr, factor=1, delta=0.075):
+        return np.exp(2)/(np.exp(Sr/factor)-1-delta)
+    
+    @staticmethod
+    def Ur(Nr, factor=1):
+        return factor * np.power(1+Nr/2, -1/3)
+    
+    @staticmethod
+    def iUr(Ur, factor=1):
+        return 2*(np.power(factor/Ur, 3)-1)
+    
+    @staticmethod
+    def Lr(Nr, factor=1):
+        scale = np.power(1+np.power(Nr/np.pi/2, -3/2), 3/2)
+        return factor * (2+(np.pi*np.pi/3-2)/scale)
+    
+    @staticmethod
+    def iLr(Lr, factor=1):
+        scale = (np.pi*np.pi/3-2)/(Lr/factor-2)
+        return 2*np.pi*np.power(np.power(scale, 2/3)-1, -2/3)
+    
+    @classmethod
+    def Cr(cls, Nr, factor=1, UWT=1):
+        # N0 * mt32 * Nr * q * U0 * Ur
+        #    = N0 * q * (mt32*U0) * Nr*Ur
+        #    = C0 * UWT * Nr * Ur
+        return factor * UWT * Nr * cls.Ur(Nr)
+    
+    @classmethod
+    def PFr(cls, Nr, factor=1, UWT=1, delta=0.075):
+        # (C0 * UWT * Nr * Ur) * (S0 * Sr)^2
+        #    = C0*S0^2 * (UWT*Nr*Ur)*Sr^2
+        return factor * cls.Cr(Nr, UWT=UWT) \
+               * np.power(cls.Sr(Nr, delta=delta), 2)
+    
+    @classmethod
+    def valuate(cls, dataC, dataS, dataT=None, dataN=None, delta=0.075):
+        '''
+        A class method for quickly evaluating the
+        temperature-independent weighted mobility (`UWT`) 
+        and effective mass (`m_eff`) based on experimental data.
+
+        Parameters
+        ----------
+        dataC : ndarray
+            Experimental data for electrical conductivity in S/cm.
+        dataS : ndarray
+            Experimental data for Seebeck coefficient in uV/K.
+        dataT : ndarray, optional
+            Experimental data for temperature in Kelvin.
+            Used in conjunction with `dataN` to calculate `m_eff`.
+            Defaults to None.
+        dataN : ndarray, optional
+            Experimental data for carrier concentration in 1E19 cm^-3.
+            Used in conjunction with `dataT` to calculate `m_eff`.
+            Defaults to None.
+        delta : float, optional
+            A parameter related to the Seebeck coefficient, defaults to 0.075.
+
+        Returns
+        -------
+        AttrDict
+            An attribute dictionary containing:
+            
+            * `UWT`: Calculated temperature-independent weighted
+              mobility in cm^2/(V.s).
+            * `m_eff`: Calculated the ratio of effective mass to the 
+              electron mass, only if both `dataT` and `dataN` are provided.
+
+        '''
+        Nr = cls.iSr(dataS, factor=cls.S0, delta=delta)
+        UWT = dataC/cls.Cr(Nr, factor=cls.C0)
+        
+        out = AttrDict(UWT=UWT)
+        if (dataT is not None) and (dataN is not None):
+            out['m_eff'] = np.power(dataN/Nr, 2/3) * 300/dataT
+        return out
+
+
 def bandline(k, m_b=1, k0=0, E0=0, Eg=None):
     '''
     Model an idealized electronic dispersion relation based on
@@ -930,3 +1049,4 @@ def dosline(E, m_d=1, E0=0, Vcell=1, Eg=None):
         return coef * np.sqrt(energy)
     else:
         return coef * np.sqrt(E*(1+E/Eg))*(1+2*E/Eg)
+    
