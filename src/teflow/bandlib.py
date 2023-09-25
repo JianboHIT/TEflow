@@ -12,6 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import logging
 from abc import ABC, abstractmethod
 from scipy.integrate import quad, romb
 from scipy.optimize import root_scalar
@@ -19,6 +20,7 @@ import numpy as np
 
 from .utils import AttrDict
 
+logger = logging.getLogger(__name__)
 
 UNIT = {
     'T': 'K',
@@ -703,42 +705,87 @@ class APSSPB(BaseBand):
         return cls(m_d=m_d, sigma0=sigma0, Kmass=Kmass)
 
     @classmethod
-    def valuate_m_d(cls, dataS, dataN, dataT, hall=False, Kmass=1):
-        spb = cls(Kmass=Kmass)
-        dataEF = spb.solve_EF('S', dataS, dataT)
-        if hall:
-            N0 = spb.NH(dataEF, dataT)
-        else:
-            N0 = spb.N(dataEF, dataT)
-        return np.power(dataN/N0, 2/3)
-
-    @classmethod
-    def valuate_L(cls, dataS):
+    def valuate(cls, dataS, dataT=None, dataC=None, dataN=None,
+                hall=False, Kmass=1):
         '''
-        A class method to evaluate Lorenz numbers from Seebeck coefficients.
+        A class method for quickly evaluating the carriar transport
+        properties (such as Lorenz number `L` and the temperature-independent
+        weighted mobility `UWT`) based on experimental data.
 
         Parameters
         ----------
         dataS : ndarray
-            Absolute Seebeck coefficients in uV/K.
+            Experimental data for Seebeck coefficient in uV/K.
+        dataT : ndarray, optional
+            Experimental data for temperature in Kelvin.
+            Defaults to None.
+        dataC : ndarray, optional
+            Experimental data for electrical conductivity in S/cm.
+            Defaults to None.
+        dataN : ndarray, optional
+            Experimental data for carrier concentration in 1E19 cm^-3.
+            Defaults to None.
+        hall : boolean, optional
+            Whether to consider the Hall effect. Defaults to False.
+        Kmass : float, optional
+            The ratio of longitudinal to transverse effective mass, by
+            default 1.
 
         Returns
         -------
-        ndarray
-            Lorenz numbers in 1E-8 W.Ohm/K^2.
+        AttrDict
+            An attribute dictionary containing:
+
+            * `L`: Lorenz number in 1E-8 W.Ohm/K^2`.
+            * `Ke`: Electronic thermal conductivity in W/(m.K),
+              only if both `dataT` and `dataC` are provided.
+            * `UWT`: Temperature-independent weighted mobility in cm^2/(V.s),
+              only if both `dataT` and `dataC` are provided.
+            * `PFmax`: The maximum power factor in uW/(cm.K^2),
+              only if both `dataT` and `dataC` are provided.
+            * `m_d`: The ratio of effective mass to the electron mass,
+              only if both `dataT` and `dataN` are provided.
+            * `Nopt`: The optimal carrier concentration in 1E19 cm^(-3),
+              only if both `dataT` and `dataN` are provided.
         '''
+        spb = cls(Kmass=Kmass)
 
-        if np.any(dataS <= 0):
-            raise ValueError('Non-negative values are required for dataS '
-                             '(i.e. absolute Seebeck coefficient)')
+        if dataT is not None:
+            dataEF = spb.solve_EF('S', dataS, dataT)
+            out = AttrDict(L=spb.L(dataEF, dataT))
+            logger.info('Valuate Lorenz numbers')
         else:
-            dataS = np.minimum(dataS, 1000)
+            TEMP = 1/kB_eV
+            yita = spb.solve_EF('S', dataS, TEMP)
+            logger.info('Valuate Lorenz numbers only')
+            return AttrDict(L=spb.L(yita, TEMP))
 
-        spb = cls(sigma0=100)
-        TEMP = 1/kB_eV
-        yita = spb.solve_EF('S', dataS, TEMP)
-        L = spb.L(yita, TEMP)
-        return spb.L(yita, TEMP)
+        if dataC is not None:
+            out['Ke'] = 1E-6 * out['L']*dataC*dataT
+            logger.info('Valuate electronic thermal conductivity.')
+
+            sigma0 = dataC/spb.C(dataEF, dataT)
+            out['UWT'] = sigma0/cls._UWT_to_sigma0
+            out['PFmax'] = sigma0 * cls._sigma0_to_PFmax
+            logger.info('Valuate temperature-independent weighted mobilities.')
+            logger.info('Valuate maximum power factors.')
+
+        if dataN is not None:
+            if hall:
+                N_ref = spb.NH(dataEF, dataT)
+                Nopt_ref = spb.NH(cls._Yita_opt * kB_eV * dataT, dataT)
+                logger.debug('Enable Hall effect.')
+            else:
+                N_ref = spb.N(dataEF, dataT)
+                Nopt_ref = spb.N(cls._Yita_opt * kB_eV * dataT, dataT)
+                logger.debug('Disable Hall effect.')
+            N_ratio = dataN/N_ref
+            out['m_d'] = np.power(N_ratio, 2/3)
+            out['Nopt'] = N_ratio * Nopt_ref
+            logger.info('Valuate effective masses of carriers.')
+            logger.info('Valuate optimal carrier concentration.')
+
+        return out
 
 
 class APSSKB(BaseBand):
@@ -868,6 +915,72 @@ class APSSKB(BaseBand):
         sigma0 = cls._UWT_to_sigma0 * UWT
         return cls(m_d=m_d, sigma0=sigma0, Eg=Eg, Kmass=Kmass)
 
+    @classmethod
+    def valuate(cls, dataS, dataT, dataC=None, dataN=None,
+                Eg=1, hall=False, Kmass=1):
+        '''
+        A class method for quickly evaluating the carriar transport
+        properties (such as Lorenz number `L` and the temperature-independent
+        weighted mobility `UWT`) based on experimental data.
+
+        Parameters
+        ----------
+        dataS : ndarray
+            Experimental data for Seebeck coefficient in uV/K.
+        dataT : ndarray
+            Experimental data for temperature in Kelvin.
+        dataC : ndarray, optional
+            Experimental data for electrical conductivity in S/cm.
+            Defaults to None.
+        dataN : ndarray, optional
+            Experimental data for carrier concentration in 1E19 cm^-3.
+            Defaults to None.
+        Eg : float, optional
+            Bandgap in eV, by default 1.
+        hall : boolean, optional
+            Whether to consider the Hall effect. Defaults to False.
+        Kmass : float, optional
+            The ratio of longitudinal to transverse effective mass, by
+            default 1.
+
+        Returns
+        -------
+        AttrDict
+            An attribute dictionary containing:
+
+            * `L`: Lorenz number in 1E-8 W.Ohm/K^2`.
+            * `Ke`: Electronic thermal conductivity in W/(m.K),
+              only if `dataC` is provided.
+            * `UWT`: Temperature-independent weighted mobility in cm^2/(V.s),
+              only if `dataC` is provided.
+            * `m_d`: The ratio of effective mass to the electron mass,
+              only if `dataN` is provided.
+        '''
+        skb =  cls(Kmass=Kmass, Eg=Eg)
+        dataEF = skb.solve_EF('S', dataS, dataT)
+        out = AttrDict(L=skb.L(dataEF, dataT))
+        logger.info('Valuate Lorenz numbers')
+
+        if dataC is not None:
+            out['Ke'] = 1E-6 * out['L']*dataC*dataT
+            logger.info('Valuate electronic thermal conductivity.')
+
+            sigma0 = dataC/skb.C(dataEF, dataT)
+            out['UWT'] = sigma0/cls._UWT_to_sigma0
+            logger.info('Valuate Temperature-independent weighted mobilities.')
+
+        if dataN is not None:
+            if hall:
+                N_ref = skb.NH(dataEF, dataT)
+                logger.debug('Enable Hall effect.')
+            else:
+                N_ref = skb.N(dataEF, dataT)
+                logger.debug('Disable Hall effect.')
+            out['m_d'] = np.power(dataN/N_ref, 2/3)
+            logger.info('Valuate effective masses of carriers.')
+
+        return out
+
 
 class RSPB:
     '''
@@ -948,9 +1061,9 @@ class RSPB:
     @classmethod
     def valuate(cls, dataC, dataS, dataT=None, dataN=None, delta=0.075):
         '''
-        A class method for quickly evaluating the
-        temperature-independent weighted mobility (`UWT`) 
-        and effective mass (`m_eff`) based on experimental data.
+        A class method for quickly evaluating the carriar transport
+        properties (such as Lorenz number `L` and the temperature-independent
+        weighted mobility `UWT`) based on experimental data.
 
         Parameters
         ----------
@@ -974,18 +1087,28 @@ class RSPB:
         AttrDict
             An attribute dictionary containing:
             
-            * `UWT`: Calculated temperature-independent weighted
-              mobility in cm^2/(V.s).
-            * `m_eff`: Calculated the ratio of effective mass to the 
-              electron mass, only if both `dataT` and `dataN` are provided.
-
+            * `L`: Lorenz number in 1E-8 W.Ohm/K^2`.
+            * `UWT`: Temperature-independent weighted mobility in cm^2/(V.s).
+            * `PFmax`: The maximum power factor in uW/(cm.K^2).
+            * `Ke`: Electronic thermal conductivity in W/(m.K),
+              only if both `dataT` and `dataN` are provided.
+            * `m_eff`: The ratio of effective mass to the electron mass,
+              only if both `dataT` and `dataN` are provided.
+            * `Nopt`: The optimal carrier concentration in 1E19 cm^(-3),
+              only if both `dataT` and `dataN` are provided.
         '''
         Nr = cls.iSr(dataS, factor=cls.S0, delta=delta)
+        L = cls.Lr(Nr, factor=cls.L0)
         UWT = dataC/cls.Cr(Nr, factor=cls.C0)
-        
-        out = AttrDict(UWT=UWT)
+        PFmax = UWT * cls._UWT_to_PFmax
+        out = AttrDict(L=L, UWT=UWT, PFmax=PFmax)
+        logger.info('Valuate L, UWT, and PFmax quickly.')
+
         if (dataT is not None) and (dataN is not None):
+            out['Ke'] = 1E-6 * L*dataC*dataT
             out['m_eff'] = np.power(dataN/Nr, 2/3) * 300/dataT
+            out['Nopt'] = cls._Nr_opt * cls.N0 * dataN/Nr
+            logger.info('Valuate Ke, m_eff, and Nopt quickly.')
         return out
 
 
