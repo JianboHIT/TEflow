@@ -35,12 +35,13 @@ DESCRIPTION = {
     'format': 'Format thermoelectric properties data',
     'cutoff': 'Cut-off data at the threshold temperature',
     'refine': 'Remove redundant & extract the concerned data',
+    'band'  : 'Insight carriar transport with band models',
 }
-DESCRIPTION_FMT = '\n'.join('{:>10s}    {}'.format(key, value) 
-                            for key, value in DESCRIPTION.items())
-# figlet -f slant TEflow | boxes -d stark1
+
+# figlet -f 'Big Money-se' TE
+# figlet -f 'Georgia11' flow
 INFO_HELP = f'''
-     ________  ________                                          
+      ________  ________                                         
      |        \|        \     ,...  ,,                           
       \$$$$$$$$| $$$$$$$$   .d' ""`7MM                           
         | $$   | $$__       dM`     MM                           
@@ -57,7 +58,13 @@ ______________________________________________________________________
 Usage: {CMD}-subcommand [-h] ...
 
 Subcommands:
-{DESCRIPTION_FMT}
+    format  {DESCRIPTION['format']}
+      band  {DESCRIPTION['band']}
+     ztdev  {DESCRIPTION['ztdev']}
+    interp  {DESCRIPTION['interp']}
+    mixing  {DESCRIPTION['mixing']}
+    refine  {DESCRIPTION['refine']}
+    cutoff  {DESCRIPTION['cutoff']}
 '''
 FOOTNOTE = ''
 
@@ -116,6 +123,8 @@ def _do_main(args=None):
             do_cutoff(args[1:])
         elif task.startswith('refine'):
             do_refine(args[1:])
+        elif task.startswith('band'):
+            do_band(args[1:])
         else:
             do_help()
     else:
@@ -641,3 +650,117 @@ def do_refine(args=None):
         for line in contents:
             f.write(line+'\n')
     logger.info(f'Save refined data to {outputfile} (Done)')
+
+
+def do_band(args=None):
+    import numpy as np
+    from .bandlib import APSSPB, APSSKB
+    from .utils import suffixed
+    
+    task = 'band'
+    DESC = DESCRIPTION[task]
+    DESC = DESCRIPTION[task]
+    parser = argparse.ArgumentParser(
+        prog=f'{CMD}-{task}',
+        description=f'{DESC} - {INFO}',
+        epilog=FOOTNOTE)
+    
+    parser.add_argument('-b', '--bare', **OPTS['bare'])
+    
+    parser.add_argument('-g', '--group', default='STCN',
+        help='Group identifiers for paired data (default: STCN)')
+    
+    parser.add_argument('--gap', type=float, default=None,
+        help='Bandgap in eV. Defaults to None, indicating the use of a parabolic band model')
+    
+    parser.add_argument('inputfile', **OPTS['inputf'])
+    
+    parser.add_argument('outputfile', **OPTS['outputf'])
+    
+    parser.add_argument('-s', '--suffix', **OPTS['suffix'](task))
+    
+    options = parser.parse_args(args)
+    # print(options)
+    
+    logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
+    logger.info(f'{DESC} - {TIME}')
+    
+    # read gap
+    Egap = options.gap
+    if Egap is None:
+        logger.info('Using single parabolic band (SPB) model.')
+    elif Egap <= 0:
+        logger.warning('Faced with a negative band gap value, we are '\
+            'compelled to adopt the single parabolic band (SPB) model.')
+        Egap = None
+    else:
+        logger.info(f'Using single Kane band (SKB) model where Eg = {Egap} eV.')
+    
+    # read alldata
+    inputfile = options.inputfile
+    alldata = np.loadtxt(inputfile, unpack=True, ndmin=2)
+    logger.info(f'Load data from {inputfile} with {len(alldata)} columns')
+    
+    outdata = []
+    outinfo = []
+    
+    # parse
+    group = options.group.upper()
+    if 'S' in group:
+        dataS = alldata[group.index('S')]
+        outdata.append(dataS)
+        outinfo.append('S')
+        logger.info('Fetch Seebeck coefficients successfully')
+    else:
+        logger.info('Failed to fetch Seebeck coefficients')
+        raise IOError('Seebeck coefficients are required')
+    
+    if 'T' in group:
+        dataT = alldata[group.index('T')]
+        outdata.append(dataT)
+        outinfo.append('T')
+        logger.info('Fetch temperature points successfully')
+    else:
+        logger.info('Failed to fetch temperature points')
+        if Egap is None:
+            dataT = None
+        else:
+            raise IOError('Temperatures are required for Kane model')
+
+    if 'C' in group:
+        dataC = alldata[group.index('C')]
+        outdata.append(dataC)
+        outinfo.append('C')
+        logger.info('Fetch electrical conductivity successfully')
+    elif 'R' in group:
+        dataC = 1E4 / alldata[group.index('R')]
+        outdata.append(dataC)
+        outinfo.append('C')
+        logger.info('Fetch electrical resistivity successfully')
+    else:
+        dataC = None
+        logger.info('Failed to fetch electrical conductivity')
+    
+    if 'N' in group:
+        dataN = alldata[group.index('N')]
+        outdata.append(dataN)
+        outinfo.append('N')
+        logger.info('Fetch carrier concentration successfully')
+    else:
+        dataN = None
+        logger.info('Failed to fetch carrier concentration')
+    
+    if Egap is None:
+        out = APSSPB.valuate(dataS, dataT, dataC, dataN)
+    else:
+        out = APSSKB.valuate(dataS, dataT, dataC, dataN, Eg=Egap)
+    
+    for key, val in out.items():
+        outdata.append(val)
+        outinfo.append(key)
+    
+    softinfo = f"Modeling carrier transport - {TIME} {INFO}\n{'  '.join(outinfo)}"
+    comment = '' if options.bare else softinfo
+    outputfile = suffixed(options.outputfile, inputfile, options.suffix)
+    np.savetxt(outputfile, np.vstack(outdata).T, fmt='%.4f', header=comment)
+    logger.info(f'Save model data to {outputfile} (Done)')
