@@ -25,28 +25,50 @@
 
     $ tef -h
 
-        ________  ________
-        |        \|        \     ,...  ,,
-        \$$$$$$$$| $$$$$$$$   .d' ""`7MM
+          ________  ________
+         |        \|        \     ,...  ,,
+          \$$$$$$$$| $$$$$$$$   .d' ""`7MM
             | $$   | $$__       dM`     MM
             | $$   | $$  \     mMMmm    MM  ,pW"Wq.`7M'    ,A    `MF'
             | $$   | $$$$$      MM      MM 6W'   `Wb VA   ,VAA   ,V
             | $$   | $$_____    MM      MM 8M     M8  VA ,V  VA ,V
             | $$   | $$     \   MM      MM YA.   ,A9   VVV    VVV
-            \$$    \$$$$$$$$ .JMML.  .JMML.`Ybmd9'     W      W
-
-                            (v0.0.1a3, Copyright 2023 Jianbo ZHU)
+             \$$    \$$$$$$$$ .JMML.  .JMML.`Ybmd9'     W      W
+    
+                             (v0.0.1a3, Copyright 2023 Jianbo ZHU)
     ______________________________________________________________________
     >>> Streamline your thermoelectric workflow from materials to devices
-
-    Usage: tef-xxxxxx ...
-
+    
+    Usage: tef-subcommand [-h] ...
+    
     Subcommands:
-        interp    Data interpolation and extrapolation
-        mixing    Mixing the datafile with same array-shape
-        ztdev    Calculate ZTdev of thermoelectric generator
-        format    Format thermoelectric properties data
-        cutoff    Cut-off data at the threshold temperature
-        refine    Remove redundant & extract the concerned data
+        format  Format thermoelectric properties data
+          band  Insight carriar transport with band models
+         ztdev  Calculate ZTdev of thermoelectric generator
+        interp  Data interpolation and extrapolation
+        mixing  Mixing the datafile with same array-shape
+        refine  Remove redundant & extract the concerned data
+        cutoff  Cut-off data at the threshold temperature
 
 然后我们可以通过 `tef-xxxxxx -h` 来详细查看命令的选项。
+比如:
+
+.. code-block::
+
+    $ tef-ztdev -h
+    usage: tef-ztdev [-h] [-b] [-y] [-s SUFFIX] INPUTFILE [OUTPUTFILE]
+    
+    Calculate ZTdev of thermoelectric generator - TEflow(0.0.1a3)
+    
+    positional arguments:
+      INPUTFILE             Filename of input file (necessary)
+      OUTPUTFILE            Filename of output file (default: Basename_suffix.Extname)
+    
+    optional arguments:
+      -h, --help            show this help message and exit
+      -b, --bare            Output data without header
+      -y, --yita            Read the data with columns Tc, Th, Yita in order, rather
+                            than the material properties T, C, S, K.
+      -s SUFFIX, --suffix SUFFIX
+                            The suffix to generate filename of output file (default:
+                            ztdev)
