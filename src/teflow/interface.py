@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 import sys
-import argparse
+import argparse, textwrap
 from datetime import datetime
 
 from ._version import __version__
@@ -129,6 +129,20 @@ def _do_main(args=None):
             do_help()
     else:
         print(PLATFORM)
+
+
+def _wraptxt(desc, details='', indent=4, width=70):
+    if details:
+        indentation = ' ' * indent
+        contents = textwrap.fill(
+            textwrap.dedent(details).strip(),
+            initial_indent=indentation+'>>> ',
+            subsequent_indent=indentation,
+            width=width,
+        )
+        return desc + '\n\n' + contents
+    else:
+        desc
 
 
 def do_help():
@@ -659,11 +673,19 @@ def do_band(args=None):
     
     task = 'band'
     DESC = DESCRIPTION[task]
-    DESC = DESCRIPTION[task]
     parser = argparse.ArgumentParser(
         prog=f'{CMD}-{task}',
-        description=f'{DESC} - {INFO}',
-        epilog=FOOTNOTE)
+        formatter_class=argparse.RawTextHelpFormatter,
+        epilog=FOOTNOTE,
+        description=_wraptxt(f'{DESC} - {INFO}','''
+            Ensure your data file is formatted with columns for the Seebeck
+            coefficient, and optionally, temperature, conductivity, and
+            carrier concentration. Alter this arrangement with the -g(--group)
+            option. Anticipate outputs like the Lorenz number,
+            temperature-independent weighted mobility, effective mass, etc.,
+            based on your supplied data.
+            ''')
+        )
     
     parser.add_argument('-b', '--bare', **OPTS['bare'])
     
@@ -671,7 +693,8 @@ def do_band(args=None):
         help='Group identifiers for paired data (default: STCN)')
     
     parser.add_argument('--gap', type=float, default=None,
-        help='Bandgap in eV. Defaults to None, indicating the use of a parabolic band model')
+        help='Bandgap in eV. Defaults to None, indicating the '\
+             'use of a parabolic band model')
     
     parser.add_argument('inputfile', **OPTS['inputf'])
     
@@ -759,7 +782,8 @@ def do_band(args=None):
         outdata.append(val)
         outinfo.append(key)
     
-    softinfo = f"Modeling carrier transport - {TIME} {INFO}\n{'  '.join(outinfo)}"
+    props = '  '.join(outinfo)
+    softinfo = f'Modeling carrier transport - {TIME} {INFO}\n{props}'
     comment = '' if options.bare else softinfo
     outputfile = suffixed(options.outputfile, inputfile, options.suffix)
     np.savetxt(outputfile, np.vstack(outdata).T, fmt='%.4f', header=comment)
