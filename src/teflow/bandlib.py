@@ -602,6 +602,13 @@ class APSSPB(BaseBand):
     m_d = 1         #: :meta private: m_e
     sigma0 = 1      #: :meta private: S/cm
     Kmass = 1       #: :meta private: m1/m2
+    _Yita_opt = 0.66812
+    _sigma0_to_PFmax = 0.03015137550508442  # [S/cm] --> [uW/(cm.K^2)]
+    _UWT_to_PFmax = 0.12122425768565884     # [cm^2/(V.s)] --> [uW/(cm.K^2)]
+    _UWT_to_sigma0 = 4.020521639724753      # [cm^2/(V.s)] --> [S/cm]
+    # _UWT_to_sigma0 = np.sqrt(np.pi)/2 * q \
+    #       * np.power(2*m_e*kB_eV*q*300, 3/2) \
+    #       / (2*np.pi*np.pi*np.power(hbar, 3)) * 1E-4 /100  # S/cm
     def __init__(self, m_d=1, sigma0=1, Kmass=1):
         self.m_d = m_d
         self.sigma0 = sigma0
@@ -633,8 +640,16 @@ class APSSPB(BaseBand):
     @property
     def UWT(self):
         '''Temperature-independent weighted mobility, in cm^2/(V.s).'''
-        factor = 4.020521639724753      # [S/cm] / [cm^2/(V.s)]
-        return self.sigma0 / factor
+        return self.sigma0 / self._UWT_to_sigma0
+    
+    @property
+    def PFmax(self):
+        '''The maximum power factor, in uW/(cm.K^2).'''
+        return self.sigma0 * self._sigma0_to_PFmax
+    
+    def EFopt(self, T):
+        '''Optimal Fermi level for the maximum power factor, in eV'''
+        return self._Yita_opt * kB_eV * T
     
     @classmethod
     def from_DP(cls, m1=1, m2=None, Nv=1, Cii=1, Ed=1):
@@ -684,12 +699,7 @@ class APSSPB(BaseBand):
             The ratio of longitudinal to transverse effective mass, by
             default 1.
         '''
-
-        # factor = np.sqrt(np.pi)/2 * q \
-        #          * np.power(2*m_e*kB_eV*q*300, 3/2) \
-        #          / (2*np.pi*np.pi*np.power(hbar, 3)) * 1E-4 /100  # S/cm
-        factor = 4.020521639724753      # S/cm
-        sigma0 = factor * UWT
+        sigma0 = cls._UWT_to_sigma0 * UWT
         return cls(m_d=m_d, sigma0=sigma0, Kmass=Kmass)
 
     @classmethod
@@ -762,6 +772,7 @@ class APSSKB(BaseBand):
     sigma0 = 1      #: :meta private: S/cm
     Eg = 1          #: :meta private: eV
     Kmass = 1       #: :meta private: m1/m2
+    _UWT_to_sigma0 = 4.020521639724753  # [S/cm] / [cm^2/(V.s)]
     def __init__(self, m_d=1, sigma0=1, Eg=1, Kmass=1):
         self.m_d = m_d
         self.sigma0 = sigma0
@@ -800,8 +811,7 @@ class APSSKB(BaseBand):
     @property
     def UWT(self):
         '''Temperature-independent weighted mobility, in cm^2/(V.s).'''
-        factor = 4.020521639724753      # [S/cm] / [cm^2/(V.s)]
-        return self.sigma0 / factor
+        return self.sigma0 / self._UWT_to_sigma0
     
     @classmethod
     def from_DP(cls, m1=1, m2=None, Nv=1, Cii=1, Ed=1, Eg=1):
@@ -855,13 +865,7 @@ class APSSKB(BaseBand):
             The ratio of longitudinal to transverse effective mass, by
             default 1.
         '''
-
-        # factor = np.sqrt(np.pi)/2 * q \
-        #          * np.power(2*m_e*kB_eV*q*300, 3/2) \
-        #          / (2*np.pi*np.pi*np.power(hbar, 3)) \
-        #          * 1E-6 # C/m^3 --> C/cm^3
-        factor = 4.020521639724753      # [S/cm] / [cm^2/(V.s)]
-        sigma0 = factor * UWT
+        sigma0 = cls._UWT_to_sigma0 * UWT
         return cls(m_d=m_d, sigma0=sigma0, Eg=Eg, Kmass=Kmass)
 
 
@@ -893,6 +897,9 @@ class RSPB:
     L0 = 0.7425843255087367     #: Unit:: 1E-8 W.Ohm/K^2
     C0 = 4.020521639724753      #: Unit:: S/cm
     PF0 = 0.029855763500282857  #: Unit:: uW/(cm.K^2)
+    _Nr_opt = 1.255
+    _PFr_max = 4.017850558247082
+    _UWT_to_PFmax = 0.11995599604650432 # [cm^2/(V.s)] --> [uW/(cm.K^2)]
     
     @staticmethod
     def Nmr(Nr, factor=1, m_d=1, T=300):
