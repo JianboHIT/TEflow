@@ -65,7 +65,7 @@ hbar = 1.054571817e-34          #: Unit:: J.s
 q = 1.602176634e-19             #: Unit:: C
 
 
-def romb_dfx(func, EF, T, k=0, ndiv=8, eps=1E-10):
+def romb_dfx(func, EF, T, k=0, ndiv=6, eps=1E-10):
     '''
     Calucate semi-infinity Fermi-Dirac integrals with dfx-type weight.
 
@@ -96,7 +96,7 @@ def romb_dfx(func, EF, T, k=0, ndiv=8, eps=1E-10):
     '''
 
     # func(E, T)
-    km = 2       # maybe the best choice for Fermi-Dirac integrals
+    km = 3       # maybe the best choice for Fermi-Dirac integrals
     kT = kB_eV * T
     Y = EF/kT    # auto boardcast
     width = 1/(1+np.exp(-Y/km))
@@ -1179,4 +1179,4 @@ def dosline(E, m_d=1, E0=0, Vcell=1, Eg=None):
         return coef * np.sqrt(energy)
     else:
         return coef * np.sqrt(E*(1+E/Eg))*(1+2*E/Eg)
-    
+
