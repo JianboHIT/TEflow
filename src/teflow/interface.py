@@ -668,7 +668,7 @@ def do_refine(args=None):
 
 def do_band(args=None):
     import numpy as np
-    from .bandlib import APSSPB, APSSKB
+    from .bandlib import APSSPB, APSSKB, q
     from .utils import suffixed
     
     task = 'band'
@@ -772,6 +772,21 @@ def do_band(args=None):
     else:
         dataN = None
         logger.info('Failed to fetch carrier concentration')
+
+    if 'U' in group:
+        dataU = alldata[group.index('U')]
+        if (dataC is None) and (dataN is not None):
+            dataC = dataN*1E19 * q * dataU
+            outdata.append(dataC)
+            outinfo.append('C')
+            logger.info('Calculate electrical conductivity by N and U.')
+        elif (dataN is None) and (dataC is not None):
+            dataN = dataC /(dataU * q * 1E19)
+            outdata.append(dataN)
+            outinfo.append('N')
+            logger.info('Calculate carrier concentration by C and U.')
+        else:
+            logger.info('Carrier mobility data is useless here.')
     
     if Egap is None:
         out = APSSPB.valuate(dataS, dataT, dataC, dataN)
