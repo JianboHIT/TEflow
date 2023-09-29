@@ -739,6 +739,8 @@ class APSSPB(BaseBand):
             * `L`: Lorenz number in 1E-8 W.Ohm/K^2`.
             * `Ke`: Electronic thermal conductivity in W/(m.K),
               only if both `dataT` and `dataC` are provided.
+            * `sigma0`: Intrinsic electrical conductivity in S/cm,
+              only if both `dataT` and `dataC` are provided.
             * `UWT`: Temperature-independent weighted mobility in cm^2/(V.s),
               only if both `dataT` and `dataC` are provided.
             * `PFmax`: The maximum power factor in uW/(cm.K^2),
@@ -753,22 +755,17 @@ class APSSPB(BaseBand):
         if dataT is not None:
             dataEF = spb.solve_EF('S', dataS, dataT)
             out = AttrDict(L=spb.L(dataEF, dataT))
-            logger.info('Valuate Lorenz numbers')
         else:
             TEMP = 1/kB_eV
             yita = spb.solve_EF('S', dataS, TEMP)
-            logger.info('Valuate Lorenz numbers only')
             return AttrDict(L=spb.L(yita, TEMP))
 
         if dataC is not None:
             out['Ke'] = 1E-6 * out['L']*dataC*dataT
-            logger.info('Valuate electronic thermal conductivity.')
 
-            sigma0 = dataC/spb.C(dataEF, dataT)
+            sigma0 = out['sigma0'] = dataC/spb.C(dataEF, dataT)
             out['UWT'] = sigma0/cls._UWT_to_sigma0
             out['PFmax'] = sigma0 * cls._sigma0_to_PFmax
-            logger.info('Valuate temperature-independent weighted mobilities.')
-            logger.info('Valuate maximum power factors.')
 
         if dataN is not None:
             if hall:
@@ -782,9 +779,8 @@ class APSSPB(BaseBand):
             N_ratio = dataN/N_ref
             out['m_d'] = np.power(N_ratio, 2/3)
             out['Nopt'] = N_ratio * Nopt_ref
-            logger.info('Valuate effective masses of carriers.')
-            logger.info('Valuate optimal carrier concentration.')
 
+        logger.debug(f'Calculated: {list(out.keys())}')
         return out
 
 
@@ -951,6 +947,8 @@ class APSSKB(BaseBand):
             * `L`: Lorenz number in 1E-8 W.Ohm/K^2`.
             * `Ke`: Electronic thermal conductivity in W/(m.K),
               only if `dataC` is provided.
+            * `sigma0`: Intrinsic electrical conductivity in S/cm,
+              only if `dataC` is provided.
             * `UWT`: Temperature-independent weighted mobility in cm^2/(V.s),
               only if `dataC` is provided.
             * `m_d`: The ratio of effective mass to the electron mass,
@@ -959,15 +957,12 @@ class APSSKB(BaseBand):
         skb =  cls(Kmass=Kmass, Eg=Eg)
         dataEF = skb.solve_EF('S', dataS, dataT)
         out = AttrDict(L=skb.L(dataEF, dataT))
-        logger.info('Valuate Lorenz numbers')
 
         if dataC is not None:
             out['Ke'] = 1E-6 * out['L']*dataC*dataT
-            logger.info('Valuate electronic thermal conductivity.')
 
-            sigma0 = dataC/skb.C(dataEF, dataT)
+            sigma0 = out['sigma0'] = dataC/skb.C(dataEF, dataT)
             out['UWT'] = sigma0/cls._UWT_to_sigma0
-            logger.info('Valuate Temperature-independent weighted mobilities.')
 
         if dataN is not None:
             if hall:
@@ -977,8 +972,8 @@ class APSSKB(BaseBand):
                 N_ref = skb.N(dataEF, dataT)
                 logger.debug('Disable Hall effect.')
             out['m_d'] = np.power(dataN/N_ref, 2/3)
-            logger.info('Valuate effective masses of carriers.')
 
+        logger.debug(f'Calculated: {list(out.keys())}')
         return out
 
 
@@ -1013,6 +1008,7 @@ class RSPB:
     _Nr_opt = 1.255
     _PFr_max = 4.017850558247082
     _UWT_to_PFmax = 0.11995599604650432 # [cm^2/(V.s)] --> [uW/(cm.K^2)]
+    _UWT_to_sigma0 = 4.020521639724753  # [cm^2/(V.s)] --> [S/cm]
     
     @staticmethod
     def Nmr(Nr, factor=1, m_d=1, T=300):
@@ -1101,14 +1097,15 @@ class RSPB:
         L = cls.Lr(Nr, factor=cls.L0)
         UWT = dataC/cls.Cr(Nr, factor=cls.C0)
         PFmax = UWT * cls._UWT_to_PFmax
-        out = AttrDict(L=L, UWT=UWT, PFmax=PFmax)
-        logger.info('Valuate L, UWT, and PFmax quickly.')
+        sigma0 = UWT * cls._UWT_to_sigma0
+        out = AttrDict(L=L, UWT=UWT, PFmax=PFmax, sigma0=sigma0)
 
         if (dataT is not None) and (dataN is not None):
             out['Ke'] = 1E-6 * L*dataC*dataT
             out['m_eff'] = np.power(dataN/Nr, 2/3) * 300/dataT
             out['Nopt'] = cls._Nr_opt * cls.N0 * dataN/Nr
-            logger.info('Valuate Ke, m_eff, and Nopt quickly.')
+
+        logger.debug(f'Calculated: {list(out.keys())}')
         return out
 
 
