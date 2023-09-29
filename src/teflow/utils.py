@@ -12,9 +12,12 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import re
 import logging
+from io import StringIO
 from collections import OrderedDict
 from collections.abc import Iterable, Sequence
+from configparser import ConfigParser, ExtendedInterpolation, NoSectionError
 
 import numpy as np
 
@@ -372,6 +375,132 @@ class Metric():
         sum_ = np.absolute(y2)+np.absolute(y)
         v = 2.0 * np.mean(diff/sum_, axis=axis)
         return v
+
+
+class CfgParser(ConfigParser):
+    '''
+    A custom configuration parser class derived from ConfigParser,
+    with enhanced features:
+
+    - Allows for case sensitivity in configuration options.
+    - Allows whitespace in section names.
+    - Predefined converters for `array`, and `list[_XXX]` types.
+    - Delimiters: Only the '=' character is accepted for separating keys
+      and values in the configuration file, ensuring a consistent format.
+    - Comment Prefixes: The '#' character is used to indicate comments,
+      allowing for clear and concise configuration files.
+    - Inline Comment Prefixes: Inline comments are also indicated with the
+      '#' character.
+    - Interpolation: Uses `ExtendedInterpolation()` to provide advanced
+      string formatting within the configuration file, allowing values
+      to reference other values or variables.
+    - Prefix Match: Introduce :meth:`pmatch` method to identify
+      [SectionName.SectionType] type sections.
+
+    All these settings are initialized to ensure a consistent and clear
+    configuration file format, while still allowing for advanced features
+    and flexibility. Users can override these settings as per their
+    requirements.
+    '''
+    def __init__(self,
+                 allow_section_whitespace=True,
+                 case_sensitive=True,
+                 **kwargs):
+        '''
+        Initialize the configuration parser with custom settings.
+
+        Parameters
+        ----------
+        case_sensitive : bool, optional
+            Whether the parsing should be case sensitive. Default is True.
+        allow_section_whitespace : bool, optional
+            Whether to allow whitespace in section names. Default is True.
+        **kwargs
+            Additional keyword arguments to pass to the ConfigParser.
+        '''
+        setting = {
+            'delimiters': ('=',),
+            'comment_prefixes': ('#',),
+            'inline_comment_prefixes': ('#',),
+            'interpolation': ExtendedInterpolation(),
+            **kwargs,
+            'converters': {
+                'array': self._parse_array,
+                'list': self._parse_list,
+                'list_float': self._parse_list_float,
+                'list_int': self._parse_list_int,
+                'seq': self._parse_seq,
+                **kwargs.get('converters', {}),
+            },
+        }
+        super().__init__(**setting)
+        if allow_section_whitespace:
+            self.SECTCRE = re.compile(r"\[ *(?P<header>[^]]+?) *\]")
+        if case_sensitive:
+            self.optionxform = lambda x: x
+
+    def pmatch(self, section):
+        '''
+        Matches sections by prefix SectionName and retrieves content from
+        [SectionName.SectionType] or [SectionName] formatted sections.
+        '''
+        for sect, content in self.items():
+            if sect.startswith(section+'.'):
+                _, otype = sect.split('.', 1)
+                return content, otype
+            elif sect == section:
+                return content, sect
+        else:
+            raise NoSectionError(f'{section}.<SectionType>')
+
+    @staticmethod
+    def _parse_array(text:str):
+        text = text.strip()
+        if text.startswith('file:'):
+            sdata = text[5:].strip()            # path like
+        elif text.startswith('array:'):
+            sdata = StringIO(text[6:].strip())  # array like (with prefix)
+        else:
+            sdata = StringIO(text)              # array like (without prefix)
+        return np.loadtxt(sdata, unpack=True, ndmin=2)
+
+    @staticmethod
+    def _parse_list(text:str):
+        return [item for item in re.split(r'[\s,]+', text) if item]
+
+    @staticmethod
+    def _parse_list_float(text:str):
+        return [float(item) for item in re.split(r'[\s,]+', text) if item]
+
+    @staticmethod
+    def _parse_list_int(text:str):
+        return [int(item) for item in re.split(r'[\s,]+', text) if item]
+
+    @staticmethod
+    def _parse_seq(text:str):
+        result = []
+        for part in filter(None, re.split(r'(?<!:)[\s,]+(?!:)', text)):
+            seq_parts = list(filter(None, re.split(r'[:\s]+', part)))
+            if len(seq_parts) == 1:
+                if part:
+                    result.append(float(part))
+            elif len(seq_parts) == 2:
+                start, end = map(float, seq_parts)
+                end += 1E-4
+                while start < end:
+                    result.append(start)
+                    start += 1
+            elif len(seq_parts) == 3:
+                start, step, end = map(float, seq_parts)
+                num = (end-start)/step
+                if num < 0:
+                    continue
+                for _ in range(int(num+1E-4)+1):
+                    result.append(start)
+                    start += step
+            else:
+                raise ValueError(f'Invalid sequence format: {text}')
+        return result
 
 
 class ExecWrapper:
