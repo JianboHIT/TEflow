@@ -14,6 +14,8 @@
 
 import logging
 from pathlib import PurePath
+from collections import OrderedDict
+from collections.abc import Iterable, Sequence
 
 import numpy as np
 
@@ -64,9 +66,9 @@ def get_logger_handler(kind='CONSOLE', fmt=None, datefmt=None, filename='log.txt
     handler.setFormatter(formatter)
     return handler
 
-class AttrDict(dict):
+class AttrDict(OrderedDict):
     '''
-    AttrDict is an extension of Python's standard dictionary (dict)
+    AttrDict is an extension of Python's collections.OrderedDict()
     that provides additional functionalities. It supports dot access
     mode for direct attribute access to dictionary keys, as well as
     other operations such as :meth:`append`, :meth:`extend`,
@@ -90,6 +92,58 @@ class AttrDict(dict):
     def __getattr__(self, attr):
         # define dot access mode like d.key
         return self[attr]
+    
+    def retain(self, keys, match_order=False):
+        '''
+        Retain specified keys in the dictionary, optionally matching order.
+
+        Parameters
+        ----------
+        keys : Iterable or Sequence
+            The keys to be retained. When 'match_order' is False,
+            'keys' can be any Iterable (like set, list, or string).
+            When 'match_order' is True, 'keys' must be a Sequence
+            (like list or tuple) to ensure the order of elements.
+        match_order : bool, optional
+            If True, the order of keys in the resulting dictionary will match 
+            the order of keys in the 'keys' parameter. Default is False.
+
+        Returns
+        -------
+        dict
+            A dictionary of the keys that were removed and their values.
+
+        Raises
+        ------
+        TypeError
+            If 'keys' is not an Iterable or not a Sequence when 'match_order'
+            is True.
+        '''
+        if not isinstance(keys, Iterable):
+            raise TypeError("'keys' must be an Iterable.")
+
+        popped = {key: self.pop(key) for key in set(self) - set(keys)}
+
+        if match_order:
+            if not isinstance(keys, Sequence):
+                raise TypeError("When 'match_order' is True, "
+                                "'keys' must be a Sequence.")
+            indices = {key: index for index, key in enumerate(keys)}
+            number = [(indices[key], key) for key in self]
+
+            to_move = []
+            sorted_number = sorted(number)
+            num_ordered = 0
+            for num, key in number:
+                if num == sorted_number[num_ordered][0]:
+                    num_ordered += 1
+                else:
+                    to_move.append((num, key))
+
+            for _, key in sorted(to_move):
+                self.move_to_end(key)
+
+        return popped
     
     def append(self, obj):
         '''
