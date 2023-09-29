@@ -696,6 +696,11 @@ def do_band(args=None):
         help='Bandgap in eV. Defaults to None, indicating the '\
              'use of a parabolic band model')
     
+    parser.add_argument('-p', '--properties', default=None,
+        help='Specify theproperties to be considered for calculation, '\
+             'separated by spaces. If not specified, '\
+             'all calculated properties will be output.')
+    
     parser.add_argument('inputfile', **OPTS['inputf'])
     
     parser.add_argument('outputfile', **OPTS['outputf'])
@@ -729,6 +734,9 @@ def do_band(args=None):
     
     # parse
     group = options.group.upper()
+    Ndata = len(alldata)
+    if Ndata < len(group):
+        group = group[:Ndata]
     if 'S' in group:
         dataS = alldata[group.index('S')]
         outdata.append(dataS)
@@ -793,9 +801,16 @@ def do_band(args=None):
     else:
         out = APSSKB.valuate(dataS, dataT, dataC, dataN, Eg=Egap)
     
+    if options.bare:
+        outdata, outinfo = [], []
+    
+    props = options.properties.strip().split()
     for key, val in out.items():
-        outdata.append(val)
-        outinfo.append(key)
+        if key in props:
+            outdata.append(val)
+            outinfo.append(key)
+        else:
+            logger.debug(f'Filtered property: {key}')
     
     props = '  '.join(outinfo)
     softinfo = f'Modeling carrier transport - {TIME} {INFO}\n{props}'
