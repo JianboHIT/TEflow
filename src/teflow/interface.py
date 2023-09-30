@@ -729,8 +729,7 @@ def do_band(args=None):
     alldata = np.loadtxt(inputfile, unpack=True, ndmin=2)
     logger.info(f'Load data from {inputfile} with {len(alldata)} columns')
     
-    outdata = []
-    outinfo = []
+    inp = dict()
     
     # parse
     group = options.group.upper()
@@ -738,18 +737,14 @@ def do_band(args=None):
     if Ndata < len(group):
         group = group[:Ndata]
     if 'S' in group:
-        dataS = alldata[group.index('S')]
-        outdata.append(dataS)
-        outinfo.append('S')
+        dataS = inp['S'] = alldata[group.index('S')]
         logger.info('Fetch Seebeck coefficients successfully')
     else:
         logger.info('Failed to fetch Seebeck coefficients')
         raise IOError('Seebeck coefficients are required')
     
     if 'T' in group:
-        dataT = alldata[group.index('T')]
-        outdata.append(dataT)
-        outinfo.append('T')
+        dataT = inp['T'] = alldata[group.index('T')]
         logger.info('Fetch temperature points successfully')
     else:
         logger.info('Failed to fetch temperature points')
@@ -759,23 +754,17 @@ def do_band(args=None):
             raise IOError('Temperatures are required for Kane model')
 
     if 'C' in group:
-        dataC = alldata[group.index('C')]
-        outdata.append(dataC)
-        outinfo.append('C')
+        dataC = inp['C'] = alldata[group.index('C')]
         logger.info('Fetch electrical conductivity successfully')
     elif 'R' in group:
-        dataC = 1E4 / alldata[group.index('R')]
-        outdata.append(dataC)
-        outinfo.append('C')
+        dataC = inp['C'] = 1E4 / alldata[group.index('R')]
         logger.info('Fetch electrical resistivity successfully')
     else:
         dataC = None
         logger.info('Failed to fetch electrical conductivity')
     
     if 'N' in group:
-        dataN = alldata[group.index('N')]
-        outdata.append(dataN)
-        outinfo.append('N')
+        dataN = inp['N'] = alldata[group.index('N')]
         logger.info('Fetch carrier concentration successfully')
     else:
         dataN = None
@@ -784,37 +773,37 @@ def do_band(args=None):
     if 'U' in group:
         dataU = alldata[group.index('U')]
         if (dataC is None) and (dataN is not None):
-            dataC = dataN*1E19 * q * dataU
-            outdata.append(dataC)
-            outinfo.append('C')
+            dataC = inp['C'] = dataN*1E19 * q * dataU
             logger.info('Calculate electrical conductivity by N and U.')
         elif (dataN is None) and (dataC is not None):
-            dataN = dataC /(dataU * q * 1E19)
-            outdata.append(dataN)
-            outinfo.append('N')
+            dataN = inp['N'] = dataC /(dataU * q * 1E19)
             logger.info('Calculate carrier concentration by C and U.')
         else:
             logger.info('Carrier mobility data is useless here.')
     
+    # valuate
     if Egap is None:
         out = APSSPB.valuate(dataS, dataT, dataC, dataN)
     else:
         out = APSSKB.valuate(dataS, dataT, dataC, dataN, Eg=Egap)
     
+    # retain properties
+    props = options.properties
+    if props is not None:
+        out.retain(props.strip().split(), match_order=True)
+    logger.info(f'Output properties: {list(out.keys())}')
+
     if options.bare:
-        outdata, outinfo = [], []
+        comment = ''
+    else:
+        out.update(inp)
+        for prop in reversed('STCN'):
+            if prop in inp:
+                out.move_to_end(prop, last=False)
+        comment = f"Modeling carrier transport - {TIME} {INFO}\n"\
+                  f"{'  '.join(out.keys())}"
+    outdata = np.vstack(list(out.values())).T
     
-    props = options.properties.strip().split()
-    for key, val in out.items():
-        if key in props:
-            outdata.append(val)
-            outinfo.append(key)
-        else:
-            logger.debug(f'Filtered property: {key}')
-    
-    props = '  '.join(outinfo)
-    softinfo = f'Modeling carrier transport - {TIME} {INFO}\n{props}'
-    comment = '' if options.bare else softinfo
     outputfile = suffixed(options.outputfile, inputfile, options.suffix)
-    np.savetxt(outputfile, np.vstack(outdata).T, fmt='%.4f', header=comment)
+    np.savetxt(outputfile, outdata, fmt='%.4f', header=comment)
     logger.info(f'Save model data to {outputfile} (Done)')
