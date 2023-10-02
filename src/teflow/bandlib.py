@@ -182,7 +182,13 @@ class BaseBand(ABC):
         # x = E/(kB_eV*T),  E = x*kB_eV*T
         kernel = lambda E, _EF, _T: self.dos(E) \
                                     * self.fx((E-_EF)/(kB_eV*_T))
-        itg = lambda _EF, _T: quad(kernel, 0, np.inf, args=(_EF, _T))[0]
+        # itg = lambda _EF, _T: quad(kernel, 0, np.inf, args=(_EF, _T))[0]
+        def itg(_EF, _T):
+            if _EF > 0:
+                return quad(kernel, 0, _EF, args=(_EF, _T))[0] \
+                       + quad(kernel, _EF, np.inf, args=(_EF, _T))[0]
+            else:
+                return quad(kernel, 0, np.inf, args=(_EF, _T))[0]
         return np.vectorize(itg)(EF, T)
     
     def _K_n(self, __n, EF, T):
