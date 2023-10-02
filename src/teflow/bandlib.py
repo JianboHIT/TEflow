@@ -14,10 +14,11 @@
 
 import logging
 from abc import ABC, abstractmethod
-from scipy.integrate import quad, romb
+from scipy.integrate import romb
 from scipy.optimize import root_scalar
 import numpy as np
 
+from .analysis import vquad
 from .utils import AttrDict
 
 logger = logging.getLogger(__name__)
@@ -180,16 +181,12 @@ class BaseBand(ABC):
     def _N(self, EF, T):
         '''Carrier concentration, in 1E19 cm^(-3).'''
         # x = E/(kB_eV*T),  E = x*kB_eV*T
-        kernel = lambda E, _EF, _T: self.dos(E) \
-                                    * self.fx((E-_EF)/(kB_eV*_T))
-        # itg = lambda _EF, _T: quad(kernel, 0, np.inf, args=(_EF, _T))[0]
-        def itg(_EF, _T):
-            if _EF > 0:
-                return quad(kernel, 0, _EF, args=(_EF, _T))[0] \
-                       + quad(kernel, _EF, np.inf, args=(_EF, _T))[0]
-            else:
-                return quad(kernel, 0, np.inf, args=(_EF, _T))[0]
-        return np.vectorize(itg)(EF, T)
+        kernel = lambda E, _EF, _T: \
+            self.dos(E) * self.fx((E-_EF)/(kB_eV*_T))
+        sep_point = np.maximum(0, EF)
+        left = vquad(kernel, 0, sep_point, args=(EF, T))[0]
+        right = vquad(kernel, sep_point, np.inf, args=(EF, T))[0]
+        return left + right
     
     def _K_n(self, __n, EF, T):
         '''Integration of transport distribution function, in S/cm.'''
