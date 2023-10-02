@@ -753,7 +753,7 @@ class APSSPB(BaseBand):
         spb = cls(Kmass=Kmass)
 
         if dataT is not None:
-            dataEF = spb.solve_EF('S', dataS, dataT)
+            dataEF = spb.solve_EF('S', dataS, dataT, maxiter=300)
             out = AttrDict(L=spb.L(dataEF, dataT))
         else:
             TEMP = 1/kB_eV
