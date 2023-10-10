@@ -32,6 +32,7 @@ DESCRIPTION = {
     'interp': 'Data interpolation and extrapolation',
     'mixing': 'Mixing the datafile with same array-shape',
     'ztdev' : 'Calculate ZTdev of thermoelectric generator',
+    'engout': 'Calculate engineering thermoelectric performance',
     'format': 'Format thermoelectric properties data',
     'cutoff': 'Cut-off data at the threshold temperature',
     'refine': 'Remove redundant & extract the concerned data',
@@ -61,6 +62,7 @@ Subcommands:
     format  {DESCRIPTION['format']}
       band  {DESCRIPTION['band']}
      ztdev  {DESCRIPTION['ztdev']}
+    engout  {DESCRIPTION['engout']}
     interp  {DESCRIPTION['interp']}
     mixing  {DESCRIPTION['mixing']}
     refine  {DESCRIPTION['refine']}
@@ -117,6 +119,8 @@ def _do_main(args=None):
             do_mixing(args[1:])
         elif task.startswith('ztdev'):
             do_ztdev(args[1:])
+        elif task.startswith('engout'):
+            do_engout(args[1:])
         elif task.startswith('format'):
             do_format(args[1:])
         elif task.startswith('cutoff'):
@@ -378,6 +382,105 @@ def do_ztdev(args=None):
     comment = '' if options.bare else softinfo
     np.savetxt(outputfile, outdata, fmt='%.4f', header=comment)
     logger.info(f'Save ZTdev data to {outputfile} (Done)')
+
+
+def do_engout(args=None):
+    import numpy as np
+    from .engout import GenLeg, GenPair
+    from .utils import suffixed
+
+    task = 'engout'
+    DESC = DESCRIPTION[task]
+    parser = argparse.ArgumentParser(
+        prog=f'{CMD}-{task}',
+        formatter_class=argparse.RawTextHelpFormatter,
+        epilog=FOOTNOTE,
+        description=_wraptxt(f'{DESC} - {INFO}','''
+            Prepare a data file with columns in 'TCSK' order for
+            single-leg devices, or 'TCSKCSK' for paired-leg devices
+            if the -p (--pair) option is enabled. The conductivity
+            column can accept resistivity values using the -R
+            (--resistivity) option. Currently, only evaluations
+            for thermoelectric generators are supported.
+            ''')
+        )
+
+    parser.add_argument('-b', '--bare', **OPTS['bare'])
+
+    parser.add_argument('-p', '--pair', action='store_true',
+        help='Enable the two-leg model, otherwise the single-leg model.')
+
+    parser.add_argument('-R', '--resistivity', action='store_true',
+        help='Use resistivity instead of the default conductivity.')
+
+    parser.add_argument('-L', '--length', type=float, default=1,
+        help='The leg length (or height) in mm. Defaults to 1 mm.')
+
+    parser.add_argument('inputfile', **OPTS['inputf'])
+
+    parser.add_argument('outputfile', **OPTS['outputf'])
+
+    parser.add_argument('-s', '--suffix', **OPTS['suffix'](task))
+
+    options = parser.parse_args(args)
+
+    logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
+    logger.info(f'{DESC} - {TIME}')
+
+    # determine paired
+    paired = options.pair
+    dev_type = 'unicouple' if paired else'single-leg'
+    logger.debug(f'Device type: {dev_type}')
+
+    # read datas
+    inputfile = options.inputfile
+    datas = np.loadtxt(inputfile, unpack=True, ndmin=2)
+    if paired and (len(datas) < 7):
+        raise ValueError('At least 7 columns of data are required.')
+    elif len(datas) < 4:
+        raise ValueError('At least 4 columns of data are required.')
+    logger.info(f'Read datas from file {inputfile}.')
+
+    # determine group
+    dsp = '{} is adopted for conductive property.'
+    if options.resistivity:
+        datas[1] = 1E4/datas[1]
+        if paired:
+            datas[4] = 1E4/datas[4]
+        logger.info(dsp.format('Resistivity'))
+    else:
+        logger.info(dsp.format('Conductivity'))
+
+    # determine length
+    length = options.length
+    if length <= 0:
+        raise ValueError('The length of leg must be positive.')
+    logger.debug(f'Read length of leg: {length} mm')
+
+    # calculation
+    logger.info('Perform simulating of thermoelectric generator.')
+    if paired:
+        if datas[2].mean() < datas[5].mean():
+            datas_n, datas_p = datas[:4, :], datas[[0, 4, 5, 6], :]
+        else:
+            datas_p, datas_n = datas[:4, :], datas[[0, 4, 5, 6], :]
+        out = GenPair.valuate(datas_p, datas_n, L=length)
+    else:
+        out = GenLeg.valuate(datas, L=length)
+
+    # deal with results
+    out['Tc'] = 300 * np.ones_like(out['deltaT'])
+    out['Th'] = 300 + out['deltaT']
+    props = 'Tc     Th       PFeng  ZTeng  Pout   Yita'
+    outdata = np.vstack([out[p] for p in props.split()]).T
+
+    # output
+    info = f'Engineering performance (L={length}mm, A=100mm^2)'\
+           f' - {TIME} {INFO}\n{props}'
+    comment = '' if options.bare else info
+    outputfile = suffixed(options.outputfile, inputfile, options.suffix)
+    np.savetxt(outputfile, outdata, fmt='%.4f', header=comment)
+    logger.info(f'Save results to {outputfile} (Done)')
 
 
 def do_format(args=None):
