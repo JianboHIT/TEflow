@@ -97,6 +97,8 @@ def romb_dfx(func, EF, T, k=0, ndiv=6, eps=1E-10):
     '''
 
     # func(E, T)
+    EF, T = np.asarray(EF), np.asarray(T)
+
     km = 3       # maybe the best choice for Fermi-Dirac integrals
     kT = kB_eV * T
     Y = EF/kT    # auto boardcast
@@ -414,6 +416,7 @@ class BaseBand(ABC):
     @staticmethod
     def ddfx(x, k=0):
         '''The derivative of dfx.'''
+        x = np.asarray(x)
         k = round(k)
         p = np.tanh(x/2)
         if k == 0:
@@ -465,6 +468,7 @@ class MultiBand(BaseBand):
     
     def dos(self, E):
         '''Density of states, in 1E19 state/(eV.cm^3).'''
+        E = np.asarray(E)    # for "E-delta" operation
         dos_tot = 0
         for band, delta in zip(self.bands, self.deltas):
             Er = np.maximum(-1*band._q_sign*(E-delta), 0)
@@ -473,6 +477,7 @@ class MultiBand(BaseBand):
     
     def trs(self, E, T):
         '''Transport distribution function, in S/cm.'''
+        E = np.asarray(E)    # for "E-delta" operation
         trs_tot = 0
         for band, delta in zip(self.bands, self.deltas):
             Er = np.maximum(-1*band._q_sign*(E-delta), 0)
@@ -482,6 +487,7 @@ class MultiBand(BaseBand):
     def hall(self, E, T):
         '''Hall transport distribution function, in S.cm/(V.s), i.e.
         [S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)].'''
+        E = np.asarray(E)    # for "E-delta" operation
         hall_tot = 0
         for band, delta in zip(self.bands, self.deltas):
             Er = np.maximum(-1*band._q_sign*(E-delta), 0)
@@ -490,6 +496,7 @@ class MultiBand(BaseBand):
     
     def _N(self, EF, T):
         '''Carrier concentration, in 1E19 cm^(-3).'''
+        EF = np.asarray(EF)    # for "EF-delta" operation
         N_tot = 0
         for band, delta in zip(self.bands, self.deltas):
             EFr = -1*band._q_sign*(EF-delta)
@@ -498,6 +505,7 @@ class MultiBand(BaseBand):
     
     def _K_n(self, __n, EF, T):
         '''Integration of transport distribution function, in S/cm.'''
+        EF = np.asarray(EF)    # for "EF-delta" operation
         K_tot = 0
         for band, delta in zip(self.bands, self.deltas):
             EFr = -1*band._q_sign*(EF-delta)
@@ -508,6 +516,7 @@ class MultiBand(BaseBand):
     def _CCRH(self, EF, T):
         '''Integration of Hall transport distribution function,
         in S.cm/(V.s).'''
+        EF = np.asarray(EF)    # for "EF-delta" operation
         H_tot = 0
         for band, delta in zip(self.bands, self.deltas):
             EFr = -1*band._q_sign*(EF-delta)
@@ -524,6 +533,7 @@ class MultiBand(BaseBand):
         :meta private:
         '''
 
+        EF = np.asarray(EF)    # for "EF-delta" operation
         for band, delta in zip(self.bands, self.deltas):
             EFr = -1*band._q_sign*(EF-delta)
             band.compile(EFr, T, max_level)
@@ -541,6 +551,7 @@ class MultiBand(BaseBand):
     
     def Kbip(self, EF=None, T=None):
         '''Bipolar thermal conductivity, in W/(m.K).'''
+        if EF is not None: EF = np.asarray(EF)    # for "EF-delta" operation
         Nc, Nv = 0, 0
         p0_c, p0_v, p1_c, p1_v = 0, 0, 0, 0
         for band, delta in zip(self.bands, self.deltas):
@@ -627,11 +638,13 @@ class APSSPB(BaseBand):
     
     def trs(self, E, T):
         '''Transport distribution function, in S/cm.'''
+        E, T = np.asarray(E), np.asarray(T)
         return self.sigma0 * E/(kB_eV*T)
     
     def hall(self, E, T):
         '''Hall transport distribution function, in S.cm/(V.s), i.e.
         [S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)].'''
+        E, T = np.asarray(E), np.asarray(T)
         N0 = np.power(2*self.m_d*m_e*kB_eV*q*T, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
         facotr = np.power(self.sigma0, 2) / (2/3 * 1E-6*N0 * q)  # N0: m^-3 --> cm^-3
         return self.Kstar * facotr * np.sqrt(E/(kB_eV*T))
@@ -654,7 +667,7 @@ class APSSPB(BaseBand):
     
     def EFopt(self, T):
         '''Optimal Fermi level for the maximum power factor, in eV'''
-        return self._Yita_opt * kB_eV * T
+        return self._Yita_opt * kB_eV * np.asarray(T)
     
     @classmethod
     def from_DP(cls, m1=1, m2=None, Nv=1, Cii=1, Ed=1):
@@ -764,22 +777,24 @@ class APSSPB(BaseBand):
             return AttrDict(L=spb.L(yita, TEMP))
 
         if dataC is not None:
-            out['Ke'] = 1E-6 * out['L']*dataC*dataT
+            out['Ke'] = 1E-6 * out['L']*np.multiply(dataC, dataT)
 
-            sigma0 = out['sigma0'] = dataC/spb.C(dataEF, dataT)
+            sigma0 = out['sigma0'] = np.divide(dataC, spb.C(dataEF, dataT))
             out['UWT'] = sigma0/cls._UWT_to_sigma0
             out['PFmax'] = sigma0 * cls._sigma0_to_PFmax
 
         if dataN is not None:
+            EF_opt = np.multiply(cls._Yita_opt * kB_eV, dataT)
             if hall:
                 N_ref = spb.NH(dataEF, dataT)
-                Nopt_ref = spb.NH(cls._Yita_opt * kB_eV * dataT, dataT)
+                Nopt_ref = spb.NH(EF_opt, dataT)
                 logger.debug('Enable Hall effect.')
             else:
                 N_ref = spb.N(dataEF, dataT)
-                Nopt_ref = spb.N(cls._Yita_opt * kB_eV * dataT, dataT)
+                Nopt_ref = spb.N(EF_opt, dataT)
                 logger.debug('Disable Hall effect.')
-            N_ratio = dataN/N_ref
+
+            N_ratio = np.divide(dataN, N_ref)
             out['m_d'] = np.power(N_ratio, 2/3)
             out['Nopt'] = N_ratio * Nopt_ref
 
@@ -830,6 +845,7 @@ class APSSKB(BaseBand):
         
     def dos(self, E):
         '''Density of states, in 1E19 state/(eV.cm^3).'''
+        E = np.asarray(E)
         factor = 1E-25      # state/(eV.m^3) --> 1E19 state/(eV.cm^3)
         g0 = np.power(2*self.m_d*m_e*q, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
         kane = np.sqrt(1+E/self.Eg) * (1+2*E/self.Eg)
@@ -837,12 +853,14 @@ class APSSKB(BaseBand):
     
     def trs(self, E, T):
         '''Transport distribution function, in S/cm.'''
+        E, T = np.asarray(E), np.asarray(T)
         kane = 3*(1+E/self.Eg)/(np.power(1+2*E/self.Eg, 2)+2)
         return self.sigma0 * E/(kB_eV*T) * kane
     
     def hall(self, E, T):
         '''Hall transport distribution function, in S.cm/(V.s), i.e.
         [S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)].'''
+        E, T = np.asarray(E), np.asarray(T)
         N0 = np.power(2*self.m_d*m_e*kB_eV*q*T, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
         facotr = np.power(self.sigma0, 2) / (2/3 * 1E-6*N0 * q)  # N0: m^-3 --> cm^-3
         kane = 9*np.sqrt(1+E/self.Eg)/np.power(np.power(1+2*E/self.Eg, 2)+2, 2)
@@ -962,9 +980,9 @@ class APSSKB(BaseBand):
         out = AttrDict(L=skb.L(dataEF, dataT))
 
         if dataC is not None:
-            out['Ke'] = 1E-6 * out['L']*dataC*dataT
+            out['Ke'] = 1E-6 * out['L']*np.multiply(dataC, dataT)
 
-            sigma0 = out['sigma0'] = dataC/skb.C(dataEF, dataT)
+            sigma0 = out['sigma0'] = np.divide(dataC, skb.C(dataEF, dataT))
             out['UWT'] = sigma0/cls._UWT_to_sigma0
 
         if dataN is not None:
@@ -974,7 +992,8 @@ class APSSKB(BaseBand):
             else:
                 N_ref = skb.N(dataEF, dataT)
                 logger.debug('Disable Hall effect.')
-            out['m_d'] = np.power(dataN/N_ref, 2/3)
+            N_ratio = np.divide(dataN, N_ref)
+            out['m_d'] = np.power(N_ratio, 2/3)
 
         logger.debug(f'Calculated: {list(out.keys())}')
         return out
@@ -1015,31 +1034,38 @@ class RSPB:
     
     @staticmethod
     def Nmr(Nr, factor=1, m_d=1, T=300):
+        Nr, factor, m_d, T = map(np.asarray, [Nr, factor, m_d, T])
         return factor * np.power(m_d*T/300, 3/2) * Nr
     
     @staticmethod
-    def Sr(Nr, factor=1, delta=0.075):
+    def Sr(Nr, factor=1, delta: float = 0.075):
+        Nr, factor = map(np.asarray, [Nr, factor])
         return factor * np.log(1+delta+np.exp(2)/Nr)
     
     @staticmethod
-    def iSr(Sr, factor=1, delta=0.075):
+    def iSr(Sr, factor=1, delta: float = 0.075):
+        Sr, factor = map(np.asarray, [Sr, factor])
         return np.exp(2)/(np.exp(Sr/factor)-1-delta)
     
     @staticmethod
     def Ur(Nr, factor=1):
+        Nr, factor = map(np.asarray, [Nr, factor])
         return factor * np.power(1+Nr/2, -1/3)
     
     @staticmethod
     def iUr(Ur, factor=1):
+        Ur, factor = map(np.asarray, [Ur, factor])
         return 2*(np.power(factor/Ur, 3)-1)
     
     @staticmethod
     def Lr(Nr, factor=1):
+        Nr, factor = map(np.asarray, [Nr, factor])
         scale = np.power(1+np.power(Nr/np.pi/2, -3/2), 3/2)
         return factor * (2+(np.pi*np.pi/3-2)/scale)
     
     @staticmethod
     def iLr(Lr, factor=1):
+        Lr, factor = map(np.asarray, [Lr, factor])
         scale = (np.pi*np.pi/3-2)/(Lr/factor-2)
         return 2*np.pi*np.power(np.power(scale, 2/3)-1, -2/3)
     
@@ -1048,12 +1074,14 @@ class RSPB:
         # N0 * mt32 * Nr * q * U0 * Ur
         #    = N0 * q * (mt32*U0) * Nr*Ur
         #    = C0 * UWT * Nr * Ur
+        Nr, factor, UWT = map(np.asarray, [Nr, factor, UWT])
         return factor * UWT * Nr * cls.Ur(Nr)
     
     @classmethod
-    def PFr(cls, Nr, factor=1, UWT=1, delta=0.075):
+    def PFr(cls, Nr, factor=1, UWT=1, delta: float =0.075):
         # (C0 * UWT * Nr * Ur) * (S0 * Sr)^2
         #    = C0*S0^2 * (UWT*Nr*Ur)*Sr^2
+        Nr, factor, UWT = map(np.asarray, [Nr, factor, UWT])
         return factor * cls.Cr(Nr, UWT=UWT) \
                * np.power(cls.Sr(Nr, delta=delta), 2)
     
@@ -1096,6 +1124,7 @@ class RSPB:
             * `Nopt`: The optimal carrier concentration in 1E19 cm^(-3),
               only if both `dataT` and `dataN` are provided.
         '''
+        dataC = np.asarray(dataC)
         Nr = cls.iSr(dataS, factor=cls.S0, delta=delta)
         L = cls.Lr(Nr, factor=cls.L0)
         UWT = dataC/cls.Cr(Nr, factor=cls.C0)
@@ -1104,6 +1133,7 @@ class RSPB:
         out = AttrDict(L=L, UWT=UWT, PFmax=PFmax, sigma0=sigma0)
 
         if (dataT is not None) and (dataN is not None):
+            dataT, dataN = np.asarray(dataT), np.asarray(dataN)
             out['Ke'] = 1E-6 * L*dataC*dataT
             out['m_eff'] = np.power(dataN/Nr, 2/3) * 300/dataT
             out['Nopt'] = cls._Nr_opt * cls.N0 * dataN/Nr
@@ -1137,11 +1167,13 @@ def bandline(k, m_b=1, k0=0, E0=0, Eg=None):
     ndarray
         Energy values in eV.
     '''
+    k, m_b, k0, E0 = map(np.asarray, [k, m_b, k0, E0])
     COEF_BAND = 7.619964222971923
     parabolic = COEF_BAND * np.power(k - k0, 2) / m_b / 2
     if Eg is None:
         return parabolic + E0
     else:
+        Eg = np.asarray(Eg)
         kane = np.sqrt(0.25 + np.abs(parabolic)/Eg) + 0.5
         return parabolic / kane + E0
 
@@ -1172,11 +1204,13 @@ def dosline(E, m_d=1, E0=0, Vcell=1, Eg=None):
         the unit is also equivalent to states/(eV.Ang^3)
         or 1E24 states/(eV.cm^3).
     '''
+    E, m_d, E0, Vcell = map(np.asarray, [E, m_d, E0, Vcell])
     COEF_DOS = 146.7959743657925
     energy = np.maximum(np.sign(m_d)*(E-E0), 0)
     coef = Vcell/COEF_DOS * np.power(np.abs(m_d), 3/2)
     if Eg is None:
         return coef * np.sqrt(energy)
     else:
+        Eg = np.asarray(Eg)
         return coef * np.sqrt(E*(1+E/Eg))*(1+2*E/Eg)
 
