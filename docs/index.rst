@@ -10,10 +10,11 @@ TEflow 用户手册
    usage/index
    api_doc/index
 
+.. only:: html
 
-相关链接
-========
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+    相关链接
+    ========
+    
+    * :ref:`genindex`
+    * :ref:`modindex`
+    * :ref:`search`
