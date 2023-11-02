@@ -5,7 +5,7 @@
 TEflow 是一个基于 python3 的程序包，辅助热电材料的研究与设计，
 简化热电方面日常复杂且琐碎的数据处理和分析过程，提供工作效率。
 
-.. image:: ../images/logo_margin.jpg
+.. image:: images/logo_margin.jpg
    :align: center
 
 程序功能
