@@ -199,8 +199,10 @@ def valuate(datas_TCSK, allTemp=True):
     -------
     AttrDict
         A dict with below keys:
-            **deltaT**: (float | ndarray) Temperature difference in K.
-            
+            **Tc**: (float | ndarray) Temperature at cold side, in K.
+
+            **Th**: (float | ndarray) Temperature at hot side, in K.
+
             **ZTdev**: (float | ndarray) Device ZT.
             
             **Yita**: (float | ndarray) Optimal Yita in %.
@@ -210,10 +212,10 @@ def valuate(datas_TCSK, allTemp=True):
     logger.info('Calculate ZTdev by TE datas at %s temperature', dsp)
     
     rst = AttrDict()
-    T = datas_TCSK[0]
-    rst['deltaT'] = T - T[0]
+    Th = rst['Th'] = np.asarray(datas_TCSK[0])
+    Tc = rst['Tc'] = Th[0]*np.ones_like(Th)
     rst['Yita'] = optim_Yita(datas_TCSK, allTemp=allTemp)
-    rst['ZTdev'] = cal_ZTdev(rst['Yita'], Tc=T[0], Th=T)
+    rst['ZTdev'] = cal_ZTdev(rst['Yita'], Tc=Tc, Th=Th)
     
     logger.info('Finish calculation of ZTdev and relative')
     return rst
