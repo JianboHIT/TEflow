@@ -85,19 +85,19 @@ OPTS = {
     # parser.add_argument('inputfile', **OPTS['inputf'])
     'inputf': dict(
         metavar='INPUTFILE',
-        help='Filename of input file (necessary)',
+        help='Input file name (must be provided)',
     ),
     
     # parser.add_argument('outputfile', **OPTS['outputf'])
     'outputf': dict(
         metavar='OUTPUTFILE', nargs='?',
-        help='Filename of output file (default: Basename_suffix.Extname)',
+        help='Output file name (optional, auto-generated if omitted)',
     ),
     
     # parser.add_argument('-s', '--suffix', **OPTS['suffix']('xxxxxx'))
     'suffix': lambda suf: dict(
         default=f'{suf}',
-        help=f'The suffix to generate filename of output file (default: {suf})',
+        help=f'Suffix for generating the output file name (default: {suf})',
     ),
 }
 
@@ -135,7 +135,7 @@ def _do_main(args=None):
         print(PLATFORM)
 
 
-def _wraptxt(desc, details='', indent=4, width=70):
+def _wraptxt(desc, details='', indent=2, width=75):
     if details:
         indentation = ' ' * indent
         contents = textwrap.fill(
@@ -328,27 +328,34 @@ def do_mixing(args=None):
 
 def do_ztdev(args=None):
     import numpy as np
-    from .ztdev import optim_Yita, cal_ZTdev
+    from .ztdev import cal_ZTdev, valuate
     from .utils import suffixed
     
     task = 'ztdev'
     DESC = DESCRIPTION[task]
     parser = argparse.ArgumentParser(
         prog=f'{CMD}-{task}',
-        description=f'{DESC} - {INFO}',
-        epilog=FOOTNOTE)
+        formatter_class=argparse.RawTextHelpFormatter,
+        epilog=FOOTNOTE,
+        description=_wraptxt(f'{DESC} - {INFO}','''
+            Prepare a data file with columns in the following order:
+            T, C, S, and K. Alternatively, you can format the data file
+            with Tc, Th, and a pre-calculated Yita; in this case, include
+            the -y (or --yita) option to indicate the use of this format.
+            ''')
+        )
     
     parser.add_argument('-b', '--bare', **OPTS['bare'])
     
     parser.add_argument('-y', '--yita', action='store_true',
-        help='Read the data with columns Tc, Th, Yita in order, \
-              rather than the material properties T, C, S, K.')
+        help='Use this option when the input file is formatted '
+             'with columns Tc, Th, Yita')
     
     parser.add_argument('inputfile', **OPTS['inputf'])
     
     parser.add_argument('outputfile', **OPTS['outputf'])
     
-    parser.add_argument('-s', '--suffix', **OPTS['suffix']('ztdev'))
+    parser.add_argument('-s', '--suffix', **OPTS['suffix'](task))
     
     options = parser.parse_args(args)
     # print(options)
@@ -364,15 +371,15 @@ def do_ztdev(args=None):
         if np.max(Yita) < 1:
             logger.warning('Detected all input Yita less than 1.'
                            'Its typical range is 0-100.')
+        # calculate ZTdev
+        ZTdev = cal_ZTdev(Yita, Tc, Th)
+        logger.info('Calculate ZTdev from Yita')
     else:
-        Th, C, S, K, *_ = np.loadtxt(inputfile, unpack=True, ndmin=2)
-        Tc = Th[0]*np.ones_like(Th)
+        data_TCSK = np.loadtxt(inputfile, unpack=True, ndmin=2)
         logger.info(f'Read data [T, C, S, K] from {inputfile}')
-        Yita = optim_Yita([Th, C, S, K], allTemp=True)
-    
-    # calculate ZTdev
-    ZTdev = cal_ZTdev(Yita, Tc, Th)
-    logger.info('Calculate ZTdev from Yita')
+        result = valuate(data_TCSK[:4], allTemp=True)
+        out_props = ('Tc', 'Th', 'Yita', 'ZTdev')
+        Tc, Th, Yita, ZTdev = [result[k] for k in out_props]
     
     # output
     outdata = np.c_[Tc, Th, Yita, ZTdev]
