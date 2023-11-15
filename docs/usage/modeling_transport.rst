@@ -285,8 +285,77 @@ Kane能带模型
 程序实现
 --------
 
-当前相关计算程序已经完成
-(详见 :doc:`bandlib </api_doc/teflow.bandlib>` 模块)，
-接口还在开发中。
+基于能带的输运模型在实际中有很多应用，
+比如通过塞贝克系数求解洛伦兹常数，通过 Pisarenko 关系计算有效质量，
+基于实验结果估计材料的权重迁移率并估计最大功率因子，等等。
+目前，我们提供了一个比较初级的命令行接口 ``tef-band`` ,
+实现比较常规的试验数据分析，
+更加复杂的功能需要通过调用相应的模块来完成。
+
+命令行指令
+^^^^^^^^^^
+
+我们可以通过 ``tef-band -h`` 选项来查看帮助，
+
+.. code-block::
+
+    $ tef-band -h
+    usage: tef-band [-h] [-b] [-g GROUP] [--gap GAP] [-p PROPERTIES]
+                    [-s SUFFIX] INPUTFILE [OUTPUTFILE]
+    
+    Insight carriar transport with band models - TEflow(0.0.1a3)
+    
+      >>> Ensure your data file is formatted with columns for the Seebeck
+      coefficient, and optionally, temperature, conductivity, and carrier
+      concentration. Alter this arrangement with the -g(--group) option.
+      Anticipate outputs like the Lorenz number, temperature-independent
+      weighted mobility, effective mass, etc., based on your supplied data.
+    
+    positional arguments:
+      INPUTFILE             Input file name (must be provided)
+      OUTPUTFILE            Output file name (optional, auto-generated if omitted)
+    
+    optional arguments:
+      -h, --help            show this help message and exit
+      -b, --bare            Output data without header
+      -g GROUP, --group GROUP
+                            Group identifiers for paired data (default: STCN)
+      --gap GAP             Bandgap in eV. Defaults to None, indicating the use
+                            of a parabolic band model
+      -p PROPERTIES, --properties PROPERTIES
+                            Specify theproperties to be considered for calculation,
+                            separated by spaces. If not specified, all calculated
+                            properties will be output.
+      -s SUFFIX, --suffix SUFFIX
+                            Suffix for generating the output file name (default: band)
+
+可以看到，输入文件需要包含塞贝克系数，可选地还可以包含温度，
+电导率和载流子浓度。根据所给的输入数据，
+输出数据可以包括：洛伦兹常数，温度无关权重迁移率，有效质量等。
+默认情况下，我们使用 SPB 模型进行分析。
+我们可以通过 ``--gap <Egap>`` 选项来启用 SKB 模型，
+这里 Egap 即为 Kane 模型中的带隙参数。
+假设我们材料的带隙为 0.1 eV, 输入文件名为 data.txt,
+我们应该像下面这样操作:
+
+.. code-block:: bash
+
+    $ tef-band --gap 0.1 data.txt
+
+相关的模块
+^^^^^^^^^^
+
+我们提供了比较完整的函数和类文档，具体可以参考
+:doc:`bandlib </api_doc/teflow.bandlib>`
+模块。
+
+.. code-block:: python3
+
+    >>> from teflow.bandlib import APSSPB
+    >>> 
+    >>> # construct SPB model by classmethod from_DP()
+    >>> spb = APSSPB.from_DP(m1=1, Ed=10, Nv=2, Cii=10)
+    >>> spb.S(EF=-0.01, T=300)
+    229.2960316083183
 
 .. |yita| replace:: :math:`\eta`
