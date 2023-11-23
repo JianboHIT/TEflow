@@ -184,7 +184,10 @@ def do_interp(args=None):
     parser.add_argument('-n', '--npoint', type=int, default=101, 
         help='The number of interpolated data points (default: 101)')
 
-    parser.add_argument('-s', '--suffix', **OPTS['suffix']('interp'))
+    parser.add_argument('--range', metavar='START:STEP:END',
+        help='Specify equal-interval points for interpolation. (e.g., 0:2:10)')
+
+    parser.add_argument('-s', '--suffix', **OPTS['suffix'](task))
 
     options = parser.parse_args(args)
     
@@ -203,19 +206,27 @@ def do_interp(args=None):
     # read sampling points
     try:
         x2, *_ = np.loadtxt(outputfile, unpack=True, ndmin=2)
-    except IOError:
+    except FileNotFoundError:
         # failed to read sampling points and set them automatically
         logger.info(f'Failed to read sampling points from {outputfile}')
         
-        npoint = options.npoint
-        x2 = np.linspace(x[0], x[-1], num=npoint)
+        if options.range:
+            items = options.range.strip().split(':')
+            if len(items) == 3:
+                start, step, stop = map(float, items)
+                stop += 0.001 * step
+                x2 = np.arange(start, stop, step)
+                logger.debug(f'Using np.arange({start}, {stop}, {step})')
+            else:
+                logger.debug(f'Current value of range option: {options.range}')
+                raise ValueError('Failed to parse --range option: '
+                                 "'START:STEP:END' format is required.")
+        else:
+            npoint = options.npoint
+            x2 = np.linspace(x[0], x[-1], num=npoint)
+            logger.debug(f'Using np.linspace({x[0]}, {x[-1]}, num={npoint}) ')
         
         logger.info('Generate sampling points automatically')
-        logger.debug(f'Using np.linspace({x[0]}, {x[-1]}, num={npoint}) ')
-    except Exception as err:
-        # catch other error
-        logger.error('Failed to read/generate sampling points.\n')
-        raise(err)
     else:
         logger.info(f'Read sampling points from {outputfile}')
 
