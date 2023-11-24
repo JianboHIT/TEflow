@@ -16,7 +16,7 @@ import logging
 import numpy as np
 from pprint import pformat
 from abc import ABC, abstractmethod
-from scipy.integrate import cumtrapz
+from scipy.integrate import cumulative_trapezoid as cumtrapz
 from numpy.polynomial import Polynomial
 
 from .utils import AttrDict
@@ -27,37 +27,23 @@ class BaseDevice(ABC):
     '''
     An abstract class for computing engineering performance of thermoelectric device
     '''
-    
-    paras    = dict()   # input-init
-    options  = dict()   # input-build
-    configs  = dict()   # input-simulate
-    profiles = dict()   # output-build
-    outputs  = dict()   # output-simulate
-    
     def __init__(self, **paras):
-        self.paras.update(paras)
+        # self.profiles = AttrDict()    # initialize an empty profiles property
         pass
-    
-    def __getattr__(self, name):
-        if name in self.paras:
-            return self.paras[name]
-        elif name in self.profiles:
-            return self.profiles[name]
-        elif name in self.outputs:
-            return self.outputs[name]
-        else:
-            return super().__getattribute__(name)
-     
+
     @abstractmethod
     def build(self, **options):
-        self.options.update(options)
-        return self.profiles
-    
+        # self.profiles = AttrDict(...) # get profiles property
+        # return self.profiles
+        pass
+
     @abstractmethod
     def simulate(self, **configs):
-        self.configs.update(configs)
-        return self.outputs
-    
+        # profiles = self.profiles      # read out profiles property
+        # outputs = AttrDict(...)       # get output
+        # return output
+        pass
+
     @classmethod
     @abstractmethod
     def valuate(cls, **kwargs):
@@ -67,89 +53,58 @@ class GenCore(BaseDevice):
     '''
     An abstract class for computing engineering performance of thermoelectric generator
     '''
-    paras = {
-        'isPoly': False,        # mode
-        'TEdatas': None,        # TE datas
-        'Tc': None,             # temperature at cold side
-        'Th': None,             # temperature at hot side
-        'L': 1,                 # length of TE leg in mm
-        'A': 100,               # the cross-sectional area in mm^2, default 1 cm^2
-    }
-    options = {
-        'calWeights': False,    # whether to calculate dimensionless weight factors
-        'returnProfiles': False,
-    }
-    configs = {
-        'I_r': 'YitaMax',       # 'YitaMax' | 'PowerMax' | 'scan'(or 'sweep') | array_like
-        'numPoints': 101,
-        'returnOutputs': False,
-    }
-    
-    def _build(self, options):
-        '''
-        options : dict
-            'calWeights': False,    # whether to calculate dimensionless weight factors
-            'returnProfiles': False,
-        '''
+    def __init__(self, TEdatas, Tc, Th, L=1, A=100, isPoly=False):
+        self.TEdatas=TEdatas     # TE datas
+        self.Tc=Tc               # temperature at cold side
+        self.Th=Th               # temperature at hot side
+        self.L=L                 # length of TE leg in mm
+        self.A=A                 # the cross-sectional area in mm^2, default 1 cm^2
+        self.isPoly=isPoly       # mode
+        self.profiles = AttrDict()
 
-        self.options.update(options)
-        options = self.options
-        logger.info('Read options ...')
-        logger.debug('Options:\n%s', pformat(options))
-        
-        itgs = self._get_itgs(datas=self.paras['TEdatas'],
-                              Tc=self.paras['Tc'],
-                              Th=self.paras['Th'],
-                              isPoly=self.paras['isPoly'])
-
+    def _build(self, calWeights=False):
+        # options = {
+        #     'calWeights': False,    # whether to calculate dimensionless weight factors
+        # }
+        itgs = self._get_itgs()
         mdfs = self._get_mdfs(itgs)
         logger.info('Calculate integrals and modification factors')
-        
-        L = self.paras['L']     # mm
-        A = self.paras['A']     # mm^2
-        profiles = self._get_prfs(itgs, mdfs, L, A)
+
+        profiles = self._get_prfs(itgs, mdfs)
         logger.info('Calculate profiles of device')
-        logger.debug('Keys of profiles:\n%s', pformat(list(profiles.keys())))
-        
-        if options['calWeights']:
-            wgts = self._get_wgts(itgs, mdfs)
-            profiles['wgts'] = wgts
+
+        if calWeights:
+            profiles['wgts'] = self._get_wgts(itgs, mdfs)
             logger.info('Calculate weight factors')
         else:
             logger.debug('Ingore calculation of weight factors')
-        
-        self.profiles = profiles
-        if options['returnProfiles']:
-            return profiles
-        else:
-            return None
-        
-    def _simulate(self, configs):
-        '''
-        configs : dict
-            'I_r': 'YitaMax',       # 'YitaMax' | 'PowerMax' | 'scan'(or 'sweep') | array_like
-            'numPoints': 101,
-            'returnOutputs': False,
-        '''
 
-        self.configs.update(configs)
-        configs = self.configs
-        logger.info('Read configs ...')
-        logger.debug('Configs:\n%s', pformat(configs))
-        
+        self.profiles = profiles
+        logger.debug('Update profiles:\n%s', pformat(list(profiles.keys())))
+        return profiles
+    
+    def _simulate(self, I_r='YitaMax', numPoints=101):
+        # configs = {
+        #     'I_r': 'YitaMax',       # 'YitaMax' | 'PowerMax' | 'scan'(or 'sweep') | array_like
+        #     'numPoints': 101,
+        # }
+
+        prfs = self.profiles
+        if not prfs:
+            raise RuntimeError('Failed to read out profiles of device! '
+                               'Try to build it at first ...')
+
         # parse I_r
-        I_r = configs['I_r']
         if isinstance(I_r, str):
             if I_r.lower().startswith('y'):
-                m_opt = self.profiles['m_opt']
+                m_opt = prfs['m_opt']
                 I_r = 1/(1+m_opt)
                 logger.info('Work under optimized efficiency')
             elif I_r.lower().startswith('p'):
                 I_r = np.array([1/2,])
                 logger.info('Work under optimized output power')
             elif I_r.lower().startswith('s'):
-                shp = [-1,]+[1,]*self.profiles['deltaT']
-                numPoints = configs['numPoints']
+                shp = [-1,]+[1,]*prfs['deltaT']
                 I_r = np.linspace(0, 1, numPoints).reshape(shp)
                 logger.info('Work under auto-limition of current')
             else:
@@ -158,9 +113,8 @@ class GenCore(BaseDevice):
             I_r = np.atleast_1d(I_r)
             logger.info('Work under assigned reduced current')
         logger.debug('Shape of I_r: %s', str(I_r.shape))
-        
-        logger.info('Load profiles datas of device')
-        prfs = self.profiles
+
+        # get details of profiles of device
         deltaT = prfs['deltaT']
         Zeng   = prfs['Zeng']
         Isc    = prfs['Isc']
@@ -183,28 +137,22 @@ class GenCore(BaseDevice):
         outputs['Qhot'] = Qx * Qhot_rt/deltaT
         outputs['Yita'] = 100 * outputs['Pout'] / outputs['Qhot']
         logger.info('Calculate Vout, Pout, Qhot, and Yita')
-        
-        self.outputs = outputs
-        if configs['returnOutputs']:
-            return outputs
-        else:
-            return None
+        return outputs
     
-    @staticmethod
-    def _get_itgs(datas, Tc, Th, isPoly):
+    def _get_itgs(self):
         '''
         calculate integrals of porperties
-            datas = datas_TCSK  if isPoly is False
-            datas = datas_RhoSK if isPoly is True
         '''
-        
+        Tc = np.array(self.Tc)
+        Th = np.array(self.Th)
+
         itgs = AttrDict()
         itgs['Tc']     = Tc
         itgs['Th']     = Th
         itgs['deltaT'] = Th - Tc
         
-        if isPoly:
-            Rho, S, K = datas
+        if self.isPoly:
+            Rho, S, K = self.TEdatas
             T = Polynomial([0,1])
             RhoT = T * Rho
             ST   = T * Rho
@@ -222,7 +170,7 @@ class GenCore(BaseDevice):
             itgs['RhoT'] = RhoT_itg(Th) - RhoT_itg(Tc)      # <T*Rho>
             itgs['ST']   = ST_itg(Th)   - ST_itg(Tc)        # <T*S>
         else:
-            T, C, S, K = datas
+            T, C, S, K = self.TEdatas
             Rho = 1E4 / C           # S/cm to uOhm.m
             RhoT = T * Rho
             ST   = T * S
@@ -243,12 +191,13 @@ class GenCore(BaseDevice):
             itgs['ST']   = interp(ST_itg, Th)   - interp(ST_itg, Tc)
         return itgs
 
-    @staticmethod
-    def _get_mdfs(itgs):
+    def _get_mdfs(self, itgs=None):
         '''
         calculate modification factors
         '''
-        
+        if itgs is None:
+            itgs = self._get_itgs()
+
         mdfs = AttrDict()
         mdfs['Rho']  = itgs['RhoT'] / itgs['Rho']               # <T*Rho>/<Rho>
         mdfs['S']    =   itgs['ST'] / itgs['S']                 # <T*S>/<S>
@@ -261,12 +210,16 @@ class GenCore(BaseDevice):
         mdfs['ST_RhoT_2'] = mdfs['ST_RhoT_1'] - mdfs['RhoT']    # modified Tc
         return mdfs
     
-    @staticmethod
-    def _get_wgts(itgs, mdfs):
+    def _get_wgts(self, itgs=None, mdfs=None):
         '''
         calculate dimensionless weight factors
         '''
+        if itgs is None:
+            itgs = self._get_itgs()
         
+        if mdfs is None:
+            mdfs = self._get_mdfs(itgs)
+
         Rho_w = mdfs['Rho']
         TSc   = itgs['Tc'] * itgs['Sc']
         TSh   = itgs['Th'] * itgs['Sh']
@@ -279,13 +232,19 @@ class GenCore(BaseDevice):
         wgts['alpha_1'] = mdfs['ST_RhoT_1'] / itgs['Sh']
         wgts['alpha_2'] = mdfs['ST_RhoT_2'] / itgs['Sh']
         return wgts
-    
-    @staticmethod
-    def _get_prfs(itgs, mdfs, L, A):
+
+    def _get_prfs(self, itgs=None, mdfs=None):
         '''
         calculate profiles of device
         '''
+        if itgs is None:
+            itgs = self._get_itgs()
         
+        if mdfs is None:
+            mdfs = self._get_mdfs(itgs)
+
+        L, A = self.L, self.A
+
         deltaT = itgs['deltaT']
         PFeng = 1E-6 * itgs['S']*itgs['S']/itgs['Rho']
         Zeng = PFeng / itgs['K']
@@ -309,26 +268,13 @@ class GenLeg(GenCore):
     '''
     Simulate thermoelectric leg of generator
     '''
-    def __init__(self, **paras):
-        '''
-        paras : dict
-            'isPoly': False,        # mode
-            'TEdatas': None,        # TE datas
-            'Tc': None,             # temperature at cold side
-            'Th': None,             # temperature at hot side
-            'L': 1,                 # length of TE leg in mm
-            'A': 100,               # the cross-sectional area in mm^2, default 1 cm^2        
-        '''
-        
+    def __init__(self, TEdatas, Tc, Th, L=1, A=100, isPoly=False):
         logger.info('Begin initialization of {} ...'.format(self.__class__.__name__))
-        
+
         # check TEdatas
-        isPoly = paras.get('isPoly', self.paras['isPoly'])
-        TEdatas = paras['TEdatas']
         if isPoly:
             Rho, S, K = TEdatas
-            check = lambda x: isinstance(x, Polynomial)
-            if not all(map(check, [Rho, S, K])):
+            if not all(isinstance(x, Polynomial) for x in [Rho, S, K]):
                 raise ValueError('TEdatas requires three numpy.polynomial.Polynomial.')
             else:
                 logger.info('Read datas of TE properties in polynomial ...')
@@ -340,44 +286,46 @@ class GenLeg(GenCore):
             logger.debug('Value of TEdatas:\n%s', str(datas))
         
         # check Tc, Th
-        for Ti in ('Tc', 'Th'):
-            if Ti in paras:
-                paras[Ti] = np.atleast_1d(paras[Ti])
-                if len(paras[Ti]) == 1:
-                    logger.info('{} is at {} K'.format(Ti, paras[Ti][0]))
-                else:
-                    logger.info('{} are at {}..{} K'.format(Ti, paras[Ti][0], paras[Ti][-1]))
-            else:
-                 raise ValueError('{} is required.'.format(Ti))  
+        Tc = np.atleast_1d(Tc)
+        if len(Tc) == 1:
+            logger.info('Tc is at {} K'.format(Tc[0]))
+        else:
+            logger.info('Tc are at {}..{} K'.format(Tc[0], Tc[-1]))
         
-        # update paras and check Length, Area
-        self.paras.update(paras)
-        logger.info('Length of TE leg: {} mm'.format(self.paras['L']))
-        logger.info('Area of TE leg: {} mm^2'.format(self.paras['A']))
+        Th = np.atleast_1d(Th)
+        if len(Th) == 1:
+            logger.info('Th is at {} K'.format(Th[0]))
+        else:
+            logger.info('Th are at {}..{} K'.format(Th[0], Th[-1]))
+        
+        # check Length, Area
+        logger.info('Length of TE leg: {} mm'.format(L))
+        logger.info('Area of TE leg: {} mm^2'.format(A))
+
+        # update paras
+        super().__init__(TEdatas, Tc, Th, L, A, isPoly)
         logger.info('Finish initialization')
     
-    def build(self, **options):
-        '''
-        options : dict
-            'calWeights': False,    # whether to calculate dimensionless weight factors
-            'returnProfiles': False,
-        '''
-
+    def build(self, calWeights=False):
+        options = dict(
+            calWeights=calWeights,  # whether to calculate dimensionless weight factors
+        )
         logger.info('Begin building process ...')
-        profiles = self._build(options)
+        logger.debug('Options:\n%s', pformat(options))
+
+        profiles = self._build(calWeights=calWeights)
         logger.info('Finish building process')
         return profiles
     
-    def simulate(self, **configs):
-        '''
-        configs : dict
-            'I_r': 'YitaMax',       # 'YitaMax' | 'PowerMax' | 'scan'(or 'sweep') | array_like
-            'numPoints': 101,
-            'returnOutputs': False,
-        '''
-        
+    def simulate(self, I_r='YitaMax', numPoints=101):
+        configs = dict(
+            I_r=I_r,                # 'YitaMax' | 'PowerMax' | 'scan'(or 'sweep') | array_like
+            numPoints=numPoints,
+        )
         logger.info('Begin simulating ...')
-        outputs = self._simulate(configs)
+        logger.debug('Configs:\n%s', pformat(configs))
+
+        outputs = self._simulate(I_r=I_r, numPoints=numPoints)
         logger.info('Finish simulating process')
         return outputs
 
@@ -391,12 +339,12 @@ class GenLeg(GenCore):
         Tc, Th = T[0], T[1:]
         
         # initialling
-        rst = AttrDict()
+        rst = AttrDict(Tc=Tc, Th=Th)
         logger.debug('Invoke valuate() method of %s', cls.__name__)
         gen = cls(TEdatas=datas_TCSK, Tc=Tc, Th=Th, L=L)
         
         # build device
-        prfs = gen.build(returnProfiles=True)
+        prfs = gen.build()
         rst['deltaT'] = prfs.deltaT
         rst['PFeng']  = prfs.PFeng
         rst['ZTeng']  = prfs.ZTeng
@@ -404,13 +352,13 @@ class GenLeg(GenCore):
         
         # to maximize Pout
         logger.info('To get maximal Pout')
-        outs = gen.simulate(I_r='PowerMax', returnOutputs=True)
+        outs = gen.simulate(I_r='PowerMax')
         rst['Pout'] = outs.Pout
         logger.info('Read out Pout')
         
         # to maximize Yita
         logger.info('To get maximal Yita')
-        outs = gen.simulate(I_r='YitaMax', returnOutputs=True)
+        outs = gen.simulate(I_r='YitaMax')
         rst['Yita'] = outs.Yita
         logger.info('Read out Yita')
 
@@ -422,39 +370,15 @@ class GenPair(GenCore):
     '''
     Simulate thermoelectric p-n pair of generator
     '''
-    _paras = {
-        'TEdatas_p': None,          # TE datas of p-type leg
-        'TEdatas_n': None,          # TE datas of n-type leg
-        'ratioLength': 1,           # Ln/Lp: float | array_like
-        'ratioArea': 'ZTengMax',    # An/Ap: 'ZTengMax' | 'PFengMax' | array_like
-    }
-    def __init__(self, **paras):
-        '''
-        paras : dict
-            'isPoly': False,        # mode
-            'TEdatas': None,        # TE datas (just a place-holder)
-            'TEdatas_p': None,      # TE datas of p-type leg
-            'TEdatas_n': None,      # TE datas of n-type leg
-            'Tc': None,             # temperature at cold side
-            'Th': None,             # temperature at hot side
-            'L': 1,                 # length of p-type TE leg in mm
-            'A': 100,               # total cross-sectional area in mm^2, default 1 cm^2
-            'ratioLength': 1,           # Ln/Lp: float | array_like
-            'ratioArea': 'ZTengMax',    # An/Ap: 'ZTengMax' | 'PFengMax' | array_like
-        '''
-        self.paras.update(self._paras)      # update default parameters
+    def __init__(self, TEdatas_p, TEdatas_n, Tc, Th, L=1, A=100, isPoly=False):
         logger.info('Begin initialization of {} ...'.format(self.__class__.__name__))
-        
+
         # check TEdatas_p, TEdatas_n
-        isPoly = paras.get('isPoly', self.paras['isPoly'])
-        TEdatas_np = dict(TEdatas_n=paras['TEdatas_n'],
-                          TEdatas_p=paras['TEdatas_p'])
-        
+        TEdatas_pn = dict(TEdatas_p=TEdatas_p, TEdatas_n=TEdatas_n)
         if isPoly:
-            for leg, datas_RhoSK in TEdatas_np.items():
+            for leg, datas_RhoSK in TEdatas_pn.items():
                 Rho, S, K = datas_RhoSK
-                check = lambda x: isinstance(x, Polynomial)
-                if not all(map(check, [Rho, S, K])):
+                if not all(isinstance(x, Polynomial) for x in [Rho, S, K]):
                     dsp = '{} requires three numpy.polynomial.Polynomial.'
                     raise ValueError(dsp.format(leg))
                 else:
@@ -462,7 +386,7 @@ class GenPair(GenCore):
                     logger.info(dsp.format(leg[-1]))
                     logger.debug('Value of %s:\n%s', leg, str(datas_RhoSK))
         else:
-            for leg, datas_TCSK in TEdatas_np.items():
+            for leg, datas_TCSK in TEdatas_pn.items():
                 T, C, S, K = datas_TCSK
                 datas = np.vstack([T,C,S,K]).T
                 dsp = 'Read TE properties datas of {}-type leg ...'
@@ -470,87 +394,93 @@ class GenPair(GenCore):
                 logger.debug('Value of %s:\n%s', leg, str(datas))
         
         # check Tc, Th
-        for Ti in ('Tc', 'Th'):
-            if Ti in paras:
-                paras[Ti] = np.atleast_1d(paras[Ti])
-                if len(paras[Ti]) == 1:
-                    logger.info('{} is at {} K'.format(Ti, paras[Ti][0]))
-                else:
-                    logger.info('{} are at {}..{} K'.format(Ti, paras[Ti][0], paras[Ti][-1]))
-            else:
-                 raise ValueError('{} is required.'.format(Ti))  
+        Tc = np.atleast_1d(Tc)
+        if len(Tc) == 1:
+            logger.info('Tc is at {} K'.format(Tc[0]))
+        else:
+            logger.info('Tc are at {}..{} K'.format(Tc[0], Tc[-1]))
         
-        # update paras and check Length, Area
-        self.paras.update(paras)
-        dsps = {'L': 'Length of p-type TE leg: {} mm',
-                'A': 'Total cross-sectional area of TE p-n pair: {} mm^2',
-                'ratioLength': 'Ratio of length (Ln/Lp): {}',
-                'ratioArea': 'Ratio of Area (An/Ap): {}',}
-        for key, dsp in dsps.items():
-            logger.info(dsp.format(self.paras[key]))
+        Th = np.atleast_1d(Th)
+        if len(Th) == 1:
+            logger.info('Th is at {} K'.format(Th[0]))
+        else:
+            logger.info('Th are at {}..{} K'.format(Th[0], Th[-1]))
+        
+        # check Length, Area
+        logger.info('Length of TE leg: {} mm'.format(L))
+        logger.info('Area of TE leg: {} mm^2'.format(A))
+
+        # update paras: TEdatas, _rL, _rA are initialed to None
+        super().__init__(None, Tc, Th, L, A, isPoly)
+        self.TEdatas_p = TEdatas_p
+        self.TEdatas_n = TEdatas_n
+        self._rL = None
+        self._rA = None
         logger.info('Finish initialization')
-        
-    def build(self, **options):
-        '''
-        options : dict
-            'calWeights': False,    # whether to calculate dimensionless weight factors
-            'returnProfiles': False,
-        '''
-        
+
+    def build(self, ratioLength=1, ratioArea='ZTengMax', calWeights=False):
+        options = dict(
+            ratioLength=ratioLength,# Ln/Lp: float | array_like
+            ratioArea=ratioArea,    # An/Ap: 'ZTengMax' | 'PFengMax' | array_like
+            calWeights=calWeights,  # whether to calculate dimensionless weight factors
+        )
         logger.info('Begin building process ...')
-        
-        logger.info('Determine the configuration of p-n pair ...')
-        rL = self.paras['ratioLength']
-        rA = self.paras['ratioArea']
-        datas_p = self.paras['TEdatas_p']
-        datas_n = self.paras['TEdatas_n']
+        logger.debug('Options:\n%s', pformat(options))
+
+        self._rL = ratioLength
+        self._rA = ratioArea
+        profiles = self._build(options)
+        profiles['rL'] = self._rL   # get the real value
+        profiles['rA'] = self._rA   # get the real value
+        logger.info('Finish building process')
+        return profiles
+    
+    def simulate(self, I_r='YitaMax', numPoints=101):
+        configs = dict(
+            I_r=I_r,                # 'YitaMax' | 'PowerMax' | 'scan'(or 'sweep') | array_like
+            numPoints=numPoints,
+        )
+        logger.info('Begin simulating ...')
+        logger.debug('Configs:\n%s', pformat(configs))
+
+        outputs = self._simulate(I_r=I_r, numPoints=numPoints)
+        logger.info('Finish simulating process')
+        return outputs
+    
+    def _get_itgs(self):
+        # calculate itgs of each leg
+        self.TEdatas = self.TEdatas_p
+        itgs_p = super()._get_itgs()
+
+        self.TEdatas = self.TEdatas_n
+        itgs_n = super()._get_itgs()
+
+        self.TEdatas = None         # release to None
+        logger.debug('Calculate itgs property of each leg')
+
+        # parse rL & rA
+        rL = np.array(self._rL)     # Ln/Lp: float | array_like
+        rA = self._rA               # An/Ap: 'ZTengMax' | 'PFengMax' | array_like
         if isinstance(rA, str):
-            Tc = self.paras['Tc']
-            Th = self.paras['Th']
-            isPoly = self.paras['isPoly']
-            itgs_p = super()._get_itgs(datas_p, Tc, Th, isPoly)
-            itgs_n = super()._get_itgs(datas_n, Tc, Th, isPoly)
             if rA.lower().startswith('z'):
                 rA = rL * np.sqrt(itgs_p['Rho']/itgs_n['Rho'] * itgs_n['K']/itgs_p['K'])
                 logger.info('Obtain the configuration to maximize ZTeng')
-                I_r = 'YitaMax'
-                self.configs['I_r'] = I_r
-                logger.debug("update default value of config['I_r'] to %s", I_r)
             elif rA.lower().startswith('p'):
                 rA = np.sqrt(rL * itgs_p['Rho']/itgs_n['Rho'])
                 logger.info('Obtain the configuration to maximize PFeng')
-                I_r = 'PowerMax'
-                self.configs['I_r'] = 'PowerMax'
-                logger.debug("update default value of config['I_r'] to %s", I_r)
             else:
                 raise ValueError('Invalid value of ratioArea')
         else:
             rA = np.array(rA)
             logger.info('Obtain the configuration under assigned size')
-        self.paras['TEdatas'] = (itgs_p, itgs_n, rL, rA)
-        logger.debug("Set paras['TEdatas'] as (itgs_p, itgs_n, rL, rA) form")
-
-        profiles = self._build(options)
-        logger.info('Finish building process')
-        return profiles
-
-    def simulate(self, **configs):
-        '''
-        configs : dict
-            'I_r': 'YitaMax',       # 'YitaMax' | 'PowerMax' | 'scan'(or 'sweep') | array_like
-            'numPoints': 101,
-            'returnOutputs': False,
-        '''
         
-        logger.info('Begin simulating ...')
-        outputs = self._simulate(configs)
-        logger.info('Finish simulating process')
-        return outputs
-    
-    @staticmethod
-    def _get_itgs(datas, Tc, Th, isPoly):
-        itgs_p, itgs_n, rL, rA = datas
-        
+        # update properties: _rL and _rA
+        self._rL = rL
+        self._rA = rA
+        logger.debug('Parse configuration of the device:\n    rL: %s\n    rA: %s',
+                     pformat(rL), pformat(rA))
+
+        # merge itgs_p and itgs_n to the equivalent itgs
         fx_t = lambda p, n: (p+n)/2
         fx_s = lambda p, n: p - n
         fx_r = lambda p, n: p*(1+rA) + n*rL/rA*(1+rA)
@@ -577,7 +507,7 @@ class GenPair(GenCore):
         Tc, Th = T[0], T[1:]
         
         # initialling
-        rst = AttrDict()
+        rst = AttrDict(Tc=Tc, Th=Th)
         logger.debug('Invoke valuate() method of %s', cls.__name__)
         gen = cls(TEdatas_p=datas_p_TCSK, 
                   TEdatas_n=datas_n_TCSK,
@@ -585,24 +515,22 @@ class GenPair(GenCore):
         
         # to maximize Yita
         logger.info('>>> To get maximal Yita <<<')
-        gen.paras['ratioArea'] = 'ZTengMax'
-        prfs = gen.build(returnProfiles=True)
+        prfs = gen.build(ratioArea='ZTengMax')
         rst['deltaT'] = prfs.deltaT
         rst['ZTeng']  = prfs.ZTeng
         logger.info('Read out deltaT and ZTeng')
         
-        outs = gen.simulate(I_r='YitaMax', returnOutputs=True)
+        outs = gen.simulate(I_r='YitaMax')
         rst['Yita'] = outs.Yita
         logger.info('Read out Yita')
         
         # to maximize Pout
         logger.info('>>> To get maximal Pout <<<')
-        gen.paras['ratioArea'] = 'PFengMax'
-        prfs = gen.build(returnProfiles=True)
+        prfs = gen.build(ratioArea='PFengMax')
         rst['PFeng']  = prfs.PFeng
         logger.info('Read out deltaT, PFeng, ZTeng')
         
-        outs = gen.simulate(I_r='PowerMax', returnOutputs=True)
+        outs = gen.simulate(I_r='PowerMax')
         rst['Pout'] = outs.Pout
         logger.info('Read out Pout')
 
