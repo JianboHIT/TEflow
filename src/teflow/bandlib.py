@@ -999,6 +999,53 @@ class APSSKB(BaseBand):
         return out
 
 
+class LinearBand(BaseBand):
+    '''
+    A class for describing linear band model:
+
+    .. math ::
+
+        E &= v_F \\cdot \\hbar |k| \\\\
+        g(E) &= \\frac{E^2}{\\pi^2 \\hbar^3 v_F^3} \\\\
+        \\sigma_s(E, T) &= \\sigma_0 \\text{ when } E > 0
+
+    Attributes
+    ----------
+    sigma0 : float, optional
+        Intrinsic electrical conductivity in S/cm, the core
+        parameter influencing thermoelectric transport properties.
+        It should be a positive float, by default 1.
+    vF : float, optional
+        Fermi velocity in Angstrom/fs, i.e. 10^5 m/s. It should be
+        a positive float, by default 1.
+    '''
+    vF = 1      #: :meta private: A/fs, i.e. 10^5 m/s
+    sigma0 = 1  #: :meta private: S/cm
+    def __init__(self, vF=1, sigma0=1):
+        self.vF = np.absolute(vF)
+        self.sigma0 = sigma0
+
+    def dos(self, E):
+        '''Density of states, in 1E19 state/(eV.cm^3).'''
+        E = np.asarray(E)
+        factor = 1E-25      # state/(eV.m^3) --> 1E19 state/(eV.cm^3)
+        g0 = np.power(1/np.pi, 2) * np.power(q/(self.vF*hbar), 3)
+        return factor * g0 * np.power(E, 2)
+
+    def trs(self, E, T):
+        '''Transport distribution function, in S/cm.'''
+        broadcasted = np.broadcast(E, T)
+        return self.sigma0 * np.ones(broadcasted.shape)
+
+    def hall(self, E, T):
+        '''Hall transport distribution function. Not implemented now!'''
+        raise NotImplementedError
+
+    def _CCRH(self, EF, T):
+        '''To ensure compatibility with the compile() method.'''
+        return None
+
+
 class RSPB:
     '''
     A class for modeling the Restructured Single Parabolic Band
