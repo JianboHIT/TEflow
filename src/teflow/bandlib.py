@@ -243,8 +243,8 @@ class BaseBand(ABC):
         if self._caching:
             if _prop not in self._caching:
                 raise KeyError(f'Failed to read uncompiled {_prop}')
-            if any(arg is not None for arg in args):
-                raise ValueError(f'Conflicting arguments for compiled class')
+            # if any(arg is not None for arg in args):
+            #     raise ValueError(f'Conflicting arguments for compiled class')
             if index is None:
                 return self._caching[_prop]
             else:
