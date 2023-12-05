@@ -435,36 +435,48 @@ class MultiBand(BaseBand):
     '''
     cacheable = BaseBand.cacheable | {'Kbip'}
 
-    def __init__(self, cbands=(), cdeltas=(), 
-                       vbands=(), vdeltas=(),):
+    def __init__(self, bands, deltas, btypes=None):
         '''
         Initialize an instance of MultiBand.
 
         Parameters
         ----------
-        cbands : tuple of BandBase, optional
-            Conduction bands, by default ().
-        cdeltas : tuple of float, optional
-            Energy offsets of conduction bands, by default ().
-        vbands : tuple of BandBase, optional
-            Valence bands, by default ().
-        vdeltas : tuple of float, optional
-            Energy offsets of valence bands, by default ()
+        bands : tuple of BaseBand
+            A collection of instances of :class:`BaseBand`.
+        deltas : tuple of float
+            Energy offsets for each band.
+        btypes : tuple or str, optional
+            Types of bands for each entry in `bands`. This can be a sequence
+            matching the length of `bands`, or a single value applicable to
+            all bands. 'C' signifies conduction bands, while 'V' signifies
+            valence bands. If not specified (`None`), band types will be
+            inferred using the :meth:`guess_btypes()` method based on `deltas`.
         '''
 
         dsp = 'Length of {} is not the same as the number of {}'
-        if len(cbands) != len(cdeltas):
-            raise ValueError(dsp.format('cbands', 'cdeltas'))
-        if len(vbands) != len(vdeltas):
-            raise ValueError(dsp.format('vbands', 'vdeltas'))
+        if len(bands) != len(deltas):
+            raise ValueError(dsp.format('bands', 'deltas'))
 
-        for band in cbands:
-            band._q_sign = -1
-        for band in vbands:
-            band._q_sign = 1
+        if btypes is None:
+            btypes = self.guess_btypes(deltas)
+        elif len(btypes) == 1:
+            btypes = [btypes[0],] * len(bands)
 
-        self.bands = cbands+vbands
-        self.deltas = cdeltas+vdeltas
+        for band, btype in zip(bands, btypes):
+            if not isinstance(band, BaseBand):
+                raise ValueError('Only subclasses of bandlib.BaseBand '
+                                 'are supported.')
+            if btype.lower()[0] == 'v':
+                # Valence Band
+                band._q_sign = +1
+            elif btype.lower()[0] == 'c':
+                # Conduction Band
+                band._q_sign = -1
+            else:
+                raise ValueError(f'Failed to identify band type: {btype}')
+
+        self.bands = bands
+        self.deltas = np.asarray(deltas)
     
     def dos(self, E):
         '''Density of states, in 1E19 state/(eV.cm^3).'''
@@ -579,6 +591,52 @@ class MultiBand(BaseBand):
                      - np.power(p1_c+p1_v, 2)/(p0_c+p0_v)
                 pT = self.fetch('_T', default=T)
                 return 1E2 * kB_eV * kB_eV * pr * pT
+
+    @staticmethod
+    def guess_btypes(deltas: list):
+        '''
+        Guess the band types (btypes) based on the given energy offsets
+        (`deltas`). This method classifies each band as a conduction band
+        ('C') for positive delta or a valence band ('V') for negative delta.
+        Deltas close to zero (1E-6) are considered ambiguous and result in
+        a `ValueError`. However, if non-zero values in `deltas` are
+        consistently positive or negative (excluding near-zero values), all
+        bands are classified as either conduction or valence bands accordingly.
+
+        Examples: deltas --> btypes
+
+        - [  0,  0.1,  0.2] --> ['C', 'C', 'C']
+        - [0.1,  0.1, -0.2] --> ['C', 'C', 'V']
+        - [  0, -0.1, -0.2] --> ['V', 'V', 'V']
+        - [  0,  0.1, -0.2] --> ValueError (Failed to classify the first band)
+
+        Parameters
+        ----------
+        deltas : list of float
+            A list of floats representing the energy offsets for each band.
+
+        Returns
+        -------
+        list of str
+            A list of strings ('C' for conduction bands, 'V' for valence bands)
+            representing the band types. The length of the list is equal to
+            the length of `deltas`.
+        '''
+        btypes = []
+        for delta in deltas:
+            if abs(delta) < 1E-6:
+                btypes.append('X')
+            elif delta > 0:
+                btypes.append('C')
+            else:
+                btypes.append('V')
+        if 'X' not in btypes:
+            return btypes
+        if 'V' not in btypes:
+            return ['C',] * len(deltas)
+        if 'C' not in btypes:
+            return ['V',] * len(deltas)
+        raise ValueError(f'Failed to guess btypes (deltas={deltas})')
 
 
 class APSSPB(BaseBand):
