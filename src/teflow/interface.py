@@ -510,8 +510,22 @@ def do_format(args=None):
     DESC = DESCRIPTION[task]
     parser = argparse.ArgumentParser(
         prog=f'{CMD}-{task}',
-        description=f'{DESC} - {INFO}',
-        epilog=FOOTNOTE)
+        formatter_class=argparse.RawTextHelpFormatter,
+        epilog=FOOTNOTE,
+        description=_wraptxt(
+            f'{DESC} - {INFO}','''
+            Interpolate thermoelectric properties at various temperatures to
+            align temperature points. This tool offers the flexibility to
+            automatically generate temperature points or to explicitly define
+            them in the output file. Data column attributes can be set using
+            the -g/--group option. Optionally, calculations of thermoelectric
+            properties can be enabled with the -c/--calculate option.
+            Notably, conductivity in the output data is uniformly presented
+            in S/cm. For inputs using resistivity (uOhm.m), specify this with
+            'R' in the -g/--group option.
+            '''
+        )
+    )
     
     parser.add_argument('-b', '--bare', **OPTS['bare'])
     
@@ -523,14 +537,19 @@ def do_format(args=None):
     parser.add_argument('outputfile', **OPTS['outputf'])
     
     parser.add_argument('-m', '--method', default='cubic', 
-        help='Interpolation method, only linear and cubic allowed \
-              (default: cubic)')
+        help="Interpolation method, only 'linear' and 'cubic' allowed "\
+             '(default: cubic)')
+
+    parser.add_argument('-D', '--temperature-step',
+        type=float, default=25, metavar='TSTEP',
+        help='Specify the increment (in Kelvin) for the auto temperature '\
+             'series. (default: 25)')
 
     parser.add_argument('-g', '--group', default='TCTSTK', 
-        help='Group identifiers for paired data (e.g. TCTSTK, TCSK, \
-              TKXXTSC, default: TCTSTK)')
+        help='Group identifiers for paired data (e.g. TCTSTK, TCSK, '\
+             'TKXXTSC, default: TCTSTK)')
     
-    parser.add_argument('-s', '--suffix', **OPTS['suffix']('format'))
+    parser.add_argument('-s', '--suffix', **OPTS['suffix'](task))
     
     options = parser.parse_args(args)
     # print(options)
@@ -577,13 +596,18 @@ def do_format(args=None):
         # failed to read temperatures and set them automatically
         logger.info(f'Failed to read temperatures from {outputfile}')
         
-        t_max = TEdatas['Tmax']
-        T = np.arange(298, t_max+1, 25)
-        T[0] = 300
-        
+        t_step = options.temperature_step
+        t_max = max(TEdatas[pp][0].max() for pp in ('C', 'S', 'K'))
+        if t_step > 23:
+            t_num = round((t_max-323)/t_step)+1
+            T = np.array([300, ] + [323+i*t_step for i in range(t_num)])
+            logger.debug(f'Temperatures: 300, 323, {323+t_step}, ..., {T[-1]}')
+        else:
+            t_sum = round((t_max-300)/t_step)+1
+            T = np.array([300+i*t_step for i in range(t_sum)])
+            logger.debug(f'Temperatures: 300, {300+t_step}, ..., {T[-1]}')
         logger.info('Generate temperatures automatically where '
-                    f'Tmax = {t_max} K')
-        logger.debug(f'Tempeartures: 300, 323, 348, 373, ..., {t_max}')
+                    f'Tmax = {T[-1]:g} K and Tstep = {t_step:g} K')
     except Exception as err:
         # catch other error
         logger.error('Failed to read/generate temperatures.\n')
