@@ -97,7 +97,7 @@ OPTS = {
         help='Output file name (optional, auto-generated if omitted)',
     ),
     
-    # parser.add_argument('-s', '--suffix', **OPTS['suffix']('xxxxxx'))
+    # parser.add_argument('-s', '--suffix', **OPTS['suffix'](task))
     'suffix': lambda suf: dict(
         default=f'{suf}',
         help=f'Suffix for generating the output file name (default: {suf})',
@@ -703,7 +703,7 @@ def do_cutoff(args=None):
     parser.add_argument('-w', '--width', type=float, default=10,
         help='The transition width of cut-off function (default: 10)')
     
-    parser.add_argument('-s', '--suffix', **OPTS['suffix']('cutoff'))
+    parser.add_argument('-s', '--suffix', **OPTS['suffix'](task))
     
     options = parser.parse_args(args)
     # print(options)
@@ -766,8 +766,6 @@ def do_cutoff(args=None):
 
 
 def do_refine(args=None):
-    from .utils import purify
-
     task = 'refine'
     DESC = DESCRIPTION[task]
     parser = argparse.ArgumentParser(
@@ -784,7 +782,7 @@ def do_refine(args=None):
     parser.add_argument('-c', '--column', metavar='COLUMN',
         help="Indexes of columns which are picked up (default: '0 1 2 .. N')")
     
-    parser.add_argument('-s', '--suffix', **OPTS['suffix']('refine'))
+    parser.add_argument('-s', '--suffix', **OPTS['suffix'](task))
     
     options = parser.parse_args(args)
     
@@ -794,15 +792,19 @@ def do_refine(args=None):
     # read raw data and filter
     inputfile = options.inputfile
     with open(inputfile, 'r') as f:
-        # check columns
-        if options.column:
-            index = list(map(int, options.column.split()))
-            contents = purify(f.readlines(), usecols=index)
-            logger.info(f'Column indexes which are picked up: {options.column}')
-        else:
-            contents = purify(f.readlines())
+        _fetch = lambda line: line.split('#', 1)[0].strip().split()
+        contents = filter(None, map(_fetch, f.readlines()))
     logger.info(f'Clear all comments and blank lines in {inputfile}')
     
+    # pick up columns
+    if options.column:
+        usecols = list(map(int, options.column.split()))
+        _pick = lambda items: ' '.join(items[i] for i in usecols)
+        logger.info(f'Column indexes which are picked up: {options.column}')
+    else:
+        _pick = lambda items: ' '.join(items)
+    contents = map(_pick, contents)
+
     # parse outputfile name
     outputfile = _suffixed(options.outputfile, inputfile, options.suffix)
     logger.debug(f'Parse output filename: {outputfile}')
@@ -845,7 +847,7 @@ def do_band(args=None):
              'use of a parabolic band model')
     
     parser.add_argument('-p', '--properties', default=None,
-        help='Specify theproperties to be considered for calculation, '\
+        help='Specify the properties to be considered for calculation, '\
              'separated by spaces. If not specified, '\
              'all calculated properties will be output.')
     
