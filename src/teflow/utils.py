@@ -374,6 +374,88 @@ class Metric():
         v = 2.0 * np.mean(diff/sum_, axis=axis)
         return v
 
+
+class ExecWrapper:
+    '''
+    A utility class for dynamically managing the arguments of a callable or
+    a class constructor, allowing for dynamic argument updates and execution.
+
+    Attributes
+    ----------
+    UNSET
+        The unset flag for an argument.
+
+    Parameters
+    ----------
+    obj : Any
+        A callable object or class constructor to manage.
+    args : list, optional
+        The names of required arguments for the managed object.
+    opts : list, optional
+        The names of optional arguments for the managed object.
+    '''
+
+    UNSET = object()    #: :meta private:
+
+    def __init__(self, obj, args=(), opts=()):
+        self.obj = obj
+        self.args = {key: self.UNSET for key in args}
+        self.opts = {key: self.UNSET for key in opts}
+
+    def update(self, **kwargs):
+        '''
+        Updates the values of both required and optional arguments.
+
+        Parameters
+        ----------
+        **kwargs : any, optional
+            Keyword arguments to update the values of arguments. Note that
+            any invalid arguments passed will be ignored without warning.
+        '''
+        for key, val in kwargs.items():
+            if key in self.args:
+                self.args[key] = val
+            elif key in self.opts:
+                self.opts[key] = val
+
+    def execute(self, **kwargs):
+        '''
+        Executes the callable or instantiates the class. The arguments provided
+        will override the corresponding stored values temporarily, but this
+        applies only to the current execution. To make permanent changes to
+        the arguments, use the :meth:`update` method.
+
+        Parameters
+        ----------
+        **kwargs : any, optional
+            Keyword arguments to be passed to the callable or constructor.
+
+        Returns
+        -------
+        Any
+            The result of the callable execution or class instantiation.
+
+        Raises
+        ------
+        ValueError
+            If any required argument is missing.
+        RuntimeError
+            If the execution of the callable or the class instantiation fails.
+        '''
+        args_tmp = {key:val for key, val in kwargs.items() if key in self.args}
+        arguments = {**self.args, **args_tmp}
+        unset_args = [key for key, val in arguments.items() if val is self.UNSET]
+        if unset_args:
+            text = ', '.join(unset_args)
+            raise ValueError(f'Argument(s) {text} is necessary but not given')
+        arguments.update((k, v) for k, v in self.opts.items() if v is not self.UNSET)
+        arguments.update((k, v) for k, v in kwargs.items() if k in self.opts)
+        try:
+            return self.obj(**arguments)
+        except Exception as e:
+            raise RuntimeError(f'Failed to execute the object: {e}')
+
+
 def suffixed(outputname, inputname, suffix, withparent=False):
     '''
     Append suffix to inputname if outputname is absent, otherwise return itself. 
