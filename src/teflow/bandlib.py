@@ -19,7 +19,7 @@ from scipy.optimize import root_scalar
 import numpy as np
 
 from .analysis import vquad
-from .utils import AttrDict
+from .utils import AttrDict, ExecWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -1319,3 +1319,38 @@ def dosline(E, m_d=1, E0=0, Vcell=1, Eg=None):
         Eg = np.asarray(Eg)
         return coef * np.sqrt(E*(1+E/Eg))*(1+2*E/Eg)
 
+EXECMETA = {
+    'APSSPB': ExecWrapper(APSSPB,
+        opts=['m_d', 'sigma0', 'Kmass'],
+    ),
+    'APSSPB_UWT': ExecWrapper(APSSPB.from_UWT,
+        opts=['m_d', 'UWT', 'Kmass'],
+    ),
+    'APSSPB_DP': ExecWrapper(APSSPB.from_DP,
+        opts=['m1', 'm2', 'Nv', 'Cii', 'Ed'],
+    ),
+    'APSSKB': ExecWrapper(APSSPB,
+        opts=['m_d', 'sigma0', 'Eg', 'Kmass'],
+    ),
+    'APSSKB_UWT': ExecWrapper(APSSKB.from_UWT,
+        opts=['m_d', 'UWT', 'Eg', 'Kmass'],
+    ),
+    'APSSKB_DP': ExecWrapper(APSSKB.from_DP,
+        opts=['m1', 'm2', 'Nv', 'Cii', 'Ed', 'Eg'],
+    ),
+    'LinearBand': ExecWrapper(LinearBand,
+        opts=['vF', 'sigma0'],
+    ),
+    'valuate.APSSPB': ExecWrapper(APSSPB.valuate,
+        args=['dataS',],
+        opts=['dataT', 'dataC', 'dataN', 'hall', 'Kmass'],
+    ),
+    'valuate.APSSKB': ExecWrapper(APSSKB.valuate,
+        args=['dataS', 'dataT',],
+        opts=['dataC', 'dataN', 'Eg', 'hall', 'Kmass'],
+    ),
+    'valuate.RSPB': ExecWrapper(RSPB.valuate,
+        args=['dataC', 'dataS',],
+        opts=['dataT', 'dataN', 'delta',],
+    ),
+}
