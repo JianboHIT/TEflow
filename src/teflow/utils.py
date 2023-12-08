@@ -13,7 +13,6 @@
 #   limitations under the License.
 
 import logging
-from pathlib import PurePath
 from collections import OrderedDict
 from collections.abc import Iterable, Sequence
 
@@ -454,34 +453,3 @@ class ExecWrapper:
             return self.obj(**arguments)
         except Exception as e:
             raise RuntimeError(f'Failed to execute the object: {e}')
-
-
-def suffixed(outputname, inputname, suffix, withparent=False):
-    '''
-    Append suffix to inputname if outputname is absent, otherwise return itself. 
-    '''
-    if outputname:
-        return outputname
-    else:
-        p = PurePath(inputname)
-        if p.suffix:
-            out = f'{p.stem}_{suffix}{p.suffix}'
-        else:
-            out = f'{p.stem}_{suffix}'
-        if withparent:
-            return str(p.with_name(out))
-        else:
-            return out
-
-def purify(fp, chars=None, usecols=None, sep=None):
-    '''
-    Remove #-type comments and strip line, then return a built-in
-    `filter`/`map` object.
-    '''
-    if usecols:
-        _fetch = lambda line: line.split('#', 1)[0].strip(chars).split(sep)
-        _pick = lambda items: ' '.join(items[i] for i in usecols)
-        return map(_pick, filter(None, map(_fetch, fp)))
-    else:
-        _fetch = lambda line: line.split('#', 1)[0].strip(chars)
-        return filter(None, map(_fetch, fp))
