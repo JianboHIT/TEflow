@@ -14,7 +14,10 @@
 
 import sys
 import argparse, textwrap
+from pathlib import PurePath
 from datetime import datetime
+
+import numpy as np
 
 from ._version import __version__
 from .utils import get_pkg_name, get_root_logger
@@ -149,15 +152,27 @@ def _wraptxt(desc, details='', indent=2, width=75):
         desc
 
 
+def _suffixed(outputname, inputname, suffix):
+    '''
+    Append suffix to inputname if outputname is absent, otherwise return itself. 
+    '''
+    if outputname:
+        return outputname
+
+    p = PurePath(inputname)
+    if p.suffix:
+        return f'{p.stem}_{suffix}{p.suffix}'
+    else:
+        return f'{p.stem}_{suffix}'
+
+
 def do_help():
     print(INFO_HELP)
     print(FOOTNOTE)
 
 
 def do_interp(args=None):
-    import numpy as np
     from .analysis import interp
-    from .utils import suffixed
     
     task = 'interp'
     DESC = DESCRIPTION[task]
@@ -200,7 +215,7 @@ def do_interp(args=None):
     logger.info('Read data_x and data_y from {}'.format(inputfile))
     
     # parse outputfile name
-    outputfile = suffixed(options.outputfile, inputfile, options.suffix)
+    outputfile = _suffixed(options.outputfile, inputfile, options.suffix)
     logger.debug(f'Parse output filename: {outputfile}')
     
     # read sampling points
@@ -274,7 +289,6 @@ def do_interp(args=None):
     
 
 def do_mixing(args=None):
-    import numpy as np
     from .analysis import mixing
     
     task = 'mixing'
@@ -338,9 +352,7 @@ def do_mixing(args=None):
 
 
 def do_ztdev(args=None):
-    import numpy as np
     from .ztdev import cal_ZTdev, valuate
-    from .utils import suffixed
     
     task = 'ztdev'
     DESC = DESCRIPTION[task]
@@ -394,7 +406,7 @@ def do_ztdev(args=None):
     
     # output
     outdata = np.c_[Tc, Th, Yita, ZTdev]
-    outputfile = suffixed(options.outputfile, inputfile, options.suffix)
+    outputfile = _suffixed(options.outputfile, inputfile, options.suffix)
     pp_fmt = 'Tc     Th       Yita   ZTdev'
     softinfo = f"Calculate ZTdev - {TIME} {INFO}\n{pp_fmt}"
     comment = '' if options.bare else softinfo
@@ -403,9 +415,7 @@ def do_ztdev(args=None):
 
 
 def do_engout(args=None):
-    import numpy as np
     from .engout import GenLeg, GenPair
-    from .utils import suffixed
 
     task = 'engout'
     DESC = DESCRIPTION[task]
@@ -496,15 +506,13 @@ def do_engout(args=None):
     info = f'Engineering performance (L={length}mm, A=100mm^2)'\
            f' - {TIME} {INFO}\n{props}'
     comment = '' if options.bare else info
-    outputfile = suffixed(options.outputfile, inputfile, options.suffix)
+    outputfile = _suffixed(options.outputfile, inputfile, options.suffix)
     np.savetxt(outputfile, outdata, fmt='%.4f', header=comment)
     logger.info(f'Save results to {outputfile} (Done)')
 
 
 def do_format(args=None):
-    import numpy as np
     from .analysis import parse_TEdatas, interp
-    from .utils import suffixed
     
     task = 'format'
     DESC = DESCRIPTION[task]
@@ -586,7 +594,7 @@ def do_format(args=None):
     logger.info('Parse thermoelectric properties and corresponding temperatures')
     
     # parse outputfile name
-    outputfile = suffixed(options.outputfile, inputfile, options.suffix)
+    outputfile = _suffixed(options.outputfile, inputfile, options.suffix)
     logger.debug(f'Parse output filename: {outputfile}')
     
     # read temperatures
@@ -665,9 +673,6 @@ def do_format(args=None):
 
 
 def do_cutoff(args=None):
-    import numpy as np
-    from .utils import suffixed
-    
     # >>>>> import when necessary <<<<<<
     # from .analysis import boltzmann
     # from .analysis import smoothstep
@@ -712,7 +717,7 @@ def do_cutoff(args=None):
     logger.info('Read datas from {}'.format(inputfile))
     
     # parse outputfile name
-    outputfile = suffixed(options.outputfile, inputfile, options.suffix)
+    outputfile = _suffixed(options.outputfile, inputfile, options.suffix)
     logger.debug(f'Parse output filename: {outputfile}')
     
     # check method
@@ -761,7 +766,7 @@ def do_cutoff(args=None):
 
 
 def do_refine(args=None):
-    from .utils import suffixed, purify
+    from .utils import purify
 
     task = 'refine'
     DESC = DESCRIPTION[task]
@@ -799,7 +804,7 @@ def do_refine(args=None):
     logger.info(f'Clear all comments and blank lines in {inputfile}')
     
     # parse outputfile name
-    outputfile = suffixed(options.outputfile, inputfile, options.suffix)
+    outputfile = _suffixed(options.outputfile, inputfile, options.suffix)
     logger.debug(f'Parse output filename: {outputfile}')
     
     # write data
@@ -812,9 +817,7 @@ def do_refine(args=None):
 
 
 def do_band(args=None):
-    import numpy as np
     from .bandlib import APSSPB, APSSKB, q
-    from .utils import suffixed
     
     task = 'band'
     DESC = DESCRIPTION[task]
@@ -949,6 +952,6 @@ def do_band(args=None):
                   f"{'  '.join(out.keys())}"
     outdata = np.vstack(list(out.values())).T
     
-    outputfile = suffixed(options.outputfile, inputfile, options.suffix)
+    outputfile = _suffixed(options.outputfile, inputfile, options.suffix)
     np.savetxt(outputfile, outdata, fmt='%.4f', header=comment)
     logger.info(f'Save model data to {outputfile} (Done)')
