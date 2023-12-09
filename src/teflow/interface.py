@@ -300,6 +300,12 @@ def do_mixing(args=None):
     
     parser.add_argument('-b', '--bare', **OPTS['bare'])
     
+    parser.add_argument('-e', '--extend', action='store_true',
+        help='Just concatenate multiple files horizontally.')
+
+    parser.add_argument('-E','--raw-extend', action='store_true',
+        help='Similar to --extend, but without any filtering.')
+
     parser.add_argument('-w', '--weight', metavar='WEIGHTS',
         help="Weights of mixing, with the same number of datafiles \
               (default:'1 1 1 ...')")
@@ -307,12 +313,15 @@ def do_mixing(args=None):
     parser.add_argument('-s', '--scale', type=float, default=0, 
         help='The scale factor (default: 1/sum(weights))')
 
+    parser.add_argument('-o', '--outputfile', metavar='OUTPUTFILE',
+        help='Specify output filename. Defaults to screen display.')
+
     parser.add_argument('inputfile', metavar='INPUTFILE', nargs='+',
         help='Filename of input file, which is usually more than one')
-    
-    parser.add_argument('outputfile', metavar='OUTPUTFILE', 
-        help='A output filename is requrired here, \
-              which follows the inputfile(s)')
+
+    # parser.add_argument('outputfile', metavar='OUTPUTFILE', 
+    #     help='A output filename is requrired here, \
+    #           which follows the inputfile(s)')
 
     options = parser.parse_args(args)
     
@@ -322,8 +331,42 @@ def do_mixing(args=None):
     filenames = options.inputfile
     outputfile = options.outputfile
     logger.info(f"Datafiles: {', '.join(filenames)}")
-    logger.info(f'Outputfile: {outputfile}')
-    
+    logger.info(f'The output will be written to: {outputfile or "Screen"}')
+
+    # run extend and exit, if enable
+    if options.raw_extend or options.extend:
+        datas = []
+        for filename in filenames:
+            try:
+                with open(filename, 'r') as f:
+                    datas.append(f.readlines())
+            except IOError:
+                logger.error(f'Failed to read {filename}')
+                raise
+
+        if options.raw_extend:
+            logger.info('Concatenate multiple files without filtering')
+            _fetch = lambda line: line.strip()
+            datas = [map(_fetch, data) for data in datas]
+        else:
+            logger.info('Concatenate multiple files horizontally')
+            _fetch = lambda line: line.split('#', 1)[0].strip()
+            datas = [filter(None, map(_fetch, data)) for data in datas]
+
+        if outputfile:
+            with open(outputfile, 'w') as f:
+                if not options.bare:
+                    f.write(f'# Extend datafiles - {TIME} {INFO}\n')
+                for lines in zip(*datas):
+                    f.write(' '.join(lines) + '\n')
+            logger.info(f'Save extended file to {outputfile} (Done)')
+        else:
+            fout = 'Result:'
+            for lines in zip(*datas):
+                fout += '\n  ' + ' '.join(lines)
+            logger.critical(fout)
+        return None
+
     datas = [np.loadtxt(filename) for filename in filenames]
     
     if options.weight is None:
@@ -346,9 +389,15 @@ def do_mixing(args=None):
     data = mixing(datas, weight, scale)
     
     # data result
-    comment = '' if options.bare else f'Mixed datafiles - {TIME} {INFO}'
-    np.savetxt(outputfile, data, fmt='%.4f', header=comment)
-    logger.info(f'Save mixed data to {outputfile} (Done)')
+    if outputfile:
+        comment = '' if options.bare else f'Mixed datafiles - {TIME} {INFO}'
+        np.savetxt(outputfile, data, fmt='%.4f', header=comment)
+        logger.info(f'Save mixed data to {outputfile} (Done)')
+    else:
+        fout = 'Result:'
+        for line in data:
+            fout += '\n  ' + ' '.join(f'{v:.4f}' for v in line)
+        logger.critical(fout)
 
 
 def do_ztdev(args=None):
