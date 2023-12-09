@@ -477,7 +477,16 @@ class MultiBand(BaseBand):
 
         self.bands = bands
         self.deltas = np.asarray(deltas)
-    
+
+    def __str__(self):
+        pstr = f'{self.__class__.__name__}:'
+        for band, delta in zip(self.bands, self.deltas):
+            btype = 'V' if band._q_sign > 0 else 'C'
+            pstr += f'\n  {str(band)} @ {delta:.6g} #{btype}'
+            # pstr += f'\n  {btype} | {str(band)} @ {delta:.6g}'
+            # pstr += f'\n [{delta:.6g} # {btype}] {str(band)}'
+        return pstr
+
     def dos(self, E):
         '''Density of states, in 1E19 state/(eV.cm^3).'''
         E = np.asarray(E)    # for "E-delta" operation
@@ -687,7 +696,12 @@ class APSSPB(BaseBand):
         self.m_d = m_d
         self.sigma0 = sigma0
         self.Kmass = Kmass
-        
+
+    def __str__(self):
+        props = ['m_d', 'sigma0', 'Kmass']
+        pstr = ', '.join(f'{p}={getattr(self, p):.6g}' for p in props)
+        return f'{self.__class__.__name__}({pstr})'
+
     def dos(self, E):
         '''Density of states, in 1E19 state/(eV.cm^3).'''
         factor = 1E-25      # state/(eV.m^3) --> 1E19 state/(eV.cm^3)
@@ -900,6 +914,11 @@ class APSSKB(BaseBand):
         else:
             raise ValueError('Eg should be greater than 0')
         self.Kmass = Kmass
+
+    def __str__(self):
+        props = ['m_d', 'sigma0', 'Eg', 'Kmass']
+        pstr = ', '.join(f'{p}={getattr(self, p):.6g}' for p in props)
+        return f'{self.__class__.__name__}({pstr})'
         
     def dos(self, E):
         '''Density of states, in 1E19 state/(eV.cm^3).'''
@@ -1082,6 +1101,11 @@ class LinearBand(BaseBand):
     def __init__(self, vF=1, sigma0=1):
         self.vF = np.absolute(vF)
         self.sigma0 = sigma0
+
+    def __str__(self):
+        props = ['vF', 'sigma0']
+        pstr = ', '.join(f'{p}={getattr(self, p):.6g}' for p in props)
+        return f'{self.__class__.__name__}({pstr})'
 
     def dos(self, E):
         '''Density of states, in 1E19 state/(eV.cm^3).'''
