@@ -19,7 +19,7 @@ from scipy.optimize import root_scalar
 import numpy as np
 
 from .analysis import vquad
-from .utils import AttrDict, ExecWrapper
+from .utils import AttrDict, ExecWrapper, CfgParser
 
 logger = logging.getLogger(__name__)
 
@@ -1343,6 +1343,7 @@ def dosline(E, m_d=1, E0=0, Vcell=1, Eg=None):
         Eg = np.asarray(Eg)
         return coef * np.sqrt(E*(1+E/Eg))*(1+2*E/Eg)
 
+
 EXECMETA = {
     'APSSPB': ExecWrapper(APSSPB,
         opts=['m_d', 'sigma0', 'Kmass'],
@@ -1378,3 +1379,72 @@ EXECMETA = {
         opts=['dataT', 'dataN', 'delta',],
     ),
 }
+
+
+def parse_Bands(filename, specify=None):
+    '''Parse bands model, and label list of props from a config file'''
+    config = CfgParser()
+    config.read(filename)
+    logger.info(f'Read configuration from {filename}')
+
+    entry = config['entry']
+    logger.debug('Found entry section')
+
+    if specify is not None:
+        entry.update(specify)
+        logger.debug('Update specify setting to entry:\n  %s' % specify)
+
+    dsp = "Parameter '%s' is required in entry section!"
+
+    # parse bands
+    bands_ = entry.getlist('bands')
+    if bands_ is None:
+        raise ValueError(dsp, 'bands')
+    logger.info("Parse all bands:")
+
+    bands = []
+    for band_ in bands_:
+        content, xtype = config.pmatch(band_)
+        kwargs = {k:float(v) for k,v in content.items()}
+        band = EXECMETA[xtype].execute(**kwargs)
+        bands.append(band)
+        logger.info(f'  {str(band)}')
+
+    # parse deltas, btypes
+    deltas = entry.getlist_float('deltas')
+    if deltas is None:
+        raise ValueError(dsp, 'deltas')
+    logger.info('deltas: [%s]' % ', '.join(f'{i:.3g}' for i in deltas))
+
+    btypes = entry.getlist('btypes')
+    logger.info(f'btypes: {btypes or "Unset"}')
+
+    # initialze MultiBand
+    model = MultiBand(bands, deltas, btypes)
+    logger.info('Finish building MultiBand() instance')
+
+    # parse EF, T, props
+    EF = entry.getlist_float('EF')
+    T = entry.getlist_float('T')
+    props = entry.getlist('props')
+
+    if (EF is None) or (T is None):
+        logger.info(dsp % 'EF & T')
+        logger.debug(f'EF: {EF}')
+        logger.debug(f'T:  {T}')
+        return model, None
+    try:
+        EF, T = np.broadcast_arrays(EF, T)      # broadcasted (EF, T)
+    except ValueError:
+        raise ValueError(f'Mismatch is between EF and T')
+    logger.info('Read Fermi energies (EF) & temperatures (T)')
+    logger.debug('EF: [%s]' % ', '.join(f'{i:.4g}' for i in EF))
+    logger.debug('T:  [%s]' % ', '.join(f'{i:.4g}' for i in T))
+
+    if props is None:
+        logger.debug(dsp % 'props')
+    else:
+        # model is compiled only when props is available
+        model.compile(EF, T)
+        logger.debug('Compile model (props: %s)' % ', '.join(props))
+    return model, props
