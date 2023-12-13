@@ -868,7 +868,8 @@ def do_refine(args=None):
 
 
 def do_band(args=None):
-    from .bandlib import APSSPB, APSSKB, q
+    from .bandlib import EXECMETA
+    from .loader import TEdataset
     
     task = 'band'
     DESC = DESCRIPTION[task]
@@ -891,7 +892,7 @@ def do_band(args=None):
     parser.add_argument('-g', '--group', default='STCN',
         help='Group identifiers for paired data (default: STCN)')
     
-    parser.add_argument('--gap', type=float, default=None,
+    parser.add_argument('-G', '--gap', type=float, default=None,
         help='Bandgap in eV. Defaults to None, indicating the '\
              'use of a parabolic band model')
     
@@ -912,79 +913,30 @@ def do_band(args=None):
     logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
     logger.info(f'{DESC} - {TIME}')
     
-    # read gap
+    # read gap and determine model
     Egap = options.gap
     if Egap is None:
+        model = EXECMETA['valuate.APSSPB']
         logger.info('Using single parabolic band (SPB) model.')
     elif Egap <= 0:
+        model = EXECMETA['valuate.APSSPB']
         logger.warning('Faced with a negative band gap value, we are '\
             'compelled to adopt the single parabolic band (SPB) model.')
-        Egap = None
     else:
+        model = EXECMETA['valuate.APSSKB']
+        model.update(Eg=Egap)
         logger.info(f'Using single Kane band (SKB) model where Eg = {Egap} eV.')
     
-    # read alldata
+    # read alldata and group
     inputfile = options.inputfile
-    alldata = np.loadtxt(inputfile, unpack=True, ndmin=2)
-    logger.info(f'Load data from {inputfile} with {len(alldata)} columns')
-    
-    inp = dict()
-    
-    # parse
     group = options.group.upper()
-    Ndata = len(alldata)
-    if Ndata < len(group):
-        group = group[:Ndata]
-    if 'S' in group:
-        dataS = inp['S'] = alldata[group.index('S')]
-        logger.info('Fetch Seebeck coefficients successfully')
-    else:
-        logger.info('Failed to fetch Seebeck coefficients')
-        raise IOError('Seebeck coefficients are required')
+    alldata = TEdataset.from_file(inputfile, group=group, independent=True)
+    logger.info(f'Loading data from {inputfile} with identifiers: {group}')
     
-    if 'T' in group:
-        dataT = inp['T'] = alldata[group.index('T')]
-        logger.info('Fetch temperature points successfully')
-    else:
-        logger.info('Failed to fetch temperature points')
-        if Egap is None:
-            dataT = None
-        else:
-            raise IOError('Temperatures are required for Kane model')
-
-    if 'C' in group:
-        dataC = inp['C'] = alldata[group.index('C')]
-        logger.info('Fetch electrical conductivity successfully')
-    elif 'R' in group:
-        dataC = inp['C'] = 1E4 / alldata[group.index('R')]
-        logger.info('Fetch electrical resistivity successfully')
-    else:
-        dataC = None
-        logger.info('Failed to fetch electrical conductivity')
-    
-    if 'N' in group:
-        dataN = inp['N'] = alldata[group.index('N')]
-        logger.info('Fetch carrier concentration successfully')
-    else:
-        dataN = None
-        logger.info('Failed to fetch carrier concentration')
-
-    if 'U' in group:
-        dataU = alldata[group.index('U')]
-        if (dataC is None) and (dataN is not None):
-            dataC = inp['C'] = dataN*1E19 * q * dataU
-            logger.info('Calculate electrical conductivity by N and U.')
-        elif (dataN is None) and (dataC is not None):
-            dataN = inp['N'] = dataC /(dataU * q * 1E19)
-            logger.info('Calculate carrier concentration by C and U.')
-        else:
-            logger.info('Carrier mobility data is useless here.')
-    
-    # valuate
-    if Egap is None:
-        out = APSSPB.valuate(dataS, dataT, dataC, dataN)
-    else:
-        out = APSSKB.valuate(dataS, dataT, dataC, dataN, Eg=Egap)
+    # parse inp. and do exec.
+    dataSTCN = alldata.gget('STCN', default=None)
+    inp = {k:v for k,v in zip('STCN', dataSTCN) if v is not None}
+    out = model.execute(**{f'data{k}':v for k, v in inp.items()})
     
     # retain properties
     props = options.properties
