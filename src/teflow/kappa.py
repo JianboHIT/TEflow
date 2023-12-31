@@ -14,6 +14,8 @@
 
 from abc import ABC, abstractmethod
 from collections import OrderedDict
+from collections.abc import Callable
+
 from scipy.optimize import curve_fit
 from scipy.integrate import cumtrapz
 import numpy as np
@@ -27,10 +29,9 @@ class Variable:
     A class to represent a variable that notifies subscribers upon
     value changes, used for synchronizing variables within a model.
     '''
-    def __init__(self, tag, initial=1, lower=0, upper=1000, scale=1):
+    def __init__(self, tag, initial=1, lower=0, upper=1000, scale=1, *,
+                 constraint=None, depends=()):
         '''
-        Initialize a new Variable instance:
-
         Parameters
         ----------
         tag : str
@@ -43,11 +44,18 @@ class Variable:
             Sets the :attr:`upper` attribute, defaults to 1000.
         scale : float, optional
             Sets the :attr:`scale` attribute, defaults to 1.
+        constraint : callable, optional
+            A callable object used to compute the value of the current
+            variable from other dependent variables.
+        depends : list or tuple of Variables, optional
+            Variables required by the `constraint`.
 
         Raises
         ------
         ValueError
-            If the initial value is not between the lower and upper bounds.
+            If the initial value is not between the lower and upper bounds,
+            or if `constraint` is provided but is not a callable,
+            or if any element in `depends` is not an instance of Variable.
         '''
         if lower <= initial <= upper:
             self._value = initial
@@ -57,12 +65,25 @@ class Variable:
             raise ValueError('Initial value must be between the lower and upper bounds.')
         self.tag = tag
         self.scale = scale
-        self.subscribers = []
+        self._subscribers = []
+        if (constraint is not None) and (not isinstance(constraint, Callable)):
+            raise ValueError("'constraint' must be a Callable object if provide")
+        self._compute = constraint
+        if not all(isinstance(d, type(self)) for d in depends):
+            raise ValueError("'depends' must be a set of Variable")
+        self._depends = tuple(depends)
+
+    @property
+    def constrained(self):
+        '''
+        Constraint status (read-only).
+        '''
+        return bool(self._compute)
 
     @property
     def value(self):
         '''
-        The current value of the variable. Setting a new value will
+        The current value of the variable. Manually setting a new value will
         automatically trigger the :meth:`notify` method.
 
         Raises
@@ -70,7 +91,10 @@ class Variable:
         ValueError
             If the new value is not between the lower and upper bounds.
         '''
-        return self._value
+        if self.constrained:
+            return self._compute(*(v.value for v in self._depends))
+        else:
+            return self._value
 
     @value.setter
     def value(self, new_value):
@@ -92,13 +116,13 @@ class Variable:
         name : str
             The parameter name in the instance that will be updated.
         '''
-        self.subscribers.append((subscriber, name))
+        self._subscribers.append((subscriber, name))
 
     def notify(self):
         '''
         Notifies all registered subscribers about the updated value.
         '''
-        for sub, name in self.subscribers:
+        for sub, name in self._subscribers:
             sub[name] = self.value * self.scale
 
 
@@ -133,6 +157,7 @@ class BaseKappaModel(ABC):
         '''
         self.paras = Parameters(**parameters)
         self.__vars = []
+        self.__ders = []
 
     @abstractmethod
     def __call__(self, T):
@@ -160,6 +185,8 @@ class BaseKappaModel(ABC):
             raise ValueError('Dismatch mumber between args and variables')
         for arg, var in zip(args, self.__vars):
             var.value = arg
+        for der in self.__ders:
+            der.notify()
         return self(T)
     
     def fit(self, dataT, dataK, *, variables=(), **kwargs):
@@ -174,16 +201,19 @@ class BaseKappaModel(ABC):
         settings in the Variable instances, and should be adjusted 
         through their respective attributes, not via `kwargs`.
         '''
-        if len(variables) == 0:
-            return self(dataT)
         if not all(isinstance(v, Variable) for v in variables):
             raise ValueError(f"Only {__name__}.Variable objects are supported")
-        self.__vars = variables
+        vars_ = [var for var in variables if not var.constrained]
+        ders_ = [var for var in variables if var.constrained]
+        if len(vars_) == 0:
+            return self(dataT)
+        self.__vars = vars_
+        self.__ders = ders_
         if ('p0' in kwargs) or ('bounds' in kwargs):
             raise ValueError("'p0' or 'bounds' can only be from Variable")
-        p0 = [var.value for var in variables]
-        lower = [var.lower for var in variables]
-        upper = [var.upper for var in variables]
+        p0 = [var.value for var in vars_]
+        lower = [var.lower for var in vars_]
+        upper = [var.upper for var in vars_]
         return curve_fit(self._cal, dataT, dataK,
                          p0=p0, bounds=(lower, upper), **kwargs)
 
