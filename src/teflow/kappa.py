@@ -15,6 +15,7 @@
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from scipy.optimize import curve_fit
+from scipy.integrate import cumtrapz
 import numpy as np
 
 from .analysis import vquad
@@ -274,6 +275,20 @@ class KappaDebye(BaseKappaModel):
         for i in range(len(out)):
             out[i][1] = factor/out[i][1]
         return AttrDict(out)
+
+    def cumulative(self, w, T, accumulate=True, axis=-1):
+        '''
+        Cumulative thermal conductivity :math:`\\kappa_c(\\omega)` in W/(m.K):
+
+        .. math ::
+
+            \\kappa_c(\\omega) = \\int_0^{\\omega} \\kappa_s(\\omega) d\\omega
+
+        '''
+        spec = self.spectral(w, T, accumulate=accumulate)
+        for key, val in spec.items():
+            spec[key] = cumtrapz(val, w, initial=0, axis=axis)
+        return spec
 
     def _spectral_factor(self, w, T):
         # kappa_s = factor * tau = factor / ftot
