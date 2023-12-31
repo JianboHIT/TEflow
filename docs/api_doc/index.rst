@@ -12,6 +12,7 @@ Submodules
    teflow.bandlib
    teflow.engout
    teflow.interface
+   teflow.kappa
    teflow.utils
    teflow.ztdev
 
