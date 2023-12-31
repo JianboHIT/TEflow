@@ -290,6 +290,50 @@ class KappaDebye(BaseKappaModel):
             spec[key] = cumtrapz(val, w, initial=0, axis=axis)
         return spec
 
+    def cumulative_mfp_t(self, mfp, T:float, accumulate=True, nbatch:int=1000):
+        '''
+        Calculates the cumulative thermal conductivity (in W/(m.K)) across phonon
+        mean-free-path (:math:`\\lambda`, in nm) at a specified temperature point:
+
+        .. math::
+
+            \\kappa_c(\\lambda; T) = \\int_{\\lambda(\\omega; T) \\le \\lambda}
+            \\kappa_s(\\omega; T) d\\omega
+        '''
+        # only scalar Temperature (T) input is supported currently
+        T = np.atleast_1d(T)
+        if T.size != 1:
+            raise ValueError("Only scalar 'T' is supported now.")
+        mfp = np.asarray(mfp)
+        dw = self.wcut / nbatch
+        if dw < 10*self._EPS:
+            raise ValueError("'nbatch' is too large to compute mfp weight.")
+        w_left = np.arange(nbatch) * dw
+        w_right = w_left + dw
+        w_centre = (w_left + w_right) / 2
+        w_left[0] = self._EPS
+        spec = self.spectral(w_centre, T, accumulate=accumulate)
+        weight = dw * np.asarray(list(spec.values()))   # (Nscat, nbatch)
+        ftot_left = np.array([scat(w_left, T) for scat in self._scattering])
+        ftot_right = np.array([scat(w_right, T) for scat in self._scattering])
+        if accumulate:
+            ftot_left = np.cumsum(ftot_left, axis=0)
+            ftot_right = np.cumsum(ftot_right, axis=0)
+        mfp_left = self.paras['vs'] / ftot_left     # [km/s]/[1/ps] = nm
+        mfp_right = self.paras['vs'] / ftot_right   # [km/s]/[1/ps] = nm
+        mfp_ave = (mfp_left+mfp_right)/2            # (Nscat, nbatch)
+        mfp_wd = np.maximum(np.absolute(mfp_left-mfp_right), 10*self._EPS)
+        # spec_mfp = AttrDict()
+        cum_mfp = AttrDict()
+        mfp_ = mfp[..., None]
+        for key, ave, wd, w in zip(spec.keys(), mfp_ave, mfp_wd, weight):
+            # wd *= 10    # enable smooth
+            # spec = np.where((mfp_>ave-wd/2) & (mfp_<ave+wd/2), w/wd, 0)
+            # spec_mfp[key] = np.sum(spec, axis=-1)
+            cum = w/wd * np.minimum(np.maximum(mfp_-ave-wd/2, 0), wd)
+            cum_mfp[key] = np.sum(cum, axis=-1)
+        return cum_mfp
+
     def _spectral_factor(self, w, T):
         # kappa_s = factor * tau = factor / ftot
         kB = 0.01380649  # sacled by: w^2 / vs, i.e. 1E24/1E3 kB = 1E21 kB
