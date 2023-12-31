@@ -473,3 +473,63 @@ class KappaPowerLaw(BaseKappaModel):
     def __call__(self, T):
         pow = np.power(np.divide(300, T), self.paras['n'])
         return self.paras['Kamb'] * pow + self.paras['K0']
+
+
+class KappaKlemens(BaseKappaModel):
+    '''
+    .. math::
+
+        \\frac{\\kappa(x)}{\\kappa_{pure}} =
+        \\frac{\\tan^{-1}(u)}{u} \\text{, where }
+        u^2 = \\cfrac{\\pi \\Theta V_a}{2\\hbar v_s^2}
+        \\kappa_{pure}\\Gamma_0 \\cdot x (1-x)
+    '''
+    def __init__(self, Kpure, vs, td, G0, Va):
+        '''
+        Parameters
+        ----------
+        Kpure : float
+            Kappa of the crystal with disorder (:math:`\\kappa_{pure}`),
+            in W/(m.K).
+        vs : float
+            Sound velocity (:math:`v_s`), in km/s.
+        td : float
+            Debye temperature (:math:`\\Theta`), in Kelvin.
+        G0 : float
+            The factor of disorder scaling parameter (:math:`\\Gamma_0`).
+        Va : float
+            Average volume per atom (:math:`V_a`), in cubic angstroms (A^3).
+        '''
+        super().__init__(Kpure=Kpure, vs=vs, td=td, G0=G0, Va=Va)
+
+    def u2(self, X):
+        '''
+        Calculates :math:`u^2` from :math:`x` based on model parameters.
+        Users can customize the expression as needed by overriding this method.
+        '''
+        X = np.asarray(X)
+        # hbar = 1.054571817e-34
+        # hbar = hbar * (1E3 * 1E3) /1E-30
+        hbar = 105.4571817
+        factor = (np.pi * self.paras['td'] * self.paras['Va']) \
+            /(2*hbar*np.power(self.paras['vs'],2)) \
+            * self.paras['Kpure'] * self.paras['G0']
+        return factor * X * (1-X)
+
+    def __call__(self, X):
+        u = np.sqrt(self.u2(X))
+        ratio = np.where(np.abs(u) < 1E-6, 1, np.arctan(u)/u)
+        return self.paras['Kpure'] * ratio
+
+    def _cal(self, X, *args):
+        '''
+        Overrides :class:`BaseKappaModel`: replaces temperature variable with
+        composition variable (X).
+        '''
+        return super()._cal(X, *args)
+
+    def fit(self, dataX, dataK, *, variables=(), **kwargs):
+        '''
+        Overrides :class:`BaseKappaModel`: Fits dataX rather than dataT.
+        '''
+        return super().fit(dataX, dataK, variables=variables, **kwargs)
