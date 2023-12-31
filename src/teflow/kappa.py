@@ -418,6 +418,21 @@ class GrainBoundary(BaseScattering):
         return 1E-3 * self.paras['vs'] / self.paras['L'] * np.ones(broadcasted.shape)
 
 
+class CahillScattering(BaseScattering):
+    '''
+    .. math::
+
+        \\tau_i^{-1} = \\frac{\\omega}{\\pi}
+    '''
+    tag = 'CAHILL'
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, w, T):
+        w, _ = np.broadcast_arrays(w, T)
+        return w/np.pi
+
+
 class KappaBipolar(BaseKappaModel):
     '''
     .. math::
