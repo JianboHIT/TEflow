@@ -402,65 +402,111 @@ class ThreePhonon(BaseScattering):
     '''
     .. math::
         
-        \\tau_i^{-1} = A \\omega ^2 T
-        
+        \\tau_i^{-1} = A \\frac{k_B V_a^{1/3} \\gamma^2}{M_0 M_a v_s^3} \\omega ^2 T
+                       \\exp \\left( -\\frac{[\\Theta]}{3T} \\right)
+                     = A^{\\prime} \\omega ^2 T
+                       \\exp \\left( -\\frac{[\\Theta]}{3T} \\right)
+
+    (Hint: To diable the exponential term, simply set Theta (:math:`[\\Theta]`)
+    to 0, even though it typically signifies the Debye temperature.)
     '''
     tag = 'PH'
-    def __init__(self, A):
-        super().__init__(A=A)
+    def __init__(self, gm=None, vs=None, Va=None, Ma=None, A=1, Theta=0, *, coef=None):
+        if coef is None:
+            super().__init__(gm=gm, vs=vs, Va=Va, Ma=Ma, A=A, Theta=Theta)
+            self._direct_coef = False
+        else:
+            super().__init__(coef=coef, Theta=Theta)
+            self._direct_coef = True
+        for k, v in self.paras.items():
+            if v is None:
+                raise ValueError(f"Parameter '{k}' is required for {self.tag}")
     
     def __call__(self, w, T):
         w, T = np.broadcast_arrays(w, T)
-        return 1E+12*self.paras['A']*np.power(w, 2)*T
+        exponent = np.exp(-self.paras['Theta']/(3*T))
+        return 1E+12*self.coef*np.power(w, 2)*T * exponent
+
+    @property
+    def coef(self):
+        '''Value of :math:`A^{\\prime}`'''
+        if self._direct_coef:
+            return self.paras['coef']
+        else:
+            # coef = A*(kB*Va**(1/3)*gm**2) / (M0*Ma*vs**3)
+            #          -23-30/3             - (-27  +3 *3 )     --> -15
+            return 1.380649 / 1.67492749804 * 1E-15 * self.paras['A'] *\
+                np.power(self.paras['Va'], 1/3) * np.power(self.paras['gm'], 2) /\
+                (self.paras['Ma'] * np.power(self.paras['vs'], 3))
 
 
 class PointDefect(BaseScattering):
     '''
     .. math::
         
-        \\tau_i^{-1} = B \\omega ^4
+        \\tau_i^{-1} = \\frac{V_a \\Gamma}{4 \\pi v_s^3} \\omega ^4
+                     = B^{\\prime} \\omega ^4
         
     '''
     tag = 'PD'
-    def __init__(self, B):
-        super().__init__(B=B)
+    def __init__(self, vs=None, Va=None, G=None, *, coef=None):
+        if coef is None:
+            super().__init__(vs=vs, Va=Va, G=G)
+            self._direct_coef = False
+        else:
+            super().__init__(coef=coef)
+            self._direct_coef = True
+        for k, v in self.paras.items():
+            if v is None:
+                raise ValueError(f"Parameter '{k}' is required for {self.tag}")
     
     def __call__(self, w, T):
         w, _ = np.broadcast_arrays(w, T)
-        return 1E+36*self.paras['B']*np.power(w, 4)
+        return 1E+36*self.coef*np.power(w, 4)
+
+    @property
+    def coef(self):
+        '''Value of :math:`B^{\\prime}`'''
+        if self._direct_coef:
+            return self.paras['coef']
+        else:
+            # coef = Va*G/(4*pi*vs**3)
+            #       -30  -(     3 *3 )       --> -36
+            return 1E-36 * self.paras['Va'] * self.paras['G'] /\
+                (4*np.pi*np.power(self.paras['vs'], 3))
 
 
 class GrainBoundary(BaseScattering):
     '''
     .. math::
         
-        \\tau_i^{-1} = \\frac{v_s}{L}
+        \\tau_i^{-1} = \\alpha \\frac{v_s}{L}
         
     '''
     tag = 'GB'
-    def __init__(self, vs, L):
+    def __init__(self, vs, L, alpha=1):
         # vs: in km/s
         # L: um
-        super().__init__(vs=vs, L=L)
+        super().__init__(vs=vs, L=L, alpha=alpha)
     
     def __call__(self, w, T):
-        broadcasted = np.broadcast(w, T)
-        return 1E-3 * self.paras['vs'] / self.paras['L'] * np.ones(broadcasted.shape)
+        L, *_ = np.broadcast_arrays(self.paras['L'], w, T)
+        return 1E-3 * self.paras['alpha'] * self.paras['vs'] / L
 
 
 class CahillScattering(BaseScattering):
     '''
     .. math::
 
-        \\tau_i^{-1} = \\frac{\\omega}{\\pi}
+        \\tau_i^{-1} = \\alpha \\frac{\\omega}{\\pi}
     '''
     tag = 'CAHILL'
-    def __init__(self):
-        super().__init__()
+    def __init__(self, alpha=1):
+        super().__init__(alpha=alpha)
 
     def __call__(self, w, T):
         w, _ = np.broadcast_arrays(w, T)
-        return w/np.pi
+        return self.paras['alpha'] * w/np.pi
 
 
 class KappaBipolar(BaseKappaModel):
