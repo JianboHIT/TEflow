@@ -146,6 +146,11 @@ class BaseKappaModel(ABC):
     This class serves as a template for kappa models, providing a framework
     for implementing model-specific calculations and fitting procedures.
     '''
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if not hasattr(cls, 'tag'):
+            raise NotImplementedError("Subclasses must define a class attribute 'tag'")
+
     def __init__(self, **parameters):
         '''
         Parameters
@@ -228,6 +233,7 @@ class KappaDebye(BaseKappaModel):
                   d\\omega
     
     '''
+    tag = 'DEBYE'
     _EPS = 1E-6
     _hbar_kB = 7.638232577577646    # hbar/kB * 1E12
     def __init__(self, vs, td, components):
@@ -242,22 +248,33 @@ class KappaDebye(BaseKappaModel):
             Components of the model, such as scattering mechanism.
         '''
         super().__init__(vs=vs, td=td)
-        scattering = []
+        scattering = OrderedDict()
+        additional = OrderedDict()
         for component in components:
             if isinstance(component, BaseScattering):
-                scattering.append(component)
+                if component.tag in scattering:
+                    raise ValueError('Duplicated scattering mechanism is not allowed')
+                scattering[component.tag] = component
+            elif isinstance(component, BaseKappaModel):
+                if component.tag in additional:
+                    raise ValueError('Duplicated submodel is not allowed')
+                additional[component.tag] = component
             else:
                 # Unknown type of component
                 # more type of component will be developed
-                obj = f'{__name__}.BaseScattering objects'
-                raise NotImplementedError(f'Only {obj} are supported now')
+                objs = ', '.join([
+                    f'{__name__}.BaseScattering',
+                    f'{__name__}.BaseKappaModel',
+                ])
+                raise NotImplementedError(f'Supported objects: {objs}')
         self._scattering = scattering
+        self._additional = additional
     
     @property
-    def wcut(self):
+    def wd(self):
         '''
-        Cut-off (angular) frequency, i.e.
-        :math:`\\hbar \\omega_{cut} = k_B \\Theta`,
+        Debye cut-off (angular) frequency :math:`\\omega_D`
+        (given by :math:`\\hbar \\omega_D = k_B \\Theta`)
         in rad/ps.
         '''
         return self.paras['td'] / self._hbar_kB   # td / (hbar/kB * 1E12)
@@ -266,7 +283,7 @@ class KappaDebye(BaseKappaModel):
         '''
         Scattering rate, in THz.
         '''
-        ftot = AttrDict((s.tag, s(w, T)) for s in self._scattering)
+        ftot = AttrDict((tag, s(w, T)) for tag, s in self._scattering.items())
         if with_total:
             ftot['total'] = sum(ftot.values())
         return ftot
@@ -296,12 +313,12 @@ class KappaDebye(BaseKappaModel):
             Temperatures in K.
         '''
         w, T = np.broadcast_arrays(np.maximum(self._EPS, w), T)
-        out = [[scat.tag, scat(w, T)] for scat in self._scattering]
+        out = [[tag, scat(w, T)] for tag, scat in self._scattering.items()]
         if accumulate:
             for i in range(1, len(out)):
                 out[i][0] = out[i-1][0] + '+' + out[i][0]
                 out[i][1] = out[i-1][1] + out[i][1]
-        factor = np.where(w <= self.wcut, self._spectral_factor(w, T), 0)
+        factor = np.where(w <= self.wd, self._spectral_factor(w, T), 0)
         for i in range(len(out)):
             out[i][1] = factor/out[i][1]
         return AttrDict(out)
@@ -335,7 +352,7 @@ class KappaDebye(BaseKappaModel):
         if T.size != 1:
             raise ValueError("Only scalar 'T' is supported now.")
         mfp = np.asarray(mfp)
-        dw = self.wcut / nbatch
+        dw = self.wd / nbatch
         if dw < 10*self._EPS:
             raise ValueError("'nbatch' is too large to compute mfp weight.")
         w_left = np.arange(nbatch) * dw
@@ -344,8 +361,8 @@ class KappaDebye(BaseKappaModel):
         w_left[0] = self._EPS
         spec = self.spectral(w_centre, T, accumulate=accumulate)
         weight = dw * np.asarray(list(spec.values()))   # (Nscat, nbatch)
-        ftot_left = np.array([scat(w_left, T) for scat in self._scattering])
-        ftot_right = np.array([scat(w_right, T) for scat in self._scattering])
+        ftot_left = np.array([scat(w_left, T) for scat in self._scattering.values()])
+        ftot_right = np.array([scat(w_right, T) for scat in self._scattering.values()])
         if accumulate:
             ftot_left = np.cumsum(ftot_left, axis=0)
             ftot_right = np.cumsum(ftot_right, axis=0)
@@ -371,14 +388,19 @@ class KappaDebye(BaseKappaModel):
         wt = np.power(x, 2) * np.exp(x) / np.power(np.exp(x)-1, 2) * kB
         return np.power(w/np.pi, 2)/(2*self.paras['vs']) * wt
 
-    def _spectral_sum(self, w, T, n:int=None):
+    def _spectral_sum(self, w, T, n:int=0):
         # for direct sum calculation, see :meth:`spectral` for each scattering
-        scattering = self._scattering[:n] if n else self._scattering
+        if n:
+            scattering = list(self._scattering.values())[:int(n)]
+        else:
+            scattering = self._scattering.values()
         ftot = sum(scat(w, T) for scat in scattering)   # in THz
         return self._spectral_factor(w, T) / ftot
 
-    def __call__(self, T, n:int=None):
-        return vquad(self._spectral_sum, self._EPS, self.wcut, args=(T, n))[0]
+    def __call__(self, T, nscat:int=None):
+        if nscat is None:
+            return self(T, 0) + sum(other(T) for other in self._additional.values())
+        return vquad(self._spectral_sum, self._EPS, self.wd, args=(T, nscat))[0]
 
 
 class BaseScattering(ABC):
@@ -518,6 +540,7 @@ class KappaBipolar(BaseKappaModel):
 
     Ref: O. C. Yelgel et al., Phys. Rev. B, 85 125207, 2012.
     '''
+    tag = 'BIPOLAR'
     def __init__(self, Kbp, Eg, p=1):
         '''
         Parameters
@@ -546,6 +569,7 @@ class KappaPowerLaw(BaseKappaModel):
                   + \\kappa_0 \\text{, where } T_{amb} = 300 K
         
     '''
+    tag = 'POWERLAW'
     def __init__(self, Kamb, n=1, K0=0):
         '''
         Parameters
@@ -575,6 +599,7 @@ class KappaKlemens(BaseKappaModel):
         u^2 = \\cfrac{\\pi \\Theta V_a}{2\\hbar v_s^2}
         \\kappa_{pure}\\Gamma_0 \\cdot x (1-x)
     '''
+    tag = 'KLEMENS'
     def __init__(self, Kpure, vs, td, G0, Va):
         '''
         Parameters
