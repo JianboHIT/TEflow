@@ -531,6 +531,94 @@ class CahillScattering(BaseScattering):
         return self.paras['alpha'] * w/np.pi
 
 
+class KappaSlack(BaseKappaModel):
+    '''
+    .. math::
+
+        \\kappa = A \\frac{M_a V_a^{1/3} \\Theta^3}{\\gamma^2 N^{2/3}T}
+
+    Hint: Here :math:`\\Theta` refers to the "traditional" Debye temperature
+    (namely, that determined from the elastic constants or specific heat),
+    not the acoustic-mode Debye temperature :math:`\\Theta_a`.
+    Their relationship is :math:`\\Theta^3 = N \\cdot \\Theta_a^3`,
+    where :math:`N` is the number of atoms per unit cell.
+    '''
+    tag = 'SLACK'
+    def __init__(self, td, gm, Ma, Va, N=1, A=1E-6):
+        '''
+        Parameters
+        ----------
+        td : float
+            Debye temperature (:math:`\\Theta`), in Kelvin.
+        gm : float
+            Gruneisen parameter (:math:`\\gamma`), dimensionless.
+        Ma : float
+            Average atomic mass per atom (:math:`M_a`), in atomic mass units (amu).
+        Va : float
+            Average volume per atom (:math:`V_a`), in cubic angstroms (A^3).
+        N : int, optional
+            The number of atoms per unit cell, by default 1.
+        A : float or str, optional
+            Adjustable parameter :math:`A` in the model, which can be set as
+            either a constant value or the name of a predefined model for
+            computation during initialization. The default value is 1E-6,
+            which is its typical magnitude as well. To customize a new model,
+            inherit from this class and implement a property named
+            `coef_<modelname>`, then it will be automatically invoked.
+        '''
+        if isinstance(A, str):
+            self._coef_model = A
+            super().__init__(td=td, gm=gm, Ma=Ma, Va=Va, N=N)
+        else:
+            self._coef_model = 'Constant'
+            super().__init__(td=td, gm=gm, Ma=Ma, Va=Va, N=N, A=A)
+
+    def __call__(self, T):
+        return self.coef * self.paras['Ma'] * np.power(self.paras['Va'], 1/3) *\
+            np.power(self.paras['td'], 3) / np.power(self.paras['gm'], 2) /\
+            np.power(self.paras['N'], 2/3) / T
+
+    @property
+    def coef(self):
+        '''
+        The value of parameter :math:`A` in the model.
+        '''
+        return getattr(self, f'coef_{self._coef_model}')
+
+    @property
+    def coef_Julian(self):
+        '''
+        .. math ::
+
+            A = \\frac{2.43 \\times 10^{-6}}{1-0.514/\\gamma+0.228/\\gamma^2}
+
+        Ref: C. L. Julian, Physical Review, 137 A128, 1965.
+        '''
+        gm = self.paras['gm']
+        return 2.43E-6 / (1-0.514/gm+0.228/gm/gm)
+
+    @property
+    def coef_Qin(self):
+        '''
+        .. math ::
+
+            A = \\frac{1}{1+1/\\gamma + 8.3 \\times 10^5/\\gamma^{2.4}}
+
+        Ref: G. Qin et al., Mater. Adv., 3 6683, 2022.
+        '''
+        gm = self.paras['gm']
+        return 1/(1+1/gm+8.3E5/np.power(gm, 2.4))
+
+    @property
+    def coef_Constant(self):
+        '''
+        This property works when the parameter `A` is specified as a
+        numerical value during initialization, and returns the
+        provided value of `A` directly.
+        '''
+        return self.paras['A']
+
+
 class KappaBipolar(BaseKappaModel):
     '''
     .. math::
