@@ -114,7 +114,7 @@ class Variable:
         instance : object
             The instance to notify when the variable changes.
         name : str
-            The parameter name in the instance that will be updated.
+            The name of parameter that will be updated.
         '''
         self._subscribers.append((subscriber, name))
 
@@ -128,8 +128,12 @@ class Variable:
 
 class Parameters(OrderedDict):
     '''
-    A dictionary-like container to manage model parameters, 
-    automatically synchronizing any contained Variable instances.
+    A dictionary-like container for managing model parameters, 
+    automatically synchronizing with any contained :class:`Variable` instances. 
+    Note that, the communication with :class:`Variable` instances is designed
+    to be passive to enhance performance of code. As such, changes to
+    :class:`Variable` will reflect in all registered Parameters instances,
+    but direct modifications to Parameters only affect itself.
     '''
     def __init__(self, **parameters):
         for name, val in parameters.items():
@@ -145,6 +149,11 @@ class BaseKappaModel(ABC):
 
     This class serves as a template for kappa models, providing a framework
     for implementing model-specific calculations and fitting procedures.
+
+    Attributes
+    ----------
+    paras : Parameters
+        All parameters of the model.
     '''
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -404,12 +413,29 @@ class KappaDebye(BaseKappaModel):
 
 
 class BaseScattering(ABC):
+    '''
+    Abstract base class for scattering rate (in THz, i.e. 1/ps) model
+    :math:`\\tau_i^{-1}(\\omega, T)`.
+
+    Attributes
+    ----------
+    paras : Parameters
+        All parameters of the model.
+    '''
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if not hasattr(cls, 'tag'):
             raise NotImplementedError("Subclasses must define a class attribute 'tag'")
 
     def __init__(self, **parameters):
+        '''
+        Parameters
+        ----------
+        **parameters : dict
+            A dictionary of parameters to initialize the model. These parameters
+            are managed by a `Parameters` instance, allowing for synchronization 
+            with `Variable` objects if used.
+        '''
         # uncommon parameters in SI.
         self.paras = Parameters(**parameters)
     
@@ -429,11 +455,32 @@ class ThreePhonon(BaseScattering):
                      = A^{\\prime} \\omega ^2 T
                        \\exp \\left( -\\frac{[\\Theta]}{3T} \\right)
 
-    (Hint: To diable the exponential term, simply set Theta (:math:`[\\Theta]`)
-    to 0, even though it typically signifies the Debye temperature.)
+    Hint: To diable the exponential term, simply set Theta (:math:`[\\Theta]`)
+    to 0, even though it typically signifies the Debye temperature.
     '''
     tag = 'PH'
     def __init__(self, gm=None, vs=None, Va=None, Ma=None, A=1, Theta=0, *, coef=None):
+        '''
+        Parameters
+        ----------
+        gm : float
+            Gruneisen parameter (:math:`\\gamma`), dimensionless.
+        vs : float
+            Average sound velocity (:math:`v_s`), in km/s.
+        Va : float
+            Average volume per atom (:math:`V_a`), in cubic angstroms (A^3).
+        Ma : float
+            Average atomic mass per atom (:math:`M_a`), in atomic mass units (amu).
+        A : float, optional
+            Dimensionless adjustable parameter, by default 1.
+        Theta : float, optional
+            Debye temperature (:math:`[\\Theta]`) in Kelvin.
+            If set to 0 (default), the exponential term will be disabled.
+        coef : float, optional
+            A comprehensive adjustable parameter (:math:`A^{\\prime}`).
+            When set, all parameters except `Theta` become non-effective.
+            Typically, its magnitude is around 10^(-18). By default, it is None.
+        '''
         if coef is None:
             super().__init__(gm=gm, vs=vs, Va=Va, Ma=Ma, A=A, Theta=Theta)
             self._direct_coef = False
@@ -472,6 +519,20 @@ class PointDefect(BaseScattering):
     '''
     tag = 'PD'
     def __init__(self, vs=None, Va=None, G=None, *, coef=None):
+        '''
+        Parameters
+        ----------
+        vs : float
+            Average sound velocity (:math:`v_s`), in km/s.
+        Va : float
+            Average volume per atom (:math:`V_a`), in cubic angstroms (A^3).
+        G : float
+            Dimensionless disorder scattering parameter (:math:`\\Gamma`)
+        coef : float, optional
+            A comprehensive adjustable parameter (:math:`B^{\\prime}`).
+            When set, all parameters (`vs`, `Va`, and `G`)  become non-effective.
+            Typically, its magnitude is around 10^(-41). By default, it is None.
+        '''
         if coef is None:
             super().__init__(vs=vs, Va=Va, G=G)
             self._direct_coef = False
@@ -507,8 +568,16 @@ class GrainBoundary(BaseScattering):
     '''
     tag = 'GB'
     def __init__(self, vs, L, alpha=1):
-        # vs: in km/s
-        # L: um
+        '''
+        Parameters
+        ----------
+        vs : float
+            Average sound velocity (:math:`v_s`), in km/s.
+        L : float
+            Average grain size (:math:`L`), in um.
+        alpha : float, optional
+            Dimensionless adjustable parameter (:math:`\\alpha`), by default 1.
+        '''
         super().__init__(vs=vs, L=L, alpha=alpha)
     
     def __call__(self, w, T):
@@ -524,6 +593,12 @@ class CahillScattering(BaseScattering):
     '''
     tag = 'CAHILL'
     def __init__(self, alpha=1):
+        '''
+        Parameters
+        ----------
+        alpha : float, optional
+            Dimensionless adjustable parameter (:math:`\\alpha`), by default 1.
+        '''
         super().__init__(alpha=alpha)
 
     def __call__(self, w, T):
@@ -686,6 +761,8 @@ class KappaKlemens(BaseKappaModel):
         \\frac{\\tan^{-1}(u)}{u} \\text{, where }
         u^2 = \\cfrac{\\pi \\Theta V_a}{2\\hbar v_s^2}
         \\kappa_{pure}\\Gamma_0 \\cdot x (1-x)
+
+    Ref: P. G. Klemens, Phys. Rev., 119 507-509, 1960.
     '''
     tag = 'KLEMENS'
     def __init__(self, Kpure, vs, td, G0, Va):
