@@ -411,6 +411,85 @@ class KappaDebye(BaseKappaModel):
             return self(T, 0) + sum(other(T) for other in self._additional.values())
         return vquad(self._spectral_sum, self._EPS, self.wd, args=(T, nscat))[0]
 
+    @classmethod
+    def vs_to_td(cls, vs, Va):
+        '''
+        .. math ::
+
+            \\Theta = \\frac{\\hbar\\omega_D}{k_B} = \\frac{\\hbar}{k_B}
+                \\left( \\frac{6\\pi^2}{V_a} \\right) ^ {1/3} v_s
+
+        Parameters
+        ----------
+        vs : float
+            Average sound velocity (:math:`v_s`), in km/s.
+        Va : float
+            Average volume per atom (:math:`V_a`), in cubic angstroms (A^3).
+
+        Returns
+        -------
+        float
+            Debye temperature (:math:`\\Theta`), in Kelvin.
+        '''
+        # wd = np.power(6*np.pi*np.pi/(Va*1E-30), 1/3) * vs*1E3 = ... * 1E13
+        return cls._hbar_kB * 10 * np.power(6*np.pi*np.pi/Va, 1/3) * vs
+
+    @staticmethod
+    def vs_to_gm(v1, v2):
+        '''
+        .. math::
+
+            \\gamma = \\frac{3}{2} \\frac{1+\\mu}{2-3\\mu}
+            \\text{, where }
+            \\frac{v_1}{v_2} = \\sqrt{\\frac{2-2\\mu}{1-2\\mu}}
+
+        Ref: D. S. Sanditov et al., Tech. Phys., 56 1619, 2011.
+
+        Parameters
+        ----------
+        v1 : float
+            Longitudinal sound velocity in km/s.
+        v2 : float
+            Transverse sound velocity in km/s.
+
+        Returns
+        -------
+        float
+            Gruneisen parameter (:math:`\\gamma`).
+        '''
+        r = np.power(np.divide(v1, v2), 2)  # (v1/v2)^2
+        # mu = (r - 2)/(2*r - 2)
+        # gm = 3/2 * (1+mu)/(2-3*mu)
+        return 3/2 * (3*r-4)/(r+2)
+
+    @staticmethod
+    def vs_mean(v1, v2, p:int=-3):
+        '''
+        .. math::
+
+            v_{s,p} = \\left( \\frac{v_1^p+2v_2^p}{3} \\right)^{1/p}
+
+        Parameters
+        ----------
+        v1 : float
+            Longitudinal sound velocity in km/s.
+        v2 : float
+            Transverse sound velocity in km/s.
+        p : int, optional
+            The exponent, by default -3.
+
+        Returns
+        -------
+        float
+            Generalized mean of sound velocities.
+        '''
+        v1, v2 = np.broadcast_arrays(v1, v2)
+        vel = np.array([v1, v2, v2], dtype='float64')
+        if p == 0:
+            return np.power(np.prod(vel), 1/3)
+        else:
+            return np.power(np.mean(np.power(vel, p)), 1/p)
+
 
 class BaseScattering(ABC):
     '''
