@@ -26,9 +26,17 @@ from .utils import AttrDict
 
 class Variable:
     '''
-    A class to represent a variable that notifies subscribers upon
-    value changes, used for synchronizing variables within a model.
+    A singleton class based on the 'tag' attribute to represent
+    a variable that notifies subscribers upon value changes,
+    used for synchronizing variables across models.
     '''
+    __instances = {}
+    def __new__(cls, tag, *args, **kwargs):
+        if tag not in cls.__instances:
+            instance = super().__new__(cls)
+            cls.__instances[tag] = instance
+        return cls.__instances[tag]
+
     def __init__(self, tag, initial=1, lower=0, upper=1000, scale=1, *,
                  constraint=None, depends=()):
         '''
@@ -57,6 +65,8 @@ class Variable:
             or if `constraint` is provided but is not a callable,
             or if any element in `depends` is not an instance of Variable.
         '''
+        if hasattr(self, '_value'):
+            return
         if lower <= initial <= upper:
             self._value = initial
             self.lower = lower
@@ -69,9 +79,12 @@ class Variable:
         if (constraint is not None) and (not isinstance(constraint, Callable)):
             raise ValueError("'constraint' must be a Callable object if provide")
         self._compute = constraint
-        if not all(isinstance(d, type(self)) for d in depends):
-            raise ValueError("'depends' must be a set of Variable")
-        self._depends = tuple(depends)
+        self._depends = Parameters(**{f'__{tag}_{i}':v for i, v in enumerate(depends)})
+
+    def __str__(self):
+        dsp = '{0.__class__.__name__}: {0.value} ? {0.scale} '\
+              '<{0.lower},{0.upper}> {1} {0.tag}'
+        return dsp.format(self, '@&' if self.constrained else '@')
 
     @property
     def constrained(self):
@@ -92,7 +105,8 @@ class Variable:
             If the new value is not between the lower and upper bounds.
         '''
         if self.constrained:
-            return self._compute(*(v.value for v in self._depends))
+            # return self._compute(*(v.value for v in self._depends))
+            return self._compute(*self._depends.values())
         else:
             return self._value
 
