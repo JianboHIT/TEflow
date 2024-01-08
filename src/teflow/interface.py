@@ -40,6 +40,7 @@ DESCRIPTION = {
     'cutoff': 'Cut-off data at the threshold temperature',
     'refine': 'Remove redundant & extract the concerned data',
     'band'  : 'Insight carriar transport with band models',
+    'kappa' : 'Simulate & fit thermal conductivity',
 }
 
 # figlet -f 'Big Money-se' TE
@@ -64,6 +65,7 @@ Usage: {CMD}-subcommand [-h] ...
 Subcommands:
     format  {DESCRIPTION['format']}
       band  {DESCRIPTION['band']}
+     kappa  {DESCRIPTION['kappa']}
      ztdev  {DESCRIPTION['ztdev']}
     engout  {DESCRIPTION['engout']}
     interp  {DESCRIPTION['interp']}
@@ -132,6 +134,8 @@ def _do_main(args=None):
             do_refine(args[1:])
         elif task.startswith('band'):
             do_band(args[1:])
+        elif task.startswith('kappa'):
+            do_kappa(args[1:])
         else:
             do_help()
     else:
@@ -152,7 +156,7 @@ def _wraptxt(desc, details='', indent=2, width=75):
         desc
 
 
-def _suffixed(outputname, inputname, suffix):
+def _suffixed(outputname, inputname, suffix, ext=None):
     '''
     Append suffix to inputname if outputname is absent, otherwise return itself. 
     '''
@@ -161,7 +165,7 @@ def _suffixed(outputname, inputname, suffix):
 
     p = PurePath(inputname)
     if p.suffix:
-        return f'{p.stem}_{suffix}{p.suffix}'
+        return f'{p.stem}_{suffix}{ext or p.suffix}'
     else:
         return f'{p.stem}_{suffix}'
 
@@ -958,3 +962,78 @@ def do_band(args=None):
     outputfile = _suffixed(options.outputfile, inputfile, options.suffix)
     np.savetxt(outputfile, outdata, fmt='%.4f', header=comment)
     logger.info(f'Save model data to {outputfile} (Done)')
+
+
+def do_kappa(args=None):
+    from .kappa import parse_KappaFit
+
+    task = 'kappa'
+    DESC = DESCRIPTION[task]
+    parser = argparse.ArgumentParser(
+        prog=f'{CMD}-{task}',
+        description=f'{DESC} - {INFO}',
+        epilog=FOOTNOTE)
+
+    parser.add_argument('-b', '--bare', **OPTS['bare'])
+
+    parser.add_argument('inputfile', **OPTS['inputf'])
+
+    parser.add_argument('outputfile', **OPTS['outputf'])
+
+    parser.add_argument('-s', '--suffix', **OPTS['suffix'](task))
+
+    options = parser.parse_args(args)
+    # print(options)
+
+    logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
+    logger.info(f'{DESC} - {TIME}')
+
+    # parse i/o filename
+    inputf = options.inputfile
+    outputf = _suffixed(options.outputfile, inputf, options.suffix, '.txt')
+
+    *_, results = parse_KappaFit(filename=inputf)
+    xi = np.atleast_2d(results['predX'])
+    yi = np.atleast_2d(results['predY'])
+    labels = ['Xcolumn',] + results['predL']
+    data = np.vstack([xi, yi])
+    softinfo = f'Predict kappa - {TIME} {INFO}\n{" ".join(labels)}'
+    comment = '' if options.bare else softinfo
+    np.savetxt(outputf, data.T, fmt='%.6f', header=comment)
+    logger.info(f'Save predict kappa to {outputf}')
+    if 'rateX' in results:
+        xi = np.atleast_2d(results['rateX'])
+        yi = np.atleast_2d(results['rateY'])
+        labels = ['freq',] + results['rateL']
+        data = np.vstack([xi, yi])
+        softinfo = f'Scattering rate - {TIME} {INFO}\n{" ".join(labels)}'
+        comment = '' if options.bare else softinfo
+        output_rate = _suffixed(None, outputf, 'rate')
+        np.savetxt(output_rate, data.T, fmt='%.6f', header=comment)
+        logger.info(f'Save scattering rate to {output_rate}')
+    if 'specX' in results:
+        xi = np.atleast_2d(results['specX'])
+        yi = np.atleast_2d(results['specY'])
+        labels = ['freq',] + results['specL']
+        data = np.vstack([xi, yi])
+        softinfo = f'Spectral kappa - {TIME} {INFO}\n{" ".join(labels)}'
+        comment = '' if options.bare else softinfo
+        output_spec = _suffixed(None, outputf, 'spec')
+        np.savetxt(output_spec, data.T, fmt='%.6f', header=comment)
+        logger.info(f'Save spectral kappa to {output_spec}')
+    if 'cumuX' in results:
+        xi = np.atleast_2d(results['cumuX'])
+        yi = np.atleast_2d(results['cumuY'])
+        labels = ['mfp',] + results['cumuL']
+        data = np.vstack([xi, yi])
+        softinfo = f'Cumulative kappa - {TIME} {INFO}\n{" ".join(labels)}'
+        comment = '' if options.bare else softinfo
+        output_cumu = _suffixed(None, outputf, 'cumu')
+        np.savetxt(output_cumu, data.T, fmt='%.6f', header=comment)
+        logger.info(f'Save cumulative kappa to {output_cumu}')
+    if results.get('subs', None):
+        output_subs = _suffixed(None, outputf, 'subs', '.cfg')
+        with open(output_subs, 'w') as f:
+            f.writelines(results['subs'])
+        logger.info(f'Save new configuration file to {output_subs}')
+    logger.info('(DONE)')
