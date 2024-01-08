@@ -12,6 +12,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import re
+import logging
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from collections.abc import Callable
@@ -21,7 +23,9 @@ from scipy.integrate import cumtrapz
 import numpy as np
 
 from .analysis import vquad
-from .utils import AttrDict
+from .utils import AttrDict, ExecWrapper, CfgParser
+
+logger = logging.getLogger(__name__)
 
 
 class Variable:
@@ -907,3 +911,248 @@ class KappaKlemens(BaseKappaModel):
         Overrides :class:`BaseKappaModel`: Fits dataX rather than dataT.
         '''
         return super().fit(dataX, dataK, variables=variables, **kwargs)
+
+
+EXECMETA = {
+    'DEBYE': ExecWrapper(KappaDebye,
+        args=['vs', 'td', 'components',],
+    ),
+    'PH': ExecWrapper(ThreePhonon,
+        args=['gm', 'vs', 'Va', 'Ma',],
+        opts=['A', 'Theta',],
+    ),
+    'PHX': ExecWrapper(ThreePhonon,
+        args=['coef',],
+        opts=['Theta',],
+    ),
+    'PD': ExecWrapper(PointDefect,
+        args=['vs', 'Va', 'G',],
+    ),
+    'PDX': ExecWrapper(PointDefect,
+        args=['coef',],
+    ),
+    'GB': ExecWrapper(GrainBoundary,
+        args=['vs', 'L',],
+        opts=['alpha',],
+    ),
+    'CAHILL': ExecWrapper(CahillScattering,
+        opts=['alpha',],
+    ),
+    'SLACK': ExecWrapper(KappaSlack,
+        args=['td', 'gm', 'Ma', 'Va', 'A',],
+        opts=['N', ],
+    ),
+    'BIPOLAR': ExecWrapper(KappaBipolar,
+        args=['Kbp', 'Eg',],
+        opts=['p',],
+    ),
+    'POWERLAW': ExecWrapper(KappaPowerLaw,
+        args=['Kamb',],
+        opts=['n', 'K0',],
+    ),
+    'KLEMENS': ExecWrapper(KappaKlemens,
+        args=['Kpure', 'vs', 'td', 'G0', 'Va',],
+    ),
+}
+
+
+def parse_KappaFit(filename, specify=None):
+    '''Parse kappa model from configuration file'''
+    config = CfgParser()
+    config.read(filename)
+    logger.info(f'Read configuration from {filename}')
+
+    entry = config['entry']
+    logger.debug('Found entry section')
+
+    if specify:
+        entry.update(specify)
+        logger.debug('Update specify setting to entry:\n  %s' % specify)
+
+    # parse variables
+    tags = []
+    fitting = []
+    varbdict = OrderedDict()
+    if 'variables' in config:
+        logger.debug('Found variables section')
+        varbpat = re.compile(r'\s*(?P<initial>\S+)?\s*\?\s*(?P<scale>[^\s<@]+)?\s*'
+                             r'(<\s*(?P<lower>\S+)?\s*,\s*(?P<upper>\S+)?\s*>)?')
+        for tag, val in config['variables'].items():
+            m = varbpat.match(val)
+            if m:
+                logger.debug(f'{tag}: {m.groupdict()}')     # parsed raw text
+                setting = {k:float(v) for k,v in m.groupdict().items() if v}
+                varb = Variable(tag, **setting)
+                tags.append(f'{tag}?')
+                fitting.append(varb)
+            else:
+                tags.append(tag)
+                try:
+                    varb = float(val)
+                except ValueError:
+                    raise ValueError(f"Failed to parse variable '{tag}'")
+            varbdict[tag] = varb
+        logger.info(f'Variables: {", ".join(tags)}')
+    else:
+        logger.debug(('Not found variables section'))
+
+    # parse model
+    model_ = entry.get('model')
+    if model_ is None:
+        raise ValueError("Parameter '%s' is required in entry section!", 'model')
+    logger.info(f"Parse model of kappa: {model_}")
+
+    refpat = re.compile(r'^\s*@\s*(?P<tag>\S+)?\s*$')
+    def parse_submodel(subname):
+        subsect, mtype = config.pmatch(subname)
+        logger.debug('Build %s.%s with variables:', subname, mtype)
+        if mtype not in EXECMETA:
+            raise TypeError(subname)
+        kwargs = {}
+        for key, val in subsect.items():
+            if not val.strip():
+                raise ValueError(f"{mtype} :: '{key}' is empty")
+
+            # some special
+            if key == 'components':
+                comps_ = subsect.getlist(key)
+                logger.debug(f'    {key} = [{", ".join(comps_)}]')
+                kwargs[key] = [parse_submodel(comp) for comp in comps_]
+                continue
+
+            refmatch = refpat.match(val)    # match referenced variable
+            if refmatch:
+                tag = refmatch.groupdict().get('tag') or key
+                if tag not in varbdict:
+                    raise ValueError(f'Variable {tag} not found')
+                varb = varbdict[tag]
+                if hasattr(varb, 'tag'):
+                    logger.debug(f' -> {key} = {str(varb).split(": ")[1]}')
+                else:
+                    logger.debug(f'  * {key} = {varb} @ {tag}')
+                kwargs[key] = varbdict[tag]
+            else:
+                logger.debug(f'    {key} = {val}')
+                try:
+                    kwargs[key] = float(val)
+                except ValueError:
+                    kwargs[key] = val
+        return EXECMETA[mtype].execute(**kwargs)
+
+    model = parse_submodel(model_)
+
+    # parse dataX, dataY; fit model
+    if fitting:
+        expdata_ = entry.getarray('expdata')
+        if expdata_ is None:
+            raise ValueError("Parameter 'expdata' is required in entry section!")
+
+        dataX, dataY, *_ = expdata_
+        logger.info('Read experimental data successfully, run fitting ...')
+
+        model.fit(dataX, dataY, variables=fitting)
+        logger.info('Fitting results:')
+        logger.info('='*50)
+        dsp = '{0.tag:>10s} :  {0.value:<16.6g} X {0.scale:<16.6g}'
+        for varb in fitting:
+            logger.warning(dsp.format(varb))
+        logger.info('='*50)
+    else:
+        dataX, dataY = None, None
+
+    if fitting and entry.getboolean('substituted', False):
+        with open(filename, 'r') as f:
+            subs = f.readlines()
+
+        numstart = None
+        numend = len(subs)
+        for numline, line in enumerate(subs):
+            matched = config.SECTCRE.match(line.strip())
+            if matched:
+                if numstart is not None:
+                    numend = numline
+                    break
+                if matched.group('header') == 'variables':
+                    numstart = numline
+
+        logger.debug(f"Section 'variables' range: {numstart} to {numend}")
+        linepat = re.compile(r'(?<==).*?\?')
+        for varb in fitting:
+            tag = varb.tag
+            value = varb.value * varb.scale
+            for num in range(numstart, numend):
+                matched = re.match(rf'{tag}\s*=.*?\?', subs[num].strip())
+                if matched:
+                    logger.debug(f'Overwrite value of {tag}: {value:.6g}')
+                    subs[num] = linepat.sub(f' {value:.6g} # ?', subs[num], 1)
+                    break
+            else:
+                raise RuntimeError(f'Failed to overwrite variable: {tag}')
+        logger.info('Generate substituted configuration file')
+    else:
+        subs = None
+
+    # parse predX and other options
+    npoints=abs(entry.getint('npoints', 101))
+    predX_ = entry.getseq('predict', None)
+    if predX_:
+        predX = np.array(predX_)
+    else:
+        margin=abs(entry.getfloat('margin', 0.05))
+        if dataX and dataY:
+            xmin = (1+margin) * dataX.min() - margin * dataX.max()
+            xmax = (1+margin) * dataX.max() - margin * dataX.min()
+        else:
+            raise RuntimeError("Failed to parse sample points for prediction")
+        predX = np.linspace(xmin, xmax, npoints)
+        logger.info(f'Predict from {xmin:.4g} to {xmax:.4g} with {npoints} points')
+    predY = [model(predX),]
+    predL = [f'Kappa-{model.tag}',]
+    options = AttrDict(
+        dataX=dataX,
+        dataY=dataY,
+        predX=predX,
+        predY=predY,
+        predL=predL,
+        subs=subs,
+    )
+
+    if model.tag != KappaDebye.tag:
+        return model, fitting, options
+    # only for Debye model
+    logger.debug('KappaDebye model is detected.')
+    if entry.getboolean('splitkappa', True):
+        logger.info('Split kappa to scattering mechanism and additional model')
+        predL = ['Kappa-Total',]
+        tag_scats = []
+        for i, itag in enumerate(model._scattering):
+            tag_scats.append(itag)
+            predY.append(model(predX, nscat=i+1))
+            predL.append('+'.join(tag_scats))
+        for tag_model, submodel in model._additional.items():
+            predY.append(submodel(predX))
+            predL.append(tag_model)
+    temper = entry.getfloat('temperature', 300)
+    dsp_temp = f'Caluclate %s at {temper} K'
+    if entry.getboolean('scattering', True):
+        logger.info(dsp_temp, 'scattering rate (in THz) of phonon')
+        rateX = np.linspace(0, model.wd, npoints)
+        scattering = model.scattering(rateX, temper, with_total=True)
+        options['rateX'] = rateX
+        options['rateY'] = list(scattering.values())
+        options['rateL'] = list(scattering.keys())
+    if entry.getboolean('spectral', True):
+        logger.info(dsp_temp, 'spectral kappa on frequency')
+        specX = np.linspace(0, model.wd, npoints)
+        spectrals = model.spectral(specX, temper)
+        options['specX'] = specX
+        options['specY'] = list(spectrals.values())
+        options['specL'] = list(spectrals.keys())
+    if entry.getboolean('cumulate', True):
+        logger.info(dsp_temp, 'cumulative kappa on mean-free-path (in nm)')
+        cumuX = np.logspace(-1.3, 4.7, npoints)
+        cumulates = model.cumulative_mfp_t(cumuX, temper)
+        options['cumuX'] = cumuX
+        options['cumuY'] = list(cumulates.values())
+        options['cumuL'] = list(cumulates.keys())
+    return model, fitting, options
