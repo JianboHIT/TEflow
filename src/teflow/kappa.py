@@ -651,8 +651,8 @@ class PointDefect(BaseScattering):
             return self.paras['coef']
         else:
             # coef = Va*G/(4*pi*vs**3)
-            #       -30  -(     3 *3 )       --> -36
-            return 1E-36 * self.paras['Va'] * self.paras['G'] /\
+            #       -30  -(     3 *3 )       --> -39
+            return 1E-39 * self.paras['Va'] * self.paras['G'] /\
                 (4*np.pi*np.power(self.paras['vs'], 3))
 
 
