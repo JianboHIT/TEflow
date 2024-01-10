@@ -200,7 +200,7 @@ def do_interp(args=None):
         help='The strategy to extrapolate points outside the data range \
               (auto, const, or <value>, default: auto)')
     
-    parser.add_argument('-n', '--npoint', type=int, default=101, 
+    parser.add_argument('-n', '--npoints', type=int, default=101,
         help='The number of interpolated data points (default: 101)')
 
     parser.add_argument('--range', metavar='START:STEP:END',
@@ -976,6 +976,27 @@ def do_kappa(args=None):
 
     parser.add_argument('-b', '--bare', **OPTS['bare'])
 
+    parser.add_argument('-n', '--npoints',
+        help='The number of predicted data points (default: 101)')
+
+    parser.add_argument('-M', '--margin',
+        help='Relative margin for extending data boundaries (default: 0.05)')
+
+    parser.add_argument('-X', '--predict', metavar='VALUES',
+        help='Specify sampling points for the prediction (default: None).')
+
+    parser.add_argument('-T', '--temperature',
+        help='The temperature for insighting phonon transport (default: 300)')
+
+    parser.add_argument('-U', '--frequnit',
+        help='Specify frequency unit of phonon (default: 2pi.THz)')
+
+    parser.add_argument('-S', '--substituted', action='store_const', const='true',
+        help='Generate a new substituted configuration file')
+
+    parser.add_argument('-Q', '--less-output', action='store_true',
+        help='Suppress detailed output files, might be handy with the Debye model.')
+
     parser.add_argument('inputfile', **OPTS['inputf'])
 
     parser.add_argument('outputfile', **OPTS['outputf'])
@@ -988,11 +1009,21 @@ def do_kappa(args=None):
     logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
     logger.info(f'{DESC} - {TIME}')
 
+    # parse specity options
+    specify = dict()
+    for key in ('npoints', 'margin', 'predict', 'temperature', 'frequnit', 'substituted'):
+        val = getattr(options, key)
+        if val:
+            specify[key] = val
+    if options.less_output:
+        for key in ('splitkappa', 'scattering', 'spectral', 'cumulate'):
+            specify[key] = 'false'
+
     # parse i/o filename
     inputf = options.inputfile
     outputf = _suffixed(options.outputfile, inputf, options.suffix, '.txt')
 
-    *_, results = parse_KappaFit(filename=inputf)
+    *_, results = parse_KappaFit(filename=inputf, specify=specify)
     xi = np.atleast_2d(results['predX'])
     yi = np.atleast_2d(results['predY'])
     labels = ['Xcolumn',] + results['predL']
