@@ -1134,19 +1134,44 @@ def parse_KappaFit(filename, specify=None):
             predL.append(tag_model)
     temper = entry.getfloat('temperature', 300)
     dsp_temp = f'Caluclate %s at {temper} K'
+    funit_ = entry.get('frequnit', '2pi.THz')
+    try:
+        funit = float(funit_)
+        funit_ = f'{funit:.6g}'
+    except ValueError:
+        if re.match(r'THz', funit_, re.IGNORECASE):
+            # f = w/(2*pi)
+            funit = 2*np.pi
+            funit_ = 'THz'
+        elif re.match(r'(omega_|w_?)d|norm', funit_, re.IGNORECASE):
+            # wr = w/wd
+            funit = model.wd
+            funit_ = 'Normalized'
+        elif re.match(r'reduce|x', funit_, re.IGNORECASE):
+            # x = (hb*w)/(kB*T) = w/[T/(hb/kB)]
+            funit = temper/model._hbar_kB
+            funit_ = 'Reduced'
+        elif re.match(r'meV', funit_, re.IGNORECASE):
+            # meV = (hb*w)/q = w/[q/hb*1E-15]
+            funit = 1.602176634/1.054571817 # q/hbar
+            funit_ = 'meV'
+        else:
+            funit = 1
+            funit_ = '2pi.THz'
+    logger.debug(f'Using the unit of phonon frequency: {funit_}')
     if entry.getboolean('scattering', True):
         logger.info(dsp_temp, 'scattering rate (in THz) of phonon')
         rateX = np.linspace(0, model.wd, npoints)
         scattering = model.scattering(rateX, temper, with_total=True)
-        options['rateX'] = rateX
+        options['rateX'] = rateX / funit
         options['rateY'] = list(scattering.values())
         options['rateL'] = list(scattering.keys())
     if entry.getboolean('spectral', True):
         logger.info(dsp_temp, 'spectral kappa on frequency')
         specX = np.linspace(0, model.wd, npoints)
         spectrals = model.spectral(specX, temper)
-        options['specX'] = specX
-        options['specY'] = list(spectrals.values())
+        options['specX'] = specX / funit
+        options['specY'] = [v*funit for v in spectrals.values()]
         options['specL'] = list(spectrals.keys())
     if entry.getboolean('cumulate', True):
         logger.info(dsp_temp, 'cumulative kappa on mean-free-path (in nm)')
