@@ -682,6 +682,79 @@ class GrainBoundary(BaseScattering):
         return 1E-3 * self.paras['alpha'] * self.paras['vs'] / L
 
 
+class Nanoparticles(BaseScattering):
+    '''
+    .. math::
+
+        \\tau_i^{-1} = v_s \\left( \\sigma_{geometrical}^{-1}
+            + \\sigma_{Rayleigh}^{-1} \\right)^{-1}N_1
+
+    .. math ::
+
+        \\sigma_{geometrical} = 2 \\pi R^2
+
+    .. math ::
+
+        \\sigma_{Rayleigh} = \\frac{16}{9} \\pi R^2 \\left[
+                \\alpha^2 \\left(\\frac{D_1-D_0}{4D_0}\\right)^2
+                + 3 \\alpha^8 \\left(\\frac{Y_1-Y_0}{Y_0}\\right)^2
+            \\right] \\left(\\frac{\\omega R}{v_s}\\right)^4
+
+    .. math ::
+
+        N_1 = \\frac{\\phi}{\\overline{V_1}} = \\cfrac{\\phi}{\\cfrac{4}{3}\\pi R^3}
+
+    Hints:
+
+    1. :math:`Y_0` and :math:`Y_1` indicate the force constants of the host and
+    nanoparticle, respectively, as defined in the original reference
+    (W. Kim et al., J. Appl. Phys., 99, 084306, 2006).
+    Practically, they can approximately be replaced by the Young's modulus.
+
+    2. :math:`\\alpha`, designated as the trigonometric ratio in the original
+    paper, is typically assumed to be 1 in subsequent comprehensive works.
+    '''
+    tag = 'NP'
+    def __init__(self, vs, R, phi, D0, D1, Y0=1, Y1=1, alpha=1):
+        '''
+        Parameters
+        ----------
+        vs : float
+            Average sound velocity (:math:`v_s`), in km/s.
+        R : float
+            Average radius of the nanoparticles (:math:`R`), in nm.
+        phi : float
+            Volume fraction of the nanoparticles (:math:`\\phi`),
+            in the range (0, 1) theoretically.
+        D0 : float
+            Mass density of the host material (:math:`D_0`), in g/cm^3.
+        D1 : float
+            Mass density of the nanoparticles (:math:`D_1`), in g/cm^3.
+        Y0 : float, optional
+            Young modulus of the host material (:math:`Y_0`) in GPa, by default 1.
+        Y1 : float, optional
+            Young modulus of the nanoparticles (:math:`Y_1`) in GPa, by default 1.
+        alpha : float, optional
+            The trigonometric ratio (:math:`\\alpha`), by default 1.
+        '''
+        super().__init__(vs=vs, R=R, phi=phi, D0=D0, D1=D1, Y0=Y0, Y1=Y1, alpha=alpha)
+
+    def __call__(self, w, T):
+        w, _ = np.broadcast_arrays(w, T)
+        # geom = vs * 2*pi*R^2 * phi/(4/3*pi*R^3) = 3/2 * vs * phi / R
+        geom = 3/2 * self.paras['vs'] * self.paras['phi'] / self.paras['R']
+        Gm = 1/4 * np.power(self.paras['alpha'], 2)\
+             * np.power(1-self.paras['D1']/self.paras['D0'], 2)
+        Gy = 3 * np.power(self.paras['alpha'], 8)\
+             * np.power(1-self.paras['Y1']/self.paras['Y0'], 2)
+        # Gm = np.power(1-self.paras['D1']/self.paras['D0'], 2) \
+        #      + np.power(1-self.paras['Y1']/self.paras['Y0'], 2)
+        w4 = np.power(w*self.paras['R']/self.paras['vs'], 4)
+        # ratio = 2/9*Gm*w4   # sigma_L/sigma_S = [4/9*pi*R^2*Gm*w4] / [2*pi*R^2]
+        ratio = 8/9 * (Gm+Gy) * w4 # sigma_L/sigma_S = [16/9*pi*R^2*Gm*w4] / [2*pi*R^2]
+        return geom * ratio/(1+ratio)
+
+
 class CahillScattering(BaseScattering):
     '''
     .. math::
@@ -934,6 +1007,10 @@ EXECMETA = {
     'GB': ExecWrapper(GrainBoundary,
         args=['vs', 'L',],
         opts=['alpha',],
+    ),
+    'NP': ExecWrapper(Nanoparticles,
+        args=['vs', 'R', 'phi', 'D0', 'D1',],
+        opts=['Y0', 'Y1', 'zeta',],
     ),
     'CAHILL': ExecWrapper(CahillScattering,
         opts=['alpha',],
