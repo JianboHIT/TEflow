@@ -81,6 +81,12 @@ LOG_FMT = f'[{PKG}] %(message)s'      # '[%(levelname)5s] %(message)s'
 
 # some public options
 OPTS = {
+    # parser.add_argument('-H', '--headers', **OPTS['headers'])
+    'headers': dict(
+        action='store_true',
+        help='Include headers without a hash character'
+    ),
+
     # parser.add_argument('-b', '--bare', **OPTS['bare'])
     'bare': dict(
         action='store_true',
@@ -168,6 +174,29 @@ def _suffixed(outputname, inputname, suffix, ext=None):
         return f'{p.stem}_{suffix}{ext or p.suffix}'
     else:
         return f'{p.stem}_{suffix}'
+
+
+def _to_file(options, data, header='', labels=(), fmt='%.4f', fp=None):
+    if fp is None:
+        fp = _suffixed(options.outputfile, options.inputfile, options.suffix)
+
+    if isinstance(data, dict):
+        labels = labels or list(data.keys())
+        data = np.vstack(list(data.values())).T
+
+    if options.bare:
+        np.savetxt(fp, data, fmt=fmt)
+    else:
+        header = f'{header} - {TIME} {INFO}' if header else f'{TIME} {INFO}'
+        labels = '  '.join(labels) if not isinstance(labels, str) else labels
+        if options.headers:
+            header = labels or header
+            comments = ''
+        else:
+            header += f'\n{labels}' if labels else ''
+            comments = '#'
+        np.savetxt(fp, data, fmt=fmt, header=header, comments=comments)
+    return fp
 
 
 def do_help():
@@ -890,11 +919,13 @@ def do_band(args=None):
             based on your supplied data.
             ''')
         )
+
+    parser.add_argument('-H', '--headers', **OPTS['headers'])
     
     parser.add_argument('-b', '--bare', **OPTS['bare'])
     
     parser.add_argument('-g', '--group', default='STCN',
-        help='Group identifiers for paired data (default: STCN)')
+        help='Group identifiers for input data (default: STCN)')
     
     parser.add_argument('-G', '--gap', type=float, default=None,
         help='Bandgap in eV. Defaults to None, indicating the '\
@@ -939,7 +970,9 @@ def do_band(args=None):
     
     # parse inp. and do exec.
     dataSTCN = alldata.gget('STCN', default=None)
-    inp = {k:v for k,v in zip('STCN', dataSTCN) if v is not None}
+    inp = {k:np.absolute(v) for k,v in zip('STCN', dataSTCN) if v is not None}
+    logger.info('Read %s successfully', ', '.join(f'data{k}' for k in inp))
+    logger.debug('Parsed data:\n%s', str(inp))
     out = model.execute(**{f'data{k}':v for k, v in inp.items()})
     
     # retain properties
@@ -948,19 +981,12 @@ def do_band(args=None):
         out.retain(props.strip().split(), match_order=True)
     logger.info(f'Output properties: {list(out.keys())}')
 
-    if options.bare:
-        comment = ''
-    else:
+    if not options.bare:
         out.update(inp)
         for prop in reversed('STCN'):
             if prop in inp:
                 out.move_to_end(prop, last=False)
-        comment = f"Modeling carrier transport - {TIME} {INFO}\n"\
-                  f"{'  '.join(out.keys())}"
-    outdata = np.vstack(list(out.values())).T
-    
-    outputfile = _suffixed(options.outputfile, inputfile, options.suffix)
-    np.savetxt(outputfile, outdata, fmt='%.4f', header=comment)
+    outputfile = _to_file(options, out, header='Modeling carrier transport')
     logger.info(f'Save model data to {outputfile} (Done)')
 
 
@@ -973,6 +999,8 @@ def do_kappa(args=None):
         prog=f'{CMD}-{task}',
         description=f'{DESC} - {INFO}',
         epilog=FOOTNOTE)
+
+    parser.add_argument('-H', '--headers', **OPTS['headers'])
 
     parser.add_argument('-b', '--bare', **OPTS['bare'])
 
@@ -1028,39 +1056,31 @@ def do_kappa(args=None):
     yi = np.atleast_2d(results['predY'])
     labels = ['Xcolumn',] + results['predL']
     data = np.vstack([xi, yi])
-    softinfo = f'Predict kappa - {TIME} {INFO}\n{" ".join(labels)}'
-    comment = '' if options.bare else softinfo
-    np.savetxt(outputf, data.T, fmt='%.6f', header=comment)
+    _to_file(options, data.T, 'Predict kappa', labels, fmt='%.6f', fp=outputf)
     logger.info(f'Save predict kappa to {outputf}')
     if 'rateX' in results:
         xi = np.atleast_2d(results['rateX'])
         yi = np.atleast_2d(results['rateY'])
         labels = ['freq',] + results['rateL']
         data = np.vstack([xi, yi])
-        softinfo = f'Scattering rate - {TIME} {INFO}\n{" ".join(labels)}'
-        comment = '' if options.bare else softinfo
         output_rate = _suffixed(None, outputf, 'rate')
-        np.savetxt(output_rate, data.T, fmt='%.6f', header=comment)
+        _to_file(options, data.T, 'Scattering rate', labels, fmt='%.6f', fp=output_rate)
         logger.info(f'Save scattering rate to {output_rate}')
     if 'specX' in results:
         xi = np.atleast_2d(results['specX'])
         yi = np.atleast_2d(results['specY'])
         labels = ['freq',] + results['specL']
         data = np.vstack([xi, yi])
-        softinfo = f'Spectral kappa - {TIME} {INFO}\n{" ".join(labels)}'
-        comment = '' if options.bare else softinfo
         output_spec = _suffixed(None, outputf, 'spec')
-        np.savetxt(output_spec, data.T, fmt='%.6f', header=comment)
+        _to_file(options, data.T, 'Spectral kappa', labels, fmt='%.6f', fp=output_spec)
         logger.info(f'Save spectral kappa to {output_spec}')
     if 'cumuX' in results:
         xi = np.atleast_2d(results['cumuX'])
         yi = np.atleast_2d(results['cumuY'])
         labels = ['mfp',] + results['cumuL']
         data = np.vstack([xi, yi])
-        softinfo = f'Cumulative kappa - {TIME} {INFO}\n{" ".join(labels)}'
-        comment = '' if options.bare else softinfo
         output_cumu = _suffixed(None, outputf, 'cumu')
-        np.savetxt(output_cumu, data.T, fmt='%.6f', header=comment)
+        _to_file(options, data.T, 'Cumulative kappa', labels, fmt='%.6f', fp=output_cumu)
         logger.info(f'Save cumulative kappa to {output_cumu}')
     if results.get('subs', None):
         output_subs = _suffixed(None, outputf, 'subs', '.cfg')
