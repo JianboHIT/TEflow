@@ -294,6 +294,8 @@ class KappaDebye(BaseKappaModel):
                     f'{__name__}.BaseKappaModel',
                 ])
                 raise NotImplementedError(f'Supported objects: {objs}')
+        if not scattering:
+            raise ValueError('No scattering mechanism is provided')
         self._scattering = scattering
         self._additional = additional
     
