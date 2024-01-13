@@ -1198,9 +1198,8 @@ class KappaKlemens(BaseKappaModel):
         return factor * X * (1-X)
 
     def __call__(self, X):
-        u = np.sqrt(self.u2(X))
-        ratio = np.where(np.abs(u) < 1E-6, 1, np.arctan(u)/u)
-        return self.paras['Kpure'] * ratio
+        u = np.sqrt(np.maximum(self.u2(X), 1E-12))
+        return self.paras['Kpure'] * np.arctan(u)/u
 
     def _cal(self, X, *args):
         '''
