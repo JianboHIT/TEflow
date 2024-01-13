@@ -1128,12 +1128,12 @@ class KappaPowerLaw(BaseKappaModel):
     '''
     .. math:: 
     
-        \\kappa = \\kappa_{amb} \\left ( \\frac{T_{amb}}{T} \\right ) ^n
+        \\kappa = \\kappa_{amb} \\left ( \\frac{T}{T_{amb}} \\right ) ^n
                   + \\kappa_0 \\text{, where } T_{amb} = 300 K
         
     '''
     tag = 'POWERLAW'
-    def __init__(self, Kamb, n=1, K0=0):
+    def __init__(self, Kamb, n=-1, K0=0):
         '''
         Parameters
         ----------
@@ -1142,14 +1142,14 @@ class KappaPowerLaw(BaseKappaModel):
             corresponds to the thermal conductivity at the ambient temperature
             (300 K) with the background offset excluded.
         n : float, optional
-            The exponent in the expression, by default 1.
+            The exponent in the expression, by default -1.
         K0 : float, optional
             Background offset (:math:`\\kappa_0`), by default 0.
         '''
         super().__init__(Kamb=Kamb, n=n, K0=K0)
     
     def __call__(self, T):
-        pow = np.power(np.divide(300, T), self.paras['n'])
+        pow = np.float_power(np.divide(T, 300), self.paras['n'])
         return self.paras['Kamb'] * pow + self.paras['K0']
 
 
