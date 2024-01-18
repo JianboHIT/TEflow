@@ -755,6 +755,85 @@ class Nanoparticles(BaseScattering):
         return geom * ratio/(1+ratio)
 
 
+class Dislocations(BaseScattering):
+    '''
+    .. math::
+
+        \\tau_i^{-1} = \\tau_{DC}^{-1} + \\tau_{DS}^{-1}
+
+    .. math::
+
+        \\tau_{DC}^{-1} = \\alpha N_d \\frac{V_a^{4/3}}{v_s^2} \\omega^3
+
+    .. math::
+
+        \\tau_{DS}^{-1} = \\frac{2^{11/2}}{3^{7/2}} \\alpha F N_d B_d^2 \\gamma^2 \\omega
+
+    .. math::
+
+        F = \\frac{1}{2} + \\frac{1}{24} \\left( \\frac{1-2\\mu}{1-\\mu} \\right)^2
+            \\left[ 1 + \\sqrt{2} \\left( \\frac{v_1}{v_2} \\right)^2 \\right]^2
+
+    Hints:
+
+    1. :math:`\\alpha` is a weight factor to account for the mutual orientation of the
+    direction of the temperature gradient and the dislocation line. For dislocations
+    perpendicular to the temperature gradient :math:`\\alpha=1`, while for those parallel
+    to the gradient :math:`\\alpha=0`. If dislocation lines are orientated at random with
+    respect to the temperature gradient, the average value found by integration is
+    :math:`\\alpha=0.55` (ref: P. G. Klemens, Proc. Phys. Soc. A 68 1113, 1955).
+
+    2. Note that the parameter :math:`F` is directly determined by the Poisson's ratio
+    (:math:`\\mu`) and the ratio of longitudinal to transverse sound velocities
+    (:math:`{v_1}/{v_2}`). To simplify further, we can consider the relationship
+    :math:`\\left( {v_1}/{v_2} \\right)^2 = ({2-2\\mu})/({1-2\\mu})`.
+    For common bulk materials, :math:`\\mu` typically ranges between 1/5 and 1/3,
+    corresponding to :math:`F` values between 0.962 and 1.034. Therefore, in the absence
+    of detailed material properties, it is reasonable to approximate :math:`F` as 1.
+
+    3. In the expression for :math:`\\tau_{DS}^{-1}`, representing phonon scattering by the
+    static strain field, the constant of proportionality has seen variations in Klement's research.
+    In the original 1955 publication (P. G. Klemens, Proc. Phys. Soc. A 68 1113, 1955),
+    the value was calculated to be :math:`2^{3/2}/3^{7/2}(\\approx 0.06)`.
+    This was subsequently revised in 1958 by a factor of 16, resulting in
+    :math:`2^{11/2}/3^{7/2}(\\approx 0.97)`, primarily to address the underestimation
+    of the dislocation strain field in the initial value
+    (P. G. Klemens, Solid State Phys. Adv. Res. Appl. 7, 1-98, 1958).
+    In the current program, the revised value is adopted.
+    If different considerations are required, the magnitude of :math:`\\tau_{DS}^{-1}`
+    can be directly adjusted by modifying the parameter :math:`F`.
+    '''
+    tag = 'DL'
+    def __init__(self, Nd, vs, Va, Bd, gm, F=1, alpha=0.55):
+        '''
+        Parameters
+        ----------
+        Nd : float
+            The number of dislocation lines per unit area (:math:`N_d`),
+            in 1E10 cm^(-2).
+        vs : float
+            Average sound velocity (:math:`v_s`), in km/s.
+        Va : float
+            Average volume per atom (:math:`V_a`), in cubic angstroms (A^3).
+        Bd : float
+            The magnitudes of Burgers vector (:math:`B_d`), in angstroms.
+        gm : float
+            Effective Gruneisen parameter (:math:`\\gamma`), dimensionless.
+        F : float, optional
+            A material-dependent parameter (:math:`F`), by default 1.
+        alpha : float, optional
+            The weight factor (:math:`\\alpha`), by default 0.55.
+        '''
+        super().__init__(Nd=Nd, vs=vs, Va=Va, Bd=Bd, gm=gm, F=F, alpha=alpha)
+
+    def __call__(self, w, T):
+        C = 0.9676996514698976      # constant np.power(2, 11/2)/np.power(3, 7/2)
+        w, _ = np.broadcast_arrays(w, T)
+        DC = 1E-8*np.power(self.paras['Va'], 4/3)/self.paras['vs']*np.power(w, 3)
+        DS = 1E-6*np.power(self.paras['Bd']*self.paras['gm'], 2) * w
+        return self.paras['alpha']*self.paras['Nd']*(DC + C*self.paras['F']*DS)
+
+
 class CahillScattering(BaseScattering):
     '''
     .. math::
@@ -1011,6 +1090,10 @@ EXECMETA = {
     'NP': ExecWrapper(Nanoparticles,
         args=['vs', 'R', 'phi', 'D0', 'D1',],
         opts=['Y0', 'Y1', 'zeta',],
+    ),
+    'DL': ExecWrapper(Dislocations,
+        args=['Nd', 'vs', 'Va', 'Bd', 'gm',],
+        opts=['F', 'alpha',],
     ),
     'CAHILL': ExecWrapper(CahillScattering,
         opts=['alpha',],
