@@ -834,6 +834,45 @@ class Dislocations(BaseScattering):
         return self.paras['alpha']*self.paras['Nd']*(DC + C*self.paras['F']*DS)
 
 
+class StackingFaults(BaseScattering):
+    '''
+    .. math::
+
+        \\tau_i^{-1} = \\alpha N_{sf} \\frac{V_a^{2/3}}{v_s} \\gamma^2 \\omega^2
+
+    Hint: The constant of proportionality (:math:`\\alpha`) varies
+    across different publications. In the original 1957 publication
+    (P. G. Klemens, Can. J. Phys., 35 441, 1957), the value was derived as
+    :math:`1/18 \\times 4/3 (\\approx 0.074)`. This value was later revised
+    to 0.7 (P. G. Klemens, Solid State Phys. Adv. Res. Appl. 7, 1-98, 1958),
+    which is also the default value adopted by the current program.
+    '''
+    tag = 'SF'
+    def __init__(self, Nsf, vs, Va, gm, alpha=0.7):
+        '''
+        Parameters
+        ----------
+        Nsf : float
+            The number of stacking faults crossing a line of unit length
+            (:math:`N_{sf}`), in 10^6 m^(-1), also known as 1/um.
+        vs : float
+            Average sound velocity (:math:`v_s`), in km/s.
+        Va : float
+            Average volume per atom (:math:`V_a`), in cubic angstroms (A^3).
+        gm : float
+            Effective Gruneisen parameter (:math:`\\gamma`), dimensionless.
+        alpha : float, optional
+            Dimensionless adjustable parameter (:math:`\\alpha`), by default 0.7.
+        '''
+        super().__init__(Nsf=Nsf, vs=vs, Va=Va, gm=gm, alpha=alpha)
+
+    def __call__(self, w, T):
+        w, _ = np.broadcast_arrays(w, T)
+        return 1E-5 * self.paras['alpha']*self.paras['Nsf']\
+            * np.power(self.paras['Va'], 2/3)/self.paras['vs']\
+            * np.power(self.paras['gm']*w, 2)
+
+
 class CahillScattering(BaseScattering):
     '''
     .. math::
@@ -1094,6 +1133,10 @@ EXECMETA = {
     'DL': ExecWrapper(Dislocations,
         args=['Nd', 'vs', 'Va', 'Bd', 'gm',],
         opts=['F', 'alpha',],
+    ),
+    'SF': ExecWrapper(StackingFaults,
+        args=['Nsf', 'vs', 'Va', 'gm',],
+        opts=['alpha',],
     ),
     'CAHILL': ExecWrapper(CahillScattering,
         opts=['alpha',],
