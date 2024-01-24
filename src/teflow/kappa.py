@@ -873,6 +873,118 @@ class StackingFaults(BaseScattering):
             * np.power(self.paras['gm']*w, 2)
 
 
+class FreeElectrons(BaseScattering):
+    '''
+    .. math::
+
+        \\tau_i^{-1} = \\frac{(E_d m_d^\\ast)^2}{2 \\pi \\hbar^3 D_0 v_s} R_{ep}\\ \\omega
+            = C^\\prime R_{ep} \\ \\omega
+
+    .. math::
+
+        R_{ep} = 1-\\frac{k_BT}{\\hbar \\omega} \\ln
+                \\frac{
+                    1+\\exp[(\\frac{\\hbar^2 \\omega^2}{8m_d^\\ast v_s^2}
+                             + \\frac{1}{2}m_d^\\ast v_s^2
+                             + \\frac{1}{2}\\hbar\\omega - E_F)/k_BT]
+                }{
+                    1+\\exp[(\\frac{\\hbar^2 \\omega^2}{8m_d^\\ast v_s^2}
+                             + \\frac{1}{2}m_d^\\ast v_s^2
+                             - \\frac{1}{2}\\hbar\\omega - E_F)/k_BT]
+                }
+
+    Ref: J. M. Ziman, Philos. Mag. 1, 191, 1956.
+    '''
+    tag = 'EP'
+    def __init__(self, vs=None, md=None, EF=None, Ed=None, D0=None, *, Rep=None, coef=None):
+        '''
+        Parameters
+        ----------
+        vs : float
+            Average sound velocity (:math:`v_s`), in km/s.
+        md : float
+            Density-of-state effective mass (:math:`m_d^\\ast`), in :math:`m_e`.
+        EF : float
+            Fermi energy (:math:`E_F`), in eV.
+        Ed : float
+            Deformation potential (:math:`E_d`), in eV.
+        D0 : float
+            Mass density of the material (:math:`D_0`), in g/cm^3.
+        Rep : float, optional
+            A dimensionless parameter (:math:`R_{ep}`) in the range of (0, 1)
+            related to Fermi level (or doping concentration). At ultra-high
+            carrier concentrations, it tends towards 1. The default is None,
+            indicating that it will be calculated based on Fermi level `EF`.
+            If set, `EF` become non-effective.
+        coef : float, optional
+            A comprehensive adjustable parameter (:math:`C^{\\prime}`).
+            When set, all parameters except `Rep` become non-effective.
+            By default, it is None.
+        '''
+        if coef is None:
+            if Rep is None:
+                if any(v is None for v in [vs, md, EF, Ed, D0]):
+                    raise ValueError('vs, md, EF, Ed, and D0 are required')
+                super().__init__(vs=vs, md=md, EF=EF, Ed=Ed, D0=D0)
+            else:
+                if any(v is None for v in [vs, md, Ed, D0]):
+                    raise ValueError('vs, md, Ed, and D0 are required')
+                super().__init__(vs=vs, md=md, Ed=Ed, D0=D0, Rep=Rep)
+        else:
+            if Rep is None:
+                if any(v is None for v in [vs, md, EF]):
+                    raise ValueError('vs, md, and EF are required')
+                super().__init__(vs=vs, md=md, EF=EF, coef=coef)
+            else:
+                super().__init__(Rep=Rep, coef=coef)
+
+    def __call__(self, w, T):
+        w, T = np.broadcast_arrays(w, T)
+        return self.coef * self.Rep(w, T) * w
+
+    @property
+    def coef(self):
+        '''Value of :math:`C^{\\prime}`'''
+        return self.paras.get('coef') or self._cal_coef()
+
+    def _cal_coef(self):
+        # Ed^2 * md^2 / (2*pi* hbar^3 * D0 * vs)
+        # factor = np.power(1.602176634e-19 * 9.1093837015e-31, 2) \
+        #     / (2*np.pi*np.power(1.054571817e-34, 3)*1e3*1e3) # => 2.89061617105021e-3
+        return 2.89061617105021e-3 \
+            * np.power(self.paras['Ed']*self.paras['md'],2) \
+            / (self.paras['D0']*self.paras['vs'])
+
+    def Rep(self, w, T):
+        '''Returen the provided `Rep`, or the value calculated by `EF` if not provided.'''
+        return self.paras.get('Rep') or self._cal_Rep(w, T)
+
+    def _cal_Rep(self, w, T):
+        md, vs = self.paras['md'], self.paras['vs']
+        w, T = np.broadcast_arrays(np.maximum(w, 1E-6), T)
+
+        ###### x = (hbar*w) / (kB*T)
+        # hbar/kB * 1E12 = 7.638232577577646
+        x = 7.638232577577646 * w/T
+
+        ###### Tele = EF/kB
+        # kB / q = 8.617333262145179e-05
+        Tele = np.divide(self.paras['EF'], 8.617333262145179e-05) # EF/(kB)
+
+        ###### Tph hbar^2 * w^2 / (4^2 * 1/2 * m_d * vs^2 * kB) + 1/2 * m_d * vs^2 / kB
+        ### => (hbar * w / 4 / kB)^2 / (Emv/kB) + (Emv/kB)
+        # 1/2 * 9.1093837015e-31 * 1e3 * 1e3 / 1.380649e-23 # => 0.03298949878462954
+        Tmv = 0.03298949878462954 * np.multiply(md, np.power(vs, 2))
+        # np.power(1.054571817e-34/(4*1.380649e-23) * 1E12, 2) # => 3.6464123068230276
+        Thw = 3.6464123068230276 * np.power(w, 2)
+        Tph = Thw/Tmv + Tmv    # in K
+
+        # y = (Tph - Tele) / T
+        # return 1-1/x*np.log((1+np.exp(y+x/2))/(1+np.exp(y-x/2)))
+        p = np.exp(np.minimum((Tph - Tele) / T, 23))    # p < 1E10
+        return np.log((np.exp(x/2)+p)/(np.exp(-x/2)+p))/x
+
+
 class CahillScattering(BaseScattering):
     '''
     .. math::
@@ -1137,6 +1249,18 @@ EXECMETA = {
     'SF': ExecWrapper(StackingFaults,
         args=['Nsf', 'vs', 'Va', 'gm',],
         opts=['alpha',],
+    ),
+    'EP': ExecWrapper(FreeElectrons,
+        args=['vs', 'md', 'EF', 'Ed', 'D0',],
+    ),
+    'EPR': ExecWrapper(FreeElectrons,
+        args=['vs', 'md', 'Ed', 'D0', 'Rep',],
+    ),
+    'EPX': ExecWrapper(FreeElectrons,
+        args=['vs', 'md', 'EF', 'coef',],
+    ),
+    'EPRX': ExecWrapper(FreeElectrons,
+        args=['Rep', 'coef',],
     ),
     'CAHILL': ExecWrapper(CahillScattering,
         opts=['alpha',],
