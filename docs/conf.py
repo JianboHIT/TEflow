@@ -7,8 +7,8 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'TEflow'
-copyright = '2023, Jianbo, ZHU'
-author = 'Jianbo, ZHU'
+copyright = '2023-2024 Jianbo ZHU'
+author = 'Jianbo ZHU'
 
 # sphinx-apidoc -e --tocfile index -o api_doc/ ../../src/teflow/
 

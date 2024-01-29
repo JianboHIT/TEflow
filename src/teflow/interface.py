@@ -1,4 +1,4 @@
-#   Copyright 2023 Jianbo ZHU
+#   Copyright 2023-2024 Jianbo ZHU
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ from .utils import get_pkg_name, get_root_logger
 # dprint = print      # for debug using
 
 CMD = 'tef'
-CPR = 'Copyright 2023 Jianbo ZHU'
+CPR = 'Copyright 2023-2024 Jianbo ZHU'
 PKG = get_pkg_name().replace('te', 'TE')
 VISION = __version__
 INFO = f'{PKG}({VISION})'
