@@ -22,7 +22,7 @@ from scipy.optimize import curve_fit
 from scipy.integrate import cumtrapz
 import numpy as np
 
-from .analysis import vquad
+from .mathext import vquad
 from .utils import AttrDict, ExecWrapper, CfgParser
 
 logger = logging.getLogger(__name__)

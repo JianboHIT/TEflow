@@ -8,12 +8,12 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
-   teflow.analysis
    teflow.bandlib
    teflow.engout
    teflow.interface
    teflow.kappa
    teflow.loader
+   teflow.mathext
    teflow.utils
    teflow.ztdev
 

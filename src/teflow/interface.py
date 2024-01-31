@@ -205,7 +205,7 @@ def do_help():
 
 
 def do_interp(args=None):
-    from .analysis import interp
+    from .mathext import interp
     
     task = 'interp'
     DESC = DESCRIPTION[task]
@@ -322,7 +322,7 @@ def do_interp(args=None):
     
 
 def do_mixing(args=None):
-    from .analysis import mixing
+    from .mathext import mixing
     
     task = 'mixing'
     DESC = DESCRIPTION[task]
@@ -595,7 +595,7 @@ def do_engout(args=None):
 
 def do_format(args=None):
     from .loader import TEdataset
-    from .analysis import interp
+    from .mathext import interp
     from .utils import AttrDict
     
     task = 'format'
@@ -740,8 +740,8 @@ def do_format(args=None):
 
 def do_cutoff(args=None):
     # >>>>> import when necessary <<<<<<
-    # from .analysis import boltzmann
-    # from .analysis import smoothstep
+    # from .mathext import boltzmann
+    # from .mathext import smoothstep
     
     task = 'cutoff'
     DESC = DESCRIPTION[task]
@@ -794,12 +794,12 @@ def do_cutoff(args=None):
     wd = options.width / 2  # half width, i.e. from 0 to bound
     method = options.method.lower()
     if method in {'bz', 'boltzmann'}:
-        from .analysis import boltzmann
+        from .mathext import boltzmann
 
         factor = boltzmann(5*(x-tc)/wd)
         method = 'Boltzmann'
     elif method in {'ss', 'smoothstep'}:
-        from .analysis import smoothstep
+        from .mathext import smoothstep
 
         factor = smoothstep((x-tc)/wd)
         method = 'SmoothStep'

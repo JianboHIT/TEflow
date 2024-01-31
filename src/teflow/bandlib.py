@@ -18,7 +18,7 @@ from scipy.integrate import romb
 from scipy.optimize import root_scalar
 import numpy as np
 
-from .analysis import vquad
+from .mathext import vquad
 from .utils import AttrDict, ExecWrapper, CfgParser
 
 logger = logging.getLogger(__name__)
