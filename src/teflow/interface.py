@@ -740,7 +740,7 @@ def do_format(args=None):
 
 def do_cutoff(args=None):
     # >>>>> import when necessary <<<<<<
-    # from .mathext import boltzmann
+    # from .mathext import fermidirac
     # from .mathext import smoothstep
     
     task = 'cutoff'
@@ -761,7 +761,7 @@ def do_cutoff(args=None):
         help='Output concerned columns, without header')
     
     parser.add_argument('-m', '--method', default='bz',
-        help='Cut-off method (Boltzmann[bz], smoothstep[ss], default: bz)')
+        help='Cut-off method (FermiDirac[fd], smoothstep[ss], default: fd)')
     
     parser.add_argument('-c', '--column', metavar='COLUMN',
         help="Indexes of columns which are tailored (default: '1 2 .. N')")
@@ -787,17 +787,17 @@ def do_cutoff(args=None):
     logger.debug(f'Parse output filename: {outputfile}')
     
     # check method
-    _METHODS = {'bz', 'boltzmann', 
+    _METHODS = {'fd', 'Fermi-Dirac',
                 'ss', 'smoothstep'}
     x = datas[:, 0:1]
     tc = options.t_cut
     wd = options.width / 2  # half width, i.e. from 0 to bound
     method = options.method.lower()
-    if method in {'bz', 'boltzmann'}:
-        from .mathext import boltzmann
+    if method in {'fd', 'fermi-dirac', 'fermidirac'}:
+        from .mathext import fermidirac
 
-        factor = boltzmann(5*(x-tc)/wd)
-        method = 'Boltzmann'
+        factor = fermidirac(5*(x-tc)/wd)
+        method = 'FermiDirac'
     elif method in {'ss', 'smoothstep'}:
         from .mathext import smoothstep
 

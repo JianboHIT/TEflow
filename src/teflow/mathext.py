@@ -14,6 +14,7 @@
 
 import numpy as np
 from numpy.polynomial import Polynomial as Poly
+from scipy.special import expit, logit
 from scipy.interpolate import interp1d
 from scipy.integrate import quad
 
@@ -111,9 +112,9 @@ def mixing(datas, weight=None, scale=None):
         data += scale * w * d
     return data
 
-def boltzmann(x, inverse=False):
+def fermidirac(x, inverse=False):
     '''
-    Boltzmann function:
+    Fermi-Dirac function:
       1/(1+e^x)
       
     The inverse function:
@@ -122,7 +123,7 @@ def boltzmann(x, inverse=False):
     Parameters
     ----------
     x : array_like
-        Argument of the Boltzmann function
+        Argument of the Fermi-Dirac function
     inverse : bool, optional
         Calculate the value of inverse function, by default False
 
@@ -132,9 +133,9 @@ def boltzmann(x, inverse=False):
         An array of the same shape as x
     '''
     if inverse:
-        return np.log(1/x-1)
+        return (-1)*logit(np.clip(x, 0, 1))
     else:
-        return 1/2*(1-np.tanh(x/2)) # 1/(1+exp(u))
+        return expit((-1)*np.asarray(x))
 
 def smoothstep(x, inverse=False, shift=True): 
     '''
@@ -169,15 +170,17 @@ def smoothstep(x, inverse=False, shift=True):
     '''
     if shift:
         if inverse:
+            x = np.asarray(x)
             return 2*np.sin(np.arcsin(1-2*x)/3)
         else:
-            x = np.minimum(np.maximum(x, -1), 1)
+            x = np.clip(x, -1, 1)
             return (x-1)*(x-1)*(x+2)/4
     else:
         if inverse:
+            x = np.asarray(x)
             return 1/2 - np.sin(np.arcsin(1-2*x)/3)
         else:
-            x = np.minimum(np.maximum(x, 0), 1)
+            x = np.clip(x, 0, 1)
             return x*x*(3-2*x)
 
 def vquad(func, a, b, args=(), *, where=True, fill_value=0, **kwargs):
