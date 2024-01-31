@@ -18,7 +18,7 @@ from scipy.integrate import romb
 from scipy.optimize import root_scalar
 import numpy as np
 
-from .mathext import vquad
+from .mathext import vquad, fermidirac
 from .utils import AttrDict, ExecWrapper, CfgParser
 
 logger = logging.getLogger(__name__)
@@ -83,7 +83,7 @@ def romb_dfx(func, EF, T, k=0, ndiv=6, eps=1E-10):
     k : int
         Exponent of the power term in the Fermi integral, and default is 0.
     ndiv : int
-        Order of extrapolation for Romberg method. Default is 8.
+        Order of extrapolation for Romberg method. Default is 6.
     eps : float
         A tolerance used to prevent the integrand from becoming undefined
         where E=0. Default is 1E-10.
@@ -184,7 +184,7 @@ class BaseBand(ABC):
         '''Carrier concentration, in 1E19 cm^(-3).'''
         # x = E/(kB_eV*T),  E = x*kB_eV*T
         kernel = lambda E, _EF, _T: \
-            self.dos(E) * self.fx((E-_EF)/(kB_eV*_T))
+            self.dos(E) * fermidirac((E-_EF)/(kB_eV*_T))
         sep_point = np.maximum(0, EF)
         left = vquad(kernel, 0, sep_point, args=(EF, T))[0]
         right = vquad(kernel, sep_point, np.inf, args=(EF, T))[0]
@@ -395,36 +395,6 @@ class BaseBand(ABC):
             out = root_scalar(residual, **para)
             return out.root*kB_eV*iT if out.converged else np.nan
         return np.vectorize(_solve)(value, T)
-    
-    @staticmethod
-    def fx(x):
-        '''Reduced Fermi Dirac distribution.'''
-        p = np.tanh(x/2)
-        return 1/2*(1-p)
-    
-    @staticmethod
-    def dfx(x, k=0):
-        '''The derivative of reduced Fermi-Dirac distribution multiplied
-        by the k-th power function.'''
-        k = round(k)
-        p = np.tanh(x/2)
-        if k == 0:
-            return 1/4*(1-p*p)
-        else:
-            return 1/4*(1-p*p) * np.power(x, k)
-
-    @staticmethod
-    def ddfx(x, k=0):
-        '''The derivative of dfx.'''
-        x = np.asarray(x)
-        k = round(k)
-        p = np.tanh(x/2)
-        if k == 0:
-            return 1/4*(1-p*p) * (-p)
-        elif k == 1:
-            return 1/4*(1-p*p) * (1-x*p)
-        else:
-            return 1/4*(1-p*p) * (k-x*p)*np.power(x, k-1)
 
 
 class MultiBand(BaseBand):
