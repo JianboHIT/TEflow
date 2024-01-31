@@ -594,7 +594,9 @@ def do_engout(args=None):
 
 
 def do_format(args=None):
-    from .analysis import parse_TEdatas, interp
+    from .loader import TEdataset
+    from .analysis import interp
+    from .utils import AttrDict
     
     task = 'format'
     DESC = DESCRIPTION[task]
@@ -616,6 +618,8 @@ def do_format(args=None):
             '''
         )
     )
+
+    parser.add_argument('-H', '--headers', **OPTS['headers'])
     
     parser.add_argument('-b', '--bare', **OPTS['bare'])
     
@@ -630,10 +634,13 @@ def do_format(args=None):
         help="Interpolation method, only 'linear' and 'cubic' allowed "\
              '(default: cubic)')
 
-    parser.add_argument('-D', '--temperature-step',
-        type=float, default=25, metavar='TSTEP',
+    parser.add_argument('--tstep', type=float, default=25,
         help='Specify the increment (in Kelvin) for the auto temperature '\
              'series. (default: 25)')
+
+    parser.add_argument('--tmax', type=float, default=None,
+        help='Specify the maximum (in Kelvin) for the auto temperature '\
+             'series. (default: Tmax in inputfile)')
 
     parser.add_argument('-g', '--group', default='TCTSTK', 
         help='Group identifiers for paired data (e.g. TCTSTK, TCSK, '\
@@ -647,47 +654,28 @@ def do_format(args=None):
     # logger = get_root_logger(level=10, fmt=LOG_FMT)
     logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
     logger.info(f'{DESC} - {TIME}')
-    
+
     # read origin data
-    _SEPS = [('whitespace', None),
-             ('comma', ','),
-             ('tab', '\t')]
     inputfile = options.inputfile
-    for name, sep in _SEPS:
-        try:
-            logger.debug(f'Using {name} as delimiter to read data')
-            datas = np.genfromtxt(inputfile, delimiter=sep, unpack=True, ndmin=2)
-            if np.all(np.isnan(datas)):
-                raise ValueError('Failed to split up the data')
-        except Exception:
-            logger.debug(f"Failed to read data from file")
-        else:
-            logger.info(f"Read data from {inputfile} successfully")
-            datas_fmt = np.array_str(datas.T, max_line_width=78, precision=2)
-            logger.debug(f"Data details: \n{datas_fmt}")
-            break
-    else:
-        raise IOError(f'Failed to read datas from {inputfile}')
-    
-    # parse TEdatas
     group = options.group
-    TEdatas = parse_TEdatas(datas=datas, group=group)
-    logger.info(f"Column identifiers: {', '.join(group)}")
-    logger.info('Parse thermoelectric properties and corresponding temperatures')
-    
+    logger.info(f"Column identifiers: {', '.join(TEdataset.parse_group(group))}")
+    TEdatax = TEdataset.from_file(inputfile, group, independent=False)
+    logger.info(f'Load input data from {inputfile} successfully')
+    logger.debug(f'Details of {str(TEdatax)}')
+
     # parse outputfile name
     outputfile = _suffixed(options.outputfile, inputfile, options.suffix)
     logger.debug(f'Parse output filename: {outputfile}')
-    
+
     # read temperatures
     try:
         T, *_ = np.loadtxt(outputfile, unpack=True, ndmin=2)
     except IOError:
         # failed to read temperatures and set them automatically
         logger.info(f'Failed to read temperatures from {outputfile}')
-        
-        t_step = options.temperature_step
-        t_max = max(TEdatas[pp][0].max() for pp in ('C', 'S', 'K'))
+
+        t_step = options.tstep
+        t_max = options.tmax or max(T.max() for T, *_ in TEdatax.values())
         if t_step > 23:
             t_num = round((t_max-323)/t_step)+1
             T = np.array([300, ] + [323+i*t_step for i in range(t_num)])
@@ -696,15 +684,15 @@ def do_format(args=None):
             t_sum = round((t_max-300)/t_step)+1
             T = np.array([300+i*t_step for i in range(t_sum)])
             logger.debug(f'Temperatures: 300, {300+t_step}, ..., {T[-1]}')
-        logger.info('Generate temperatures automatically where '
-                    f'Tmax = {T[-1]:g} K and Tstep = {t_step:g} K')
-    except Exception as err:
+        logger.info('Generate temperatures: '
+                    f'Tmax = {T[-1]:g} K, Tstep = {t_step:g} K')
+    except Exception:
         # catch other error
         logger.error('Failed to read/generate temperatures.\n')
-        raise(err)
+        raise
     else:
         logger.info(f'Read temperatures from {outputfile}')
-    
+
     # check method and interp
     _METHODS = {'linear', 'cubic',}
     method = options.method.lower()
@@ -713,28 +701,27 @@ def do_format(args=None):
         logger.error(f'Now is {method}, '
                      f'but methods shown below are allowed: \n{_METHODS}\n')
         raise ValueError("Value of 'method' is invalid.")
-    fdata = [T, ]
-    for pp in ('C', 'S', 'K'):
-        fdata.append(interp(*TEdatas[pp], T, method=method))
-    
+
+    out = AttrDict(T=T)
+    for prop in ('C', 'S', 'K'):
+        tx, px = TEdatax.get(prop, None)
+        if px is not None:
+            out[prop] = interp(tx, px, T, method=method)
+    logger.info('Fetch and interpolate: %s', ', '.join(out.keys()))
+
     # calculate PF, ZT and PF
-    props = ['T', 'C', 'S', 'K']
     if options.calculate:
         from scipy.integrate import cumtrapz
-        
-        props.extend(['PF', 'ZT', 'ZTave', 'CF'])
-        # props.extend(['PF', 'ZT', 'ZTave_H', 'ZTave_C', 'CF'])
-        
-        fdata.append(fdata[1]*fdata[2]*fdata[2]*1E-6) # PF
-        fdata.append(fdata[4]/fdata[3]*fdata[0]*1E-4) # ZT
-        RTh = cumtrapz(1E4/fdata[1], fdata[0], initial=0)
-        STh = cumtrapz(fdata[2], fdata[0], initial=0)
-        KTh = cumtrapz(fdata[3], fdata[0], initial=0)
-        TTh = (fdata[0][0]+fdata[0])/2
-        ZTave_H = np.divide(1E-6*np.power(STh, 2)*TTh, RTh*KTh, 
-                            out=1.0*fdata[5],
-                            where=(np.abs(KTh)>1E-3))
-        fdata.append(ZTave_H)
+
+        out['PF'] = 1E-6 * out['C']*out['S']*out['S']
+        out['ZT'] = 1E-4 * out['PF']/out['K']*out['T']
+        RTh = cumtrapz(1E4/out['C'], out['T'], initial=0)
+        STh = cumtrapz(out['S'], out['T'], initial=0)
+        KTh = cumtrapz(out['K'], out['T'], initial=0)
+        TTh = (out['T'][0]+out['T'])/2
+        out['ZTave'] = np.divide(1E-6*np.power(STh, 2)*TTh, RTh*KTh, 
+                                 out=out['ZT'],
+                                 where=(np.abs(KTh)>1E-3))
         # RTc = RTh[-1]-RTh
         # STc = STh[-1]-STh
         # KTc = KTh[-1]-KTh
@@ -743,15 +730,12 @@ def do_format(args=None):
         #                     out=1.0*fdata[5],
         #                     where=(np.abs(KTc)>1E-3))
         # fdata.append(ZTave_C)
-        fdata.append(1E6*(np.sqrt(1+fdata[5])-1)/(fdata[0]*fdata[2]))
+        out['CF'] = 1E6 * (np.sqrt(1+out['ZT'])-1)/(out['S']*out['T'])
         logger.info('Calculate thermoelectric PF, ZT, etc')
-    pp_fmt = ', '.join(props)
-    
-    # data result
-    softinfo = f"Formated TE data - {TIME} {INFO}\n{pp_fmt}"
-    comment = '' if options.bare else softinfo
-    np.savetxt(outputfile, np.vstack(fdata).T, fmt='%.4f', header=comment)
-    logger.info(f'Save formated data to {outputfile} (Done)')
+
+    # save result
+    _to_file(options, out, header='Formated TE data', fp=outputfile)
+    logger.info(f'Save model data to {outputfile} (Done)')
 
 
 def do_cutoff(args=None):
