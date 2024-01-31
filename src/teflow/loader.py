@@ -13,6 +13,7 @@
 #   limitations under the License.
 
 import re
+from itertools import zip_longest
 from collections.abc import Mapping, Sequence
 
 import numpy as np
@@ -268,5 +269,48 @@ class TEdataset(Mapping):
         Any
             Determined by `output` argument.
         '''
-        data = np.loadtxt(filename, delimiter=delimiter, unpack=True, ndmin=2)
+        try:
+            data = np.loadtxt(filename, delimiter=delimiter, unpack=True, ndmin=2)
+        except ValueError:
+            pass
+        else:
+            # parse blocked data successfully
+            return cls(data=data, group=group, independent=independent)
+
+        # try to parse unblocked data
+        data = []
+        dcp = re.compile(r'^ *(?P<rowline>[^#]+?) *(?=#|$)')
+        dcv = re.compile(delimiter or r'[,;\t]')
+        with open(filename, 'r') as f:
+            for line in f:
+                m = dcp.match(line.rstrip())
+                if not m:
+                    continue
+                row = []
+                for item in dcv.split(m.group('rowline')):
+                    try:
+                        val = float(item)
+                    except ValueError:
+                        val = np.nan
+                    finally:
+                        row.append(val)
+                data.append(row)
+        data = list(zip_longest(*data, fillvalue=np.nan))
+
+        # filter NaNs
+        if independent:
+            nan_filter = lambda x: x[np.isfinite(x)]
+            data = [nan_filter(np.array(line)) for line in data]
+        else:
+            TSYM = cls.TEMPSYMBOL
+            groups = cls.parse_group(group)
+            nan_filter = lambda x: x[:, np.all(np.isfinite(x), axis=0)]
+            itemp = [i for i, s in enumerate(groups) if s == TSYM]
+            if not itemp:
+                raise ValueError(f"Failed to find identifier '{TSYM}' in group")
+            if len(itemp) == 1:
+                data[itemp[0]:] = nan_filter(np.vstack(data[itemp[0]:]))
+            else:
+                for p, q in zip(itemp[:-1], itemp[1:]):
+                    data[p:q] = nan_filter(np.vstack(data[p:q]))
         return cls(data=data, group=group, independent=independent)
