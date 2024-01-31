@@ -13,6 +13,7 @@ Submodules
    teflow.engout
    teflow.interface
    teflow.kappa
+   teflow.loader
    teflow.utils
    teflow.ztdev
 
