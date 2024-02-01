@@ -14,9 +14,167 @@
 
 import re
 from itertools import zip_longest
+from collections import namedtuple
 from collections.abc import Mapping, Sequence
 
 import numpy as np
+
+
+PeriodicTable = namedtuple('PeriodicTable', ['XX',
+    'H' , 'He',
+    'Li', 'Be', 'B' , 'C' , 'N' , 'O' , 'F' , 'Ne',
+    'Na', 'Mg', 'Al', 'Si', 'P' , 'S' , 'Cl', 'Ar',
+    'K' , 'Ca', 'Sc', 'Ti', 'V' , 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn',
+    'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr',
+    'Rb', 'Sr', 'Y' , 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd',
+    'In', 'Sn', 'Sb', 'Te', 'I' , 'Xe',
+    'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy',
+    'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W' , 'Re', 'Os', 'Ir', 'Pt',
+    'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn',
+    'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U' , 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf',
+    'Es', 'Fm', 'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds',
+    'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og',
+])  #: :meta private:
+
+AtomicWeight = PeriodicTable(
+    0,              # 0     XX  PlaceHolder
+    1.00794,        # 1     H_  Hydrogen
+    4.002602,       # 2     He  Helium
+    6.941,          # 3     Li  Lithium
+    9.012182,       # 4     Be  Beryllium
+    10.811,         # 5     B_  Boron
+    12.0107,        # 6     C_  Carbon
+    14.0067,        # 7     N_  Nitrogen
+    15.9994,        # 8     O_  Oxygen
+    18.9984032,     # 9     F_  Fluorine
+    20.1797,        # 10    Ne  Neon
+    22.98976928,    # 11    Na  Sodium
+    24.305,         # 12    Mg  Magnesium
+    26.9815386,     # 13    Al  Aluminum
+    28.0855,        # 14    Si  Silicon
+    30.973762,      # 15    P_  Phosphorus
+    32.065,         # 16    S_  Sulfur
+    35.453,         # 17    Cl  Chlorine
+    39.948,         # 18    Ar  Argon
+    39.0983,        # 19    K_  Potassium
+    40.078,         # 20    Ca  Calcium
+    44.955912,      # 21    Sc  Scandium
+    47.867,         # 22    Ti  Titanium
+    50.9415,        # 23    V_  Vanadium
+    51.9961,        # 24    Cr  Chromium
+    54.938045,      # 25    Mn  Manganese
+    55.845,         # 26    Fe  Iron
+    58.933195,      # 27    Co  Cobalt
+    58.6934,        # 28    Ni  Nickel
+    63.546,         # 29    Cu  Copper
+    65.409,         # 30    Zn  Zinc
+    69.723,         # 31    Ga  Gallium
+    72.64,          # 32    Ge  Germanium
+    74.9216,        # 33    As  Arsenic
+    78.96,          # 34    Se  Selenium
+    79.904,         # 35    Br  Bromine
+    83.798,         # 36    Kr  Krypton
+    85.4678,        # 37    Rb  Rubidium
+    87.62,          # 38    Sr  Strontium
+    88.90585,       # 39    Y_  Yttrium
+    91.224,         # 40    Zr  Zirconium
+    92.90638,       # 41    Nb  Niobium
+    95.94,          # 42    Mo  Molybdenum
+    98.0,           # 43    Tc  Technetium
+    101.07,         # 44    Ru  Ruthenium
+    102.9055,       # 45    Rh  Rhodium
+    106.42,         # 46    Pd  Palladium
+    107.8682,       # 47    Ag  Silver
+    112.411,        # 48    Cd  Cadmium
+    114.818,        # 49    In  Indium
+    118.71,         # 50    Sn  Tin
+    121.76,         # 51    Sb  Antimony
+    127.6,          # 52    Te  Tellurium
+    126.90447,      # 53    I_  Iodine
+    131.293,        # 54    Xe  Xenon
+    132.9054519,    # 55    Cs  Cesium
+    137.327,        # 56    Ba  Barium
+    138.90547,      # 57    La  Lanthanum
+    140.116,        # 58    Ce  Cerium
+    140.90765,      # 59    Pr  Praseodymium
+    144.242,        # 60    Nd  Neodymium
+    145.0,          # 61    Pm  Promethium
+    150.36,         # 62    Sm  Samarium
+    151.964,        # 63    Eu  Europium
+    157.25,         # 64    Gd  Gadolinium
+    158.92535,      # 65    Tb  Terbium
+    162.5,          # 66    Dy  Dysprosium
+    164.93032,      # 67    Ho  Holmium
+    167.259,        # 68    Er  Erbium
+    168.93421,      # 69    Tm  Thulium
+    173.04,         # 70    Yb  Ytterbium
+    174.967,        # 71    Lu  Lutetium
+    178.49,         # 72    Hf  Hafnium
+    180.94788,      # 73    Ta  Tantalum
+    183.84,         # 74    W_  Tungsten
+    186.207,        # 75    Re  Rhenium
+    190.23,         # 76    Os  Osmium
+    192.217,        # 77    Ir  Iridium
+    195.084,        # 78    Pt  Platinum
+    196.966569,     # 79    Au  Gold
+    200.59,         # 80    Hg  Mercury
+    204.3833,       # 81    Tl  Thallium
+    207.2,          # 82    Pb  Lead
+    208.9804,       # 83    Bi  Bismuth
+    210.0,          # 84    Po  Polonium
+    210.0,          # 85    At  Astatine
+    220.0,          # 86    Rn  Radon
+    223.0,          # 87    Fr  Francium
+    226.0,          # 88    Ra  Radium
+    227.0,          # 89    Ac  Actinium
+    232.03806,      # 90    Th  Thorium
+    231.03588,      # 91    Pa  Protactinium
+    238.02891,      # 92    U_  Uranium
+    237.0,          # 93    Np  Neptunium
+    244.0,          # 94    Pu  Plutonium
+    243.0,          # 95    Am  Americium
+    247.0,          # 96    Cm  Curium
+    247.0,          # 97    Bk  Berkelium
+    251.0,          # 98    Cf  Californium
+    252.0,          # 99    Es  Einsteinium
+    257.0,          # 100   Fm  Fermium
+    258.0,          # 101   Md  Mendelevium
+    259.0,          # 102   No  Nobelium
+    262.0,          # 103   Lr  Lawrencium
+    267.0,          # 104   Rf  Rutherfordium
+    268.0,          # 105   Db  Dubnium
+    269.0,          # 106   Sg  Seaborgium
+    270.0,          # 107   Bh  Bohrium
+    270.0,          # 108   Hs  Hassium
+    278.0,          # 109   Mt  Meitnerium
+    281.0,          # 110   Ds  Darmstadtium
+    282.0,          # 111   Rg  Roentgenium
+    285.0,          # 112   Cn  Copernicium
+    286.0,          # 113   Nh  Nihonium
+    289.0,          # 114   Fl  Flerovium
+    290.0,          # 115   Mc  Moscovium
+    293.0,          # 116   Lv  Livermorium
+    294.0,          # 117   Ts  Tennessine
+    294.0,          # 118   Og  Oganesson
+)
+'''
+A constant namedtuple storing atomic weights in AMU (from pymatgen).
+This namedtuple can be utilized wherever regular tuples are employed,
+and it adds the capability to access fields by element name in addition
+to position index. Furthermore, a placeholder is stored at index 0 to
+align tuple indices with atomic numbers.
+
+:meta hide-value:
+
+Examples
+--------
+>>> print(AtomicWeight.Ne)
+20.1797
+>>> print(AtomicWeight[10])
+20.1797
+>>> print(getattr(AtomicWeight, 'Ne'))
+20.1797
+'''
 
 
 class TEdataset(Mapping):
