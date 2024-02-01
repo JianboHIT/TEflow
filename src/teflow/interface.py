@@ -657,9 +657,9 @@ def do_format(args=None):
 
     # read origin data
     inputfile = options.inputfile
-    group = options.group
-    logger.info(f"Column identifiers: {', '.join(TEdataset.parse_group(group))}")
-    TEdatax = TEdataset.from_file(inputfile, group, independent=False)
+    group = TEdataset.parse_group(options.group)
+    logger.info(f"Column identifiers: {', '.join(group)}")
+    TEdatax = TEdataset.from_file(inputfile, group)
     logger.info(f'Load input data from {inputfile} successfully')
     logger.debug(f'Details of {str(TEdatax)}')
 
@@ -886,7 +886,7 @@ def do_refine(args=None):
 
 def do_band(args=None):
     from .bandlib import EXECMETA
-    from .loader import TEdataset
+    from .loader import TEdatacol
     
     task = 'band'
     DESC = DESCRIPTION[task]
@@ -946,14 +946,14 @@ def do_band(args=None):
         model.update(Eg=Egap)
         logger.info(f'Using single Kane band (SKB) model where Eg = {Egap} eV.')
     
-    # read alldata and group
+    # read TEdatax and group
     inputfile = options.inputfile
     group = options.group.upper()
-    alldata = TEdataset.from_file(inputfile, group=group, independent=True)
+    TEdatax = TEdatacol.from_file(inputfile, group=group)
     logger.info(f'Loading data from {inputfile} with identifiers: {group}')
     
     # parse inp. and do exec.
-    dataSTCN = alldata.gget('STCN', default=None)
+    dataSTCN = TEdatax.gget('STCN', default=None)
     inp = {k:np.absolute(v) for k,v in zip('STCN', dataSTCN) if v is not None}
     logger.info('Read %s successfully', ', '.join(f'data{k}' for k in inp))
     logger.debug('Parsed data:\n%s', str(inp))
