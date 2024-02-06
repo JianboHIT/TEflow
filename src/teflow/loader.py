@@ -13,11 +13,17 @@
 #   limitations under the License.
 
 import re
+import logging
+from functools import wraps
 from itertools import zip_longest
 from collections import namedtuple
 from collections.abc import Mapping, Sequence
 
 import numpy as np
+
+from .utils import AttrDict, CfgParser
+
+logger = logging.getLogger(__name__)
 
 
 PeriodicTable = namedtuple('PeriodicTable', ['XX',
@@ -481,3 +487,98 @@ class TEdatacol(TEdataset):
     def _nan_filter(cls, data, group):
         myfilter = lambda x: x[np.isfinite(x)]
         return [myfilter(np.array(line)) for line in data]
+
+
+INSTRMETA = AttrDict()
+
+def _registerInstr(name:str, *keys:str):
+    def _decorator(func):
+        @wraps(func)
+        def _wrapedParser(text:str):
+            text = text.strip()
+            if text.startswith('file:'):
+                with open(text[5:].strip(), 'r', errors='ignore') as f:
+                    text = f.read()
+            return func(text)
+        INSTRMETA[name] = (_wrapedParser, keys)
+        return _wrapedParser
+    return _decorator
+
+def _parse_CTA_ZEM(name:str, text:str, identifiers):
+    rawlines = text.split('\n')
+    for idx, line in enumerate(rawlines):
+        if all(i in line for i in identifiers):
+            logger.debug('Find identifiers at line #%d of %s', idx+1, name)
+            break
+    else:
+        logger.debug('Identifiers: (%s)', ', '.join(identifiers))
+        raise IOError(f'Failed to locate identifiers when parsing {name} file.')
+
+    dataT, dataR, dataS = [], [], []
+    for line in rawlines[idx+1:]:
+        values = line.strip().split('\t')
+        if len(values) < 5:
+            continue
+        logger.debug('  %s', '  '.join(values[i] for i in [0, 1, 4]))
+        dataT.append(float(values[0]))
+        dataR.append(float(values[1]))
+        dataS.append(float(values[4]))
+    return AttrDict(T=np.array(dataT), R=np.array(dataR), S=np.array(dataS))
+
+@_registerInstr('CTA', 'T', 'R', 'S')
+def parseCTA(text:str):
+    identifiers = ('Temperature', 'Resistivity', 'Seebeck coefficient')
+    datax = _parse_CTA_ZEM('CTA', text, identifiers)
+    datax['T'] += 273   # degC  --> Kelvin
+    return datax
+
+@_registerInstr('ZEM', 'T', 'R', 'S')
+def parseZEM(text:str):
+    identifiers = ('Measurement temp', 'Resistivity', 'Seebeck coeff')
+    datax = _parse_CTA_ZEM('ZEM', text, identifiers)
+    datax['T'] += 273   # degC  --> Kelvin
+    datax['R'] *= 1E6   # Ohm.m --> uOhm.m
+    datax['S'] *= 1E6   # V/K   --> uV/K
+    return datax
+
+@_registerInstr('LFA', 'T', 'A')
+def parseLFA(text:str):
+    rawlines = text.split('\n')
+    identifier = '##Results'
+    for idx, line in enumerate(rawlines):
+        if line.startswith(identifier):
+            logger.debug('Find identifier at line #%d of %s', idx+1, 'LFA457')
+            idx += 1    # skip title line
+            break
+    else:
+        logger.debug('Identifiers: ', identifier)
+        raise IOError(f'Failed to locate identifier when parsing LFA457 file.')
+
+    dataT, dataA = [], []
+    for line in rawlines[idx+1:]:
+        line =line.strip()
+        if line.startswith('#Mean'):
+            values = line.split(',')
+            if len(values) < 4:
+                continue
+            logger.debug('  %s', '  '.join(values[i] for i in [1, 3]))
+            dataT.append(float(values[1])+273)  # degC  --> Kelvin
+            dataA.append(float(values[3]))      # Diffusivity, in mm^2/s
+    if dataT and dataA:
+        return AttrDict(T=np.array(dataT), A=np.array(dataA))
+    else:
+        logger.debug('Failed to locate #Mean lines, try to parse each line')
+
+    try:
+        for line in rawlines[idx+1:]:
+            line =line.strip()
+            values = line.split(',')
+            if len(values) < 3:
+                continue
+            logger.debug('  %s', '  '.join(values[i] for i in [1, 2]))
+            dataT.append(float(values[1])+273)  # degC  --> Kelvin
+            dataA.append(float(values[2]))      # Diffusivity, in mm^2/s
+    except Exception as e:
+        raise IOError(f'Failed to parse LFA file: {e}')
+    else:
+        return AttrDict(T=np.array(dataT), A=np.array(dataA))
