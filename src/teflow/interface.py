@@ -594,7 +594,7 @@ def do_engout(args=None):
 
 
 def do_format(args=None):
-    from .loader import TEdataset
+    from .loader import TEdataset, INSTRMETA
     from .mathext import interp
     from .utils import AttrDict
     
@@ -606,15 +606,9 @@ def do_format(args=None):
         epilog=FOOTNOTE,
         description=_wraptxt(
             f'{DESC} - {INFO}','''
-            Interpolate thermoelectric properties at various temperatures to
-            align temperature points. This tool offers the flexibility to
-            automatically generate temperature points or to explicitly define
-            them in the output file. Data column attributes can be set using
-            the -g/--group option. Optionally, calculations of thermoelectric
-            properties can be enabled with the -c/--calculate option.
-            Notably, conductivity in the output data is uniformly presented
-            in S/cm. For inputs using resistivity (uOhm.m), specify this with
-            'R' in the -g/--group option.
+            Fetch data from various data file from thermoelectric instruments,
+            or interpolate thermoelectric properties at various temperatures to
+            align temperature points.
             '''
         )
     )
@@ -623,6 +617,14 @@ def do_format(args=None):
     
     parser.add_argument('-b', '--bare', **OPTS['bare'])
     
+    for name, (func, keys) in INSTRMETA.items():
+        parser.add_argument(f'--{name}', action='store_true',
+            help=f'Parse data ({", ".join(keys)}) from a {name} data file')
+
+    parser.add_argument('-a', '--auto-type', action='store_true',
+        help='Automatically detects the data file type, supporting '\
+             f'{", ".join(INSTRMETA.keys())}.')
+
     parser.add_argument('-c', '--calculate', action='store_true', 
         help='Calculate thermoelectric power factor and figure-of-merit')
     
@@ -655,8 +657,38 @@ def do_format(args=None):
     logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
     logger.info(f'{DESC} - {TIME}')
 
-    # read origin data
+    # get input filename
     inputfile = options.inputfile
+
+    # try guess type of instrument file
+    if options.auto_type:
+        dsp = 'Try to parse %s as a %s data file .. %s'
+        for name, (func, keys) in INSTRMETA.items():
+            try:
+                datax = func(f'file: {inputfile}')
+                logger.info(dsp, inputfile, name, 'successfully')
+                logger.debug(f'Fetch ({", ".join(datax.keys())}) from file')
+                fp = _to_file(options, datax, header=f'Formated {name} data')
+                logger.info(f'Save {name} data to {fp} (Done)')
+                return
+            except Exception:
+                logger.info(dsp, inputfile, name, 'failed')
+        else:
+            logger.error('Failed to guess the type of data file! '\
+                'Possibly due to file corruption or an undefined type.')
+            return
+
+    # try parse provided type of instrument file
+    for name, (func, keys) in INSTRMETA.items():
+        if getattr(options, name):
+            logger.info(f'Parse a {name} data file: {inputfile}')
+            datax = func(f'file: {inputfile}')
+            logger.debug(f'Fetch ({", ".join(datax.keys())}) from file')
+            fp = _to_file(options, datax, header=f'Formated {name} data')
+            logger.info(f'Save {name} data to {fp} (Done)')
+            return
+
+    # read normal TE data
     group = TEdataset.parse_group(options.group)
     logger.info(f"Column identifiers: {', '.join(group)}")
     TEdatax = TEdataset.from_file(inputfile, group)
@@ -734,8 +766,8 @@ def do_format(args=None):
         logger.info('Calculate thermoelectric PF, ZT, etc')
 
     # save result
-    _to_file(options, out, header='Formated TE data', fp=outputfile)
-    logger.info(f'Save model data to {outputfile} (Done)')
+    _to_file(options, out, header='Formated thermoelectric data', fp=outputfile)
+    logger.info(f'Save thermoelectric data to {outputfile} (Done)')
 
 
 def do_cutoff(args=None):
