@@ -183,6 +183,79 @@ Examples
 '''
 
 
+class Compound(AttrDict):
+    '''
+    Represents the chemical composition of a compound using an ordered
+    dictionary.
+    '''
+    @property
+    def natom(self):
+        '''
+        int or float: The total number of atoms in the compound. Returns a
+        rounded integer if it is within a 1E-8 tolerance of an integer,
+        otherwise the original exact float.
+        '''
+        n = sum(self.values())
+        n_round = round(n)
+        return n_round if abs(n-n_round) < 1E-8 else n
+
+    @property
+    def weights(self):
+        '''
+        AttrDict: A dictionary mapping elements to atomic weights.
+        '''
+        return AttrDict((key, getattr(AtomicWeight, key)) for key in self)
+
+    @property
+    def weight_ave(self):
+        '''
+        float: Average atomic weight of the compound.
+        '''
+        wtot = sum(n*w for n, w in zip(self.values(), self.weights.values()))
+        return wtot / self.natom
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, fmt='%.9g', style='join', ignore=('1',)):
+        '''
+        Generates a string representation of the compound, with support for
+        'join' (default), 'split', and 'originlab' styles at present.
+        '''
+        dsps = []
+
+        if style in {'origin', 'originlab', 'originpro',}:
+            for name, num in self.items():
+                num_ = fmt % num
+                if num_ in ignore:
+                    dsps.append(name)
+                else:
+                    dsps.append(f'{name}\\-({num_})')
+            return ''.join(dsps)
+
+        for name, num in self.items():
+            num_ = fmt % num
+            if num_ in ignore:
+                dsps.append(name)
+            else:
+                dsps.append(f'{name}{num_}')
+        if style == 'join':
+            return ''.join(dsps)
+        else:
+            return ' '.join(dsps)
+
+    @classmethod
+    def from_string(cls, formula:str):
+        '''Instance construction from a chemical formula.'''
+        comp = cls()
+        dcp = re.compile(r'(?P<name>[A-Z][a-z]?)[ _\-\(\\]*(?P<num>\d*\.?\d*)')
+        for m in dcp.finditer(formula):
+            name = m.group('name')
+            num_ = m.group('num') or '1'
+            comp[name] = float(num_) if '.' in num_ else int(num_)
+        return comp
+
+
 class TEdataset(Mapping):
     '''
     A read-only, dict-like interface class for managing thermoelectric data
