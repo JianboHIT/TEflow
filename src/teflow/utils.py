@@ -70,18 +70,15 @@ def get_logger_handler(kind='CONSOLE', fmt=None, datefmt=None, filename='log.txt
 
 class AttrDict(OrderedDict):
     '''
-    AttrDict is an extension of Python's collections.OrderedDict()
-    that provides additional functionalities. It supports dot access
-    mode for direct attribute access to dictionary keys, as well as
-    other operations such as :meth:`append`, :meth:`extend`,
-    :meth:`merge`, and :meth:`sum`.
-
-    With AttrDict, you can directly access dictionary values using
-    dot notation.
+    A lightweight extended dictionary class, designed to maintain key order
+    and enable attribute-style access via dot notation for a more intuitive
+    interaction.
 
     Examples
     --------
     >>> d = AttrDict({'key1': 'value1'})
+    >>> d['key1']
+    'value1'
     >>> d.key1
     'value1'
 
@@ -120,6 +117,17 @@ class AttrDict(OrderedDict):
         TypeError
             If 'keys' is not an Iterable or not a Sequence when 'match_order'
             is True.
+
+        Examples
+        --------
+        >>> d = AttrDict(b=2, g=3, note='somewhat', c=2)
+        >>> popped = d.retain('abcdefg', match_order=True)
+        >>> # Equivalent to the above:
+        >>> # popped = d.retain(['a','b','c','d','e','f','g'], match_order=True)
+        >>> print(d)
+        AttrDict([('b', 2), ('c', 2), ('g', 3)])
+        >>> print(popped)
+        {'note': 'somewhat'}
         '''
         if not isinstance(keys, Iterable):
             raise TypeError("'keys' must be an Iterable.")
@@ -147,9 +155,16 @@ class AttrDict(OrderedDict):
 
         return popped
     
+
+class ListDict(AttrDict):
+    '''
+    Extends :class:`AttrDict` to include methods for manipulating list
+    values within the dictionary, such as :meth:`append`, :meth:`extend`,
+    :meth:`merge`, and :meth:`sum`.
+    '''
     def append(self, obj):
         '''
-        Append values from another dictionary to the current AttrDict.
+        Append values from another dictionary to the current instance.
 
         Parameters
         ----------
@@ -165,11 +180,11 @@ class AttrDict(OrderedDict):
             for key in self.keys():
                 self[key].append(obj[key])
         else:
-            raise ValueError('Only Dict() object can be appended')
+            raise ValueError('Only dictionaries object can be appended')
     
     def extend(self, obj):
         '''
-        Extend values from another dictionary to the current AttrDict.
+        Extend values from another dictionary to the current instance.
 
         Parameters
         ----------
@@ -185,12 +200,12 @@ class AttrDict(OrderedDict):
             for key in self.keys():
                 self[key].extend(obj[key])
         else:
-            raise ValueError('Only Dict() object can be extended')
+            raise ValueError('Only dictionaries object can be extended')
         
     @classmethod
-    def merge(cls, objs, keys=None, toArray=False):
+    def merge(cls, objs, keys=None, toarray=False):
         '''
-        Merge a list of dictionaries.
+        Merge a list of dictionaries to a new instance.
 
         Parameters
         ----------
@@ -199,12 +214,12 @@ class AttrDict(OrderedDict):
         keys : list of str, optional
             Keys to consider for merging. If not provided, uses keys
             from the first dictionary.
-        toArray : bool, optional
+        toarray : bool, optional
             If True, converts the merged result into a numpy.ndarray.
 
         Returns
         -------
-        AttrDict
+        ListDict
             Merged dictionary.
 
         Raises
@@ -214,26 +229,26 @@ class AttrDict(OrderedDict):
 
         Examples
         --------
-        >>> d1 = AttrDict({'a': 1, 'b': 2})
-        >>> d2 = AttrDict({'a': 3, 'b': 4})
-        >>> merged = AttrDict.merge([d1, d2])
+        >>> d1 = {'a': 1, 'b': 2}
+        >>> d2 = {'a': 3, 'b': 4}
+        >>> merged = ListDict.merge([d1, d2])
         >>> print(merged)
-        {'a': [1, 3], 'b': [2, 4]}
+        ListDict([('a', [1, 3]), ('b', [2, 4])])
         '''
         if not all(isinstance(obj, dict) for obj in objs):
             raise ValueError('Dict() objects are required')
         if keys is None:
             keys = objs[0].keys()
-        if toArray:
-            rst = {key: np.array([obj[key] for obj in objs]) for key in keys}
+        if toarray:
+            rst = [(key, np.array([obj[key] for obj in objs])) for key in keys]
         else:
-            rst = {key: [obj[key] for obj in objs] for key in keys}
+            rst = [(key, [obj[key] for obj in objs]) for key in keys]
         return cls(rst)
     
     @classmethod
     def sum(cls, objs, start=0, keys=None):
         '''
-        Sum values from a list of dictionaries.
+        Sum values from a list of dictionaries to a new instance.
 
         Parameters
         ----------
@@ -247,7 +262,7 @@ class AttrDict(OrderedDict):
 
         Returns
         -------
-        AttrDict
+        ListDict
             Dictionary with summed values.
 
         Raises
@@ -257,17 +272,17 @@ class AttrDict(OrderedDict):
 
         Examples
         --------
-        >>> d1 = AttrDict({'a': 1, 'b': 2})
-        >>> d2 = AttrDict({'a': 3, 'b': 4})
-        >>> summed = AttrDict.sum([d1, d2])
+        >>> d1 = {'a': 1, 'b': 2}
+        >>> d2 = {'a': 3, 'b': 4}
+        >>> summed = ListDict.sum([d1, d2])
         >>> print(summed)
-        {'a': 4, 'b': 6}
+        ListDict([('a', 4), ('b', 6)])
         '''
         if not all(isinstance(obj, dict) for obj in objs):
             raise ValueError('Dict() objects are required')
         if keys is None:
             keys = objs[0].keys()
-        rst = {key: sum((obj[key] for obj in objs), start) for key in keys}
+        rst = [(key, sum((obj[key] for obj in objs), start)) for key in keys]
         return cls(rst)
 
 class Metric():
