@@ -189,7 +189,7 @@ def _to_file(options, data, header='', labels=(), fmt='%.4f', fp=None):
     else:
         header = f'{header} - {TIME} {INFO}' if header else f'{TIME} {INFO}'
         labels = '  '.join(labels) if not isinstance(labels, str) else labels
-        if options.headers:
+        if getattr(options, 'headers', False):
             header = labels or header
             comments = ''
         else:
@@ -205,7 +205,7 @@ def do_help():
 
 
 def do_interp(args=None):
-    from .mathext import interp
+    from .mathext import vinterp
     
     task = 'interp'
     DESC = DESCRIPTION[task]
@@ -225,9 +225,9 @@ def do_interp(args=None):
         help='The method of interpolation and extrapolation \
               (e.g. linear, cubic, poly3, default: linear)')
     
-    parser.add_argument('-e', '--extrapolate', default='auto',
-        help='The strategy to extrapolate points outside the data range \
-              (auto, const, or <value>, default: auto)')
+    parser.add_argument('-e', '--extrapolate', default=None, metavar='VALUE',
+        help='The value of extrapolation for points outside the x range \
+              (default: None)')
     
     parser.add_argument('-n', '--npoints', type=int, default=101,
         help='The number of interpolated data points (default: 101)')
@@ -279,11 +279,10 @@ def do_interp(args=None):
         logger.info(f'Read sampling points from {outputfile}')
 
     # check method
-    _METHODS = {'linear', 'nearest', 'nearest-up', 
-             'zero', 'slinear', 'quadratic', 'cubic', 
-             'previous', 'next',
-             'poly1', 'poly2','poly3','poly4','poly5',}
-    method = options.method.lower()
+    _METHODS = {'linear', 'line', 'cubic', 'pchip', 'Akima',
+                'poly1', 'poly2','poly3','poly4','poly5',
+                'poly6', 'poly7','poly8','poly9',}
+    method = options.method
     if method not in _METHODS:
         logger.error('Failed to recognize the method of interpolation')
         logger.error(f'Now is {method}, '
@@ -291,35 +290,22 @@ def do_interp(args=None):
         raise ValueError("Value of 'method' is invalid.")
     
     # The strategy to extrapolate points outside the data range
-    extrapolate = options.extrapolate.lower()
-    toMerge = (not options.bare)
-    dsp = 'Perform the interpolation operation with %s extrapolation'
-    if extrapolate.startswith('auto'):
-        datas = interp(x, y, x2, method=method, merge=toMerge)
-        logger.info(dsp, 'automatic')
-    elif extrapolate.startswith('const'):
-        y = np.array(y)
-        datas = interp(x, y, x2, method=method, merge=toMerge,
-                       bounds_error=False,
-                       fill_value=(y[:,0], y[:,-1]))
-        logger.info(dsp, 'nearest constant')
+    dsp = f"Perform the interpolation operation with '{method}' method"
+    if method in {'linear', 'line'}:
+        extrapolate = options.extrapolate
+        value = float(extrapolate) if extrapolate else None
+        datas = vinterp(x, y, x2, method=method, left=value, right=value)
+        logger.info(dsp + f' (fallback = {value:.6g}).')
     else:
-        try:
-            value = float(extrapolate)
-        except Exception as err:
-            raise err
-        
-        datas = interp(x, y, x2, method=method, merge=toMerge, 
-                       bounds_error=False,
-                       fill_value=value)
-        logger.info(dsp, f'specified constant ({extrapolate})')
+        datas = vinterp(x, y, x2, method=method)
+        logger.info(dsp)
 
     # data result
-    softinfo = f'Interpolate via {method} method - {TIME} {INFO}'
-    comment = '' if options.bare else softinfo
-    np.savetxt(outputfile, datas.T, fmt='%.4f', header=comment)
-    logger.info(f'Save interpolation results to {outputfile} (Done)')
-    
+    if not options.bare:
+        datas = np.vstack([x2, datas])
+    fp = _to_file(options, datas.T, header=f'Interpolate via {method} method')
+    logger.info(f'Save interpolation results to {fp} (Done)')
+
 
 def do_mixing(args=None):
     from .mathext import mixing
@@ -595,7 +581,7 @@ def do_engout(args=None):
 
 def do_format(args=None):
     from .loader import TEdataset, INSTRMETA
-    from .mathext import interp
+    from .mathext import vinterp
     from .utils import AttrDict
     
     task = 'format'
@@ -738,7 +724,7 @@ def do_format(args=None):
     for prop in ('C', 'S', 'K'):
         tx, px = TEdatax.get(prop, None)
         if px is not None:
-            out[prop] = interp(tx, px, T, method=method)
+            out[prop] = vinterp(tx, px, T, method=method)
     logger.info('Fetch and interpolate: %s', ', '.join(out.keys()))
 
     # calculate PF, ZT and PF
@@ -751,8 +737,8 @@ def do_format(args=None):
         STh = cumtrapz(out['S'], out['T'], initial=0)
         KTh = cumtrapz(out['K'], out['T'], initial=0)
         TTh = (out['T'][0]+out['T'])/2
-        out['ZTave'] = np.divide(1E-6*np.power(STh, 2)*TTh, RTh*KTh, 
-                                 out=out['ZT'],
+        out['ZTave'] = np.divide(1E-6*np.power(STh, 2)*TTh, RTh*KTh,
+                                 out=1.0*out['ZT'],
                                  where=(np.abs(KTh)>1E-3))
         # RTc = RTh[-1]-RTh
         # STc = STh[-1]-STh
