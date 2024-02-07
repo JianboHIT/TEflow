@@ -16,6 +16,7 @@ import numpy as np
 from numpy.polynomial import Polynomial as Poly
 from scipy.special import expit, logit
 from scipy.interpolate import interp1d
+from scipy.interpolate import CubicSpline, PchipInterpolator, Akima1DInterpolator, make_interp_spline
 from scipy.integrate import quad
 
 
@@ -182,6 +183,154 @@ def smoothstep(x, inverse=False, shift=True):
         else:
             x = np.clip(x, 0, 1)
             return x*x*(3-2*x)
+
+def _interpx_extra(x, y, xp, left=None, right=None):
+    # this function does NOT check input, assuming numpy.ndarray inputs.
+    yp = np.interp(xp, x, y, left=left, right=right)
+    idx_left = (xp < x[0])
+    idx_right = (xp > x[-1])
+    if (left is None) and np.any(idx_left):
+        y_left = y[0] + (y[1]-y[0])/(x[1]-x[0]) * (xp[idx_left]-x[0])
+        yp[idx_left] = y_left
+    if (right is None) and np.any(idx_right):
+        y_right = y[-1] + (y[-1]-y[-2])/(x[-1]-x[-2]) * (xp[idx_right]-x[-1])
+        yp[idx_right] = y_right
+    return yp
+
+def interpx(x, y, xp, left=None, right=None):
+    '''
+    Extends :func:`numpy.interp` to perform linear extrapolation for xp values
+    outside the x range, differing from the constant extrapolation with end
+    values or specified fill values used by the original function.
+
+    Parameters
+    ----------
+    x : array_like
+        A 1-dimensional array of x-coordinates of the data points. It must be
+        strictly monotonically increasing and contain at least two elements.
+    y : array_like
+        A 1-dimensional array of y-coordinates corresponding to `x`. The arrays
+        `x` and `y` must have the same length.
+    xp : array_like
+        The x-coordinates at which to interpolate/extrapolate values.
+    left : float, optional
+        Value to return for x < xp[0], default linear extrapolation.
+    right : float, optional
+        Value to return for x > xp[-1], default linear extrapolation.
+
+    Returns
+    -------
+    ndarray
+        Interpolated/extrapolated values at `xp`, with the output shape
+        matching that of `xp`.
+    '''
+    x = np.asarray(x).squeeze()
+    y = np.asarray(y).squeeze()
+    xp = np.asarray(xp)
+    if (x.ndim != 1) or (y.ndim != 1):
+        raise ValueError('Input x and y must both be 1-dimensional.')
+    if x.size < 2:
+        raise ValueError('Input x must contain at least two elements.')
+    return _interpx_extra(x, y, xp, left=left, right=right)
+
+def _interp_vect(vy, vx, xp, method='linear', **kwargs):
+    '''
+    Interpolate points from vx and vy vectors.
+    '''
+    #   linear: _interpx_extra
+    #     line: numpy.interp
+    #  poly<N>: numpy.polynomial.polynomial.Polynomial.fit
+    #    cubic: scipy.interpolate.CubicSpline
+    #    pchip: scipy.interpolate.PchipInterpolator
+    #    Akima: scipy.interpolate.Akima1DInterpolator
+    #   spline: scipy.interpolate.make_interp_spline
+
+    if method == 'linear':
+        return _interpx_extra(vx, vy, xp, **kwargs)
+    elif method == 'line':
+        return np.interp(xp, vx, vy, **kwargs)
+    elif method.lower().startswith('poly'):
+        return Poly.fit(vx, vy, deg=int(method[-1]), **kwargs)(xp)
+    elif method == 'cubic':
+        return CubicSpline(vx, vy, **kwargs)(xp)
+    elif method == 'pchip':
+        return PchipInterpolator(vx, vy, **kwargs)(xp)
+    elif method.lower() == 'akima':
+        return Akima1DInterpolator(vx, vy, **kwargs)(xp)
+    elif method == 'spline':
+        return make_interp_spline(vx, vy, **kwargs)(xp)
+    else:
+        raise ValueError(f"Unsupported interpolation method '{method}'")
+
+def vinterp(x, y, xp, method='linear', reorder=True, **kwargs):
+    '''
+    Vectorized interpolation of values.
+
+    Parameters
+    ----------
+    x : (N,) array_like
+        The x-coordinates of the data points.
+    y : (…,N) array_like
+        The y-coordinates corresponding to x. The length of the last dimension
+        must be the same as x.
+    xp : array_like
+        The x-coordinates at which to evaluate the interpolated values.
+    method : str, optional
+        Specifies the interpolation method to be used. Supported methods include:
+
+        - 'linear' (default): Uses :func:`interpx` for linear interpolation.
+        - 'line': Uses raw :func:`numpy.interp` for linear interpolation.
+        - 'poly<N>': Uses :func:`numpy.polynomial.polynomial.Polynomial.fit`
+          for polynomial interpolation of degree N. Replace <N> with the
+          degree of the polynomial, e.g., 'poly2' for quadratic.
+        - 'cubic': Uses :func:`scipy.interpolate.CubicSpline` for cubic
+          spline interpolation.
+        - 'pchip': Uses :func:`scipy.interpolate.PchipInterpolator` for
+          Piecewise Cubic Hermite Interpolating Polynomial.
+        - 'akima': Uses :func:`scipy.interpolate.Akima1DInterpolator` for
+          Akima interpolation.
+        - 'spline': Uses :func:`scipy.interpolate.make_interp_spline` to
+          customize a B-spline representation of the data.
+    reorder : bool, optional
+        If True (default), automatically reorders `x` and `y` if `x` is not
+        monotonically increasing. If False, an error is raised if `x` is not
+        monotonically increasing.
+    **kwargs : any, optional
+        Additional keyword arguments to be passed to the corresponding
+        interpolation method.
+
+    Returns
+    -------
+    ndarray
+        The interpolated values.
+    '''
+    x = np.asarray(x).squeeze()
+    y = np.asarray(y).squeeze()
+    xp = np.asarray(xp)
+
+    if x.ndim != 1:
+        raise ValueError('Input x must be 1-dimensional after squeezing.')
+
+    if y.shape[-1] != x.size:
+        raise ValueError('The last dimension of y must match the size of x.')
+
+    for arg in (x, y, xp):
+        if not np.all(np.isfinite(arg)):
+            raise ValueError('Inputs must not contain NaN or infinite values.')
+
+    if np.any(np.diff(x) < 0):
+        if reorder:
+            # sort by 'x'
+            sort_idx = np.argsort(x)
+            x = x[sort_idx]
+            y = y[..., sort_idx]
+        else:
+            raise ValueError('Input x must be strictly monotonically '\
+                'increasing. Set reorder=True to enable automatic reordering.')
+
+    return np.apply_along_axis(_interp_vect, axis=-1, arr=y,
+                               vx=x, xp=xp, method=method,
+                               **kwargs)
 
 def vquad(func, a, b, args=(), *, where=True, fill_value=0, **kwargs):
     '''
