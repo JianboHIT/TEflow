@@ -19,28 +19,29 @@ S_ref = np.linspace(2, 400, 200)      # Seebeck coefficient in uV/K
 fileoutput = 'Lorenz_number.txt'
 logger.info(f'Bandgap is set at {Eg} eV')
 
-# slove L from S using SPB model
+# solve L from S using SPB model
 #    In the SPB model, the Lorenz number depends solely on the Seebeck
-#    coefficient. Therefore, we offer a convenient classmethod valuate_L()
-#    for direct calculation.
-L_spb = APSSPB.valuate_L(S_ref)
+#    coefficient. Therefore, the temperature is set to 300 K arbitrarily.
+spb = APSSPB()
+Fermi = spb.solve_EF('S', S_ref, 300)
+L_spb = spb.L(Fermi, 300)
 
 out = [S_ref, L_spb]
 info = f'S(Eg_{Eg}eV)   L-SPB'
-logger.info('Slove L from S using SPB model')
+logger.info('Solve L from S using SPB model')
 
-# slove L at each T using SKB model
+# solve L at each T using SKB model
 #    In the SKB model, the Lorenz number is influenced not just by the
 #    Seebeck coefficient but also by temperature and the bandgap. We
 #    typically start by using the Seebeck coefficient to gauge the Fermi
 #    level. Then, based on that, we determine the Lorenz constant.
 for Temp in T:
     skb = APSSKB(Eg=Eg)
-    Fermi = skb.slove_EF('S', S_ref, Temp)
+    Fermi = skb.solve_EF('S', S_ref, Temp)
     dataL = skb.L(Fermi, Temp)
     out.append(dataL)
     info += f' L-SKB_{Temp}K'
-    logger.info(f'Slove L from S at T={Temp} K using SKB model')
+    logger.info(f'Solve L from S at T={Temp} K using SKB model')
 
 # write results to file
 out = np.transpose(np.array(out))
