@@ -20,13 +20,13 @@ from datetime import datetime
 import numpy as np
 
 from ._version import __version__
-from .utils import get_pkg_name, get_root_logger
+from .utils import get_root_logger
 
 # dprint = print      # for debug using
 
 CMD = 'tef'
 CPR = 'Copyright 2023-2024 Jianbo ZHU'
-PKG = get_pkg_name().replace('te', 'TE')
+PKG = __package__.replace('te', 'TE')
 VISION = __version__
 INFO = f'{PKG}({VISION})'
 PLATFORM = f"{INFO} @ Python {sys.version}".replace('\n', '')
