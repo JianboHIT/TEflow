@@ -22,51 +22,40 @@ from configparser import ConfigParser, ExtendedInterpolation, NoSectionError
 import numpy as np
 
 
-def get_pkg_name():
-    '''
-    Get package name
-    '''
-    return __name__.split('.')[0]
-
+_handlers = dict()
 def get_root_logger(stdout=True, filename=None, mode='a', level=None, 
                     fmt='[%(levelname)s] %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
                     file_fmt='%(asctime)s [%(levelname)s @ %(name)s] %(message)s',
-                    file_datafmt='%Y-%m-%d %H:%M:%S'):
+                    file_datafmt='%Y-%m-%d %H:%M:%S',
+                    *, pkgname=None):
     '''
     Get root logger object
     '''
-    logger = logging.getLogger(get_pkg_name())
+    pkgname = pkgname or __package__
+    logger = logging.getLogger(pkgname)
     if stdout:
-        console = get_logger_handler(kind='console', 
-                                     fmt=fmt, 
-                                     datefmt=datefmt)
+        token = (pkgname, 'console')
+        if token in _handlers:
+            logger.removeHandler(_handlers[token])
+        formatter = logging.Formatter(fmt=fmt, datefmt=datefmt)
+        console = logging.StreamHandler()
+        console.setFormatter(formatter)
         logger.addHandler(console)
+        _handlers[token] = console
     if filename is not None:
-        fh = get_logger_handler(kind='file',
-                                fmt=file_fmt,
-                                datefmt=file_datafmt,
-                                filename=filename,
-                                mode=mode)
-        logger.addHandler(fh)
+        token = (pkgname, filename)
+        if token in _handlers:
+            logger.removeHandler(_handlers[token])
+        formatter = logging.Formatter(fmt=file_fmt, datefmt=file_datafmt)
+        logfile = logging.FileHandler(filename, mode)
+        logfile.setFormatter(formatter)
+        logger.addHandler(logfile)
+        _handlers[token] = logfile
     if level is not None:
         logger.setLevel(level)
     return logger
 
-def get_logger_handler(kind='CONSOLE', fmt=None, datefmt=None, filename='log.txt', mode='a'):
-    '''
-    Get kinds of handler of logging
-    '''
-    formatter = logging.Formatter(fmt=fmt, datefmt=datefmt)
-    kind = kind.lower()
-    if kind in {'cons', 'console', 'stream'}:
-        handler = logging.StreamHandler()
-    elif kind in {'file', 'logfile'}:
-        handler = logging.FileHandler(filename, mode)
-    else:
-        raise ValueError('The kind of handler is invaild.')
-    handler.setFormatter(formatter)
-    return handler
 
 class AttrDict(OrderedDict):
     '''
