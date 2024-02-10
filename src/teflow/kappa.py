@@ -1427,7 +1427,7 @@ def parse_KappaFit(filename, specify=None):
         predX = np.array(predX_)
     else:
         margin=abs(entry.getfloat('margin', 0.05))
-        if dataX and dataY:
+        if dataX is not None:
             xmin = (1+margin) * dataX.min() - margin * dataX.max()
             xmax = (1+margin) * dataX.max() - margin * dataX.min()
         else:
@@ -1451,7 +1451,7 @@ def parse_KappaFit(filename, specify=None):
     logger.debug('KappaDebye model is detected.')
     if entry.getboolean('splitkappa', True):
         logger.info('Split kappa to scattering mechanism and additional model')
-        predL = ['Kappa-Total',]
+        predL[0] = 'Kappa-Total'
         tag_scats = []
         for i, itag in enumerate(model._scattering):
             tag_scats.append(itag)
