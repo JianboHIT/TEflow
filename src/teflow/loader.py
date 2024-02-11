@@ -25,6 +25,7 @@ from .utils import AttrDict, CfgParser
 
 logger = logging.getLogger(__name__)
 
+_UNSET = object()
 
 PeriodicTable = namedtuple('PeriodicTable', ['XX',
     'H' , 'He',
@@ -43,7 +44,7 @@ PeriodicTable = namedtuple('PeriodicTable', ['XX',
 ])  #: :meta private:
 
 AtomicWeight = PeriodicTable(
-    0,              # 0     XX  PlaceHolder
+    _UNSET,         # 0     XX  PlaceHolder
     1.00794,        # 1     H_  Hydrogen
     4.002602,       # 2     He  Helium
     6.941,          # 3     Li  Lithium
@@ -322,7 +323,6 @@ class TEdataset(Mapping):
     modify the specific conversion strategies, you can override these methods
     according to your requirements.
     '''
-    _UNSET = object()
     TEMPSYMBOL = 'T'
     IGNORED = {'X',}
     CONDALIAS = ('C', 'R', 'N', 'U')
@@ -380,7 +380,7 @@ class TEdataset(Mapping):
             temp, val = self._calc_cond[key](default=default)
         else:
             temp, val = default, default
-        if val is self._UNSET:
+        if val is _UNSET:
             raise ValueError(f'Failed to fetch {key}')
         return temp, val
 
@@ -533,7 +533,6 @@ class TEdatacol(TEdataset):
     of material properties. Instead, treats the temperature data column as a
     regular material property, and returns the property itself when accessed.
     '''
-    _UNSET = object()
     def _initialize_data(self, data, group):
         group = self.parse_group(group)
         self._data = {k: np.asarray(v) \
