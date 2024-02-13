@@ -1,6 +1,6 @@
 # My Ignore
 /note*
-/tests/
+/tests.*/
 
 # VS code
 /.vscode
