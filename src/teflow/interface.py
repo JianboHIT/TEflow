@@ -47,14 +47,14 @@ DESCRIPTION = {
 # figlet -f 'Georgia11' flow
 INFO_HELP = f'''
       ________  ________                                         
-     |        \|        \     ,...  ,,                           
-      \$$$$$$$$| $$$$$$$$   .d' ""`7MM                           
-        | $$   | $$__       dM`     MM                           
-        | $$   | $$  \     mMMmm    MM  ,pW"Wq.`7M'    ,A    `MF'
-        | $$   | $$$$$      MM      MM 6W'   `Wb VA   ,VAA   ,V  
-        | $$   | $$_____    MM      MM 8M     M8  VA ,V  VA ,V   
-        | $$   | $$     \   MM      MM YA.   ,A9   VVV    VVV    
-         \$$    \$$$$$$$$ .JMML.  .JMML.`Ybmd9'     W      W     
+     |\       \|\       \     ,...  ,,                           
+      \&&&&&&&&| &&&&&&&&   .d' ""`7MM                           
+        | &&   | &&__       dM`     MM                           
+        | &&   | &&  \     mMMmm    MM  ,pW"Wq.`7M'    ,A    `MF'
+        | &&   | &&&&&      MM      MM 6W'   `Wb VA   ,VAA   ,V  
+        | &&   | &&_____    MM      MM 8M     M8  VA ,V  VA ,V   
+        | &&   | &&     \   MM      MM YA.   ,A9   VVV    VVV    
+         \&&    \&&&&&&&& .JMML.  .JMML.`Ybmd9'     W      W     
   
                  {                 f'(v{VISION}, {CPR})':>45s}
 ______________________________________________________________________
