@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>teflow.bandlib module &#8212; TEflow  文档</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css?v=0a676766" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=babeb00e"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/translations.js?v=beaddf03"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="teflow.engout module" href="teflow.engout.html" />
+    <link rel="prev" title="API 参考" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="teflow.engout.html" title="teflow.engout module"
+             accesskey="N">下一页</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="API 参考"
+             accesskey="P">上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">TEflow  文档</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">API 参考</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">teflow.bandlib module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-teflow.bandlib">
+<span id="teflow-bandlib-module"></span><h1>teflow.bandlib module<a class="headerlink" href="#module-teflow.bandlib" title="此标题的永久链接">¶</a></h1>
+<dl class="py data">
+<dt class="sig sig-object py" id="teflow.bandlib.UNIT">
+<span class="sig-prename descclassname"><span class="pre">teflow.bandlib.</span></span><span class="sig-name descname"><span class="pre">UNIT</span></span><a class="headerlink" href="#teflow.bandlib.UNIT" title="永久链接至目标">¶</a></dt>
+<dd><table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Value</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>T</p></td>
+<td><p>K</p></td>
+<td><p>Temperature</p></td>
+</tr>
+<tr class="row-odd"><td><p>E</p></td>
+<td><p>eV</p></td>
+<td><p>Energy</p></td>
+</tr>
+<tr class="row-even"><td><p>N</p></td>
+<td><p>1E19 cm^(-3)</p></td>
+<td><p>Carrier concentration</p></td>
+</tr>
+<tr class="row-odd"><td><p>U</p></td>
+<td><p>cm^2/(V.s)</p></td>
+<td><p>Mobility</p></td>
+</tr>
+<tr class="row-even"><td><p>C</p></td>
+<td><p>S/cm</p></td>
+<td><p>Conductivity</p></td>
+</tr>
+<tr class="row-odd"><td><p>S</p></td>
+<td><p>uV/K</p></td>
+<td><p>Seebeck coefficient</p></td>
+</tr>
+<tr class="row-even"><td><p>K</p></td>
+<td><p>W/(m.K)</p></td>
+<td><p>Thermal conductivity</p></td>
+</tr>
+<tr class="row-odd"><td><p>L</p></td>
+<td><p>1E-8 W.Ohm/K^2</p></td>
+<td><p>Lorenz number</p></td>
+</tr>
+<tr class="row-even"><td><p>PF</p></td>
+<td><p>uW/(cm.K^2)</p></td>
+<td><p>Power factor</p></td>
+</tr>
+<tr class="row-odd"><td><p>RH</p></td>
+<td><p>cm^3/C</p></td>
+<td><p>Hall coefficient</p></td>
+</tr>
+<tr class="row-even"><td><p>DOS</p></td>
+<td><p>1E19 state/(eV.cm^3)</p></td>
+<td><p>Density of states</p></td>
+</tr>
+<tr class="row-odd"><td><p>TRS</p></td>
+<td><p>S/cm</p></td>
+<td><p>Transport distribution function</p></td>
+</tr>
+<tr class="row-even"><td><p>HALL</p></td>
+<td><p>S.cm/(V.s)</p></td>
+<td><p>Hall transport distribution function</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="teflow.bandlib.kB_eV">
+<span class="sig-prename descclassname"><span class="pre">teflow.bandlib.</span></span><span class="sig-name descname"><span class="pre">kB_eV</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8.617333262145179e-05</span></em><a class="headerlink" href="#teflow.bandlib.kB_eV" title="永久链接至目标">¶</a></dt>
+<dd><p>Unit:: eV/K</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="teflow.bandlib.m_e">
+<span class="sig-prename descclassname"><span class="pre">teflow.bandlib.</span></span><span class="sig-name descname"><span class="pre">m_e</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">9.1093837015e-31</span></em><a class="headerlink" href="#teflow.bandlib.m_e" title="永久链接至目标">¶</a></dt>
+<dd><p>Unit:: kg</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="teflow.bandlib.hbar">
+<span class="sig-prename descclassname"><span class="pre">teflow.bandlib.</span></span><span class="sig-name descname"><span class="pre">hbar</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.054571817e-34</span></em><a class="headerlink" href="#teflow.bandlib.hbar" title="永久链接至目标">¶</a></dt>
+<dd><p>Unit:: J.s</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="teflow.bandlib.q">
+<span class="sig-prename descclassname"><span class="pre">teflow.bandlib.</span></span><span class="sig-name descname"><span class="pre">q</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.602176634e-19</span></em><a class="headerlink" href="#teflow.bandlib.q" title="永久链接至目标">¶</a></dt>
+<dd><p>Unit:: C</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.bandlib.</span></span><span class="sig-name descname"><span class="pre">BaseBand</span></span><a class="headerlink" href="#teflow.bandlib.BaseBand" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>An abstract class about the band model. It offers the basic calculation
+for thermoelectric transport properties, such as the Seebeck coefficient,
+electrical conductivity, and electronic thermal conductivity. It generally
+supports numpy-style broadcasting operations.</p>
+<p>To subclass, three methods need to be implemented:</p>
+<p>1. <cite>dos(E)</cite>: Density of states, in 1E19 states/(eV.cm^3). In physics, it
+is usually denoted as <span class="math notranslate nohighlight">\(g(E)\)</span> and defined as:</p>
+<div class="math notranslate nohighlight">
+\[g(E) = 2 \int_{\substack{\text{BZ}}}
+       \delta(E-E(k)) \frac{d^3k}{8 \pi ^3}\]</div>
+<p>2. <cite>trs(E, T)</cite>: Transport distribution function, or spectral conductivity,
+in S/cm. In physics, it is usually denoted as <span class="math notranslate nohighlight">\(\sigma_s(E, T)\)</span>, and
+is defined as:</p>
+<div class="math notranslate nohighlight">
+\[\sigma_s(E, T) = q^2 \tau v^2 g(E)\]</div>
+<p>3. <cite>hall(E, T)</cite>: Hall transport distribution function, in S.cm/(V.s)
+(i.e., the product of S/cm and cm^2/(V.s)). Here, it is denoted as
+<span class="math notranslate nohighlight">\(\sigma_H(E, T)\)</span>, and is expressed as:</p>
+<div class="math notranslate nohighlight">
+\[\sigma_H(E, T) = q \frac{\tau}{m_b^{\ast}} \cdot \sigma_s(E, T)\]</div>
+<p>Notably, energy (<cite>E</cite>) and Fermi level (<cite>EF</cite>) are in (eV), and temperatures
+(<cite>T</cite>) are in Kelvin (K), unless otherwise specified.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.cacheable">
+<span class="sig-name descname"><span class="pre">cacheable</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'C',</span> <span class="pre">'CCRH',</span> <span class="pre">'CL',</span> <span class="pre">'CS',</span> <span class="pre">'EF',</span> <span class="pre">'K_0',</span> <span class="pre">'K_1',</span> <span class="pre">'K_2',</span> <span class="pre">'Ke',</span> <span class="pre">'L',</span> <span class="pre">'N',</span> <span class="pre">'NH',</span> <span class="pre">'PF',</span> <span class="pre">'RH',</span> <span class="pre">'S',</span> <span class="pre">'T',</span> <span class="pre">'U',</span> <span class="pre">'UH'}</span></em><a class="headerlink" href="#teflow.bandlib.BaseBand.cacheable" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.dos">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.dos" title="永久链接至目标">¶</a></dt>
+<dd><p>Density of states, in 1E19 state/(eV.cm^3).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.trs">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">trs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.trs" title="永久链接至目标">¶</a></dt>
+<dd><p>Transport distribution function, in S/cm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.hall">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.hall" title="永久链接至目标">¶</a></dt>
+<dd><p>Hall transport distribution function, in S.cm/(V.s), i.e.
+[S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.compile">
+<span class="sig-name descname"><span class="pre">compile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EF</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.compile" title="永久链接至目标">¶</a></dt>
+<dd><p>Compile the object under specified Fermi energies (EF) and
+temperatures (T) to avoid redundant integration computations.
+The <cite>max_level</cite> parameter of integer type specifies the highest
+exponent for caching data, with a default value of 2.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.clear" title="永久链接至目标">¶</a></dt>
+<dd><p>Clear the cached data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.fetch">
+<span class="sig-name descname"><span class="pre">fetch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_prop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.fetch" title="永久链接至目标">¶</a></dt>
+<dd><p>A proxy method to retrieve cached data (if compiled) or compute
+it directly (if not compiled). Typically, cached properties are
+named in the underscored form, i.e., as _XXX.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_prop</strong> (<em>str</em>) – Key of cached property.</p></li>
+<li><p><strong>args</strong> (<em>tuple</em><em>, </em><em>optional</em>) – Parameters passed to the proxy method, by default ().</p></li>
+<li><p><strong>index</strong> (<em>int</em><em>, </em><em>optional</em>) – The index of list or the order, by default None.</p></li>
+<li><p><strong>default</strong> (<em>any</em><em>, </em><em>optional</em>) – The default value if failed to retrieve, by default None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Results.</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>any</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.N">
+<span class="sig-name descname"><span class="pre">N</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.N" title="永久链接至目标">¶</a></dt>
+<dd><p>Carrier concentration, in 1E19 cm^(-3).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.K_0">
+<span class="sig-name descname"><span class="pre">K_0</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.K_0" title="永久链接至目标">¶</a></dt>
+<dd><p>Integration of transport distribution function, in S/cm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.K_1">
+<span class="sig-name descname"><span class="pre">K_1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.K_1" title="永久链接至目标">¶</a></dt>
+<dd><p>Integration of transport distribution function, in S/cm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.K_2">
+<span class="sig-name descname"><span class="pre">K_2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.K_2" title="永久链接至目标">¶</a></dt>
+<dd><p>Integration of transport distribution function, in S/cm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.CCRH">
+<span class="sig-name descname"><span class="pre">CCRH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.CCRH" title="永久链接至目标">¶</a></dt>
+<dd><p>Integration of Hall transport distribution function,
+in S.cm/(V.s).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.C">
+<span class="sig-name descname"><span class="pre">C</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.C" title="永久链接至目标">¶</a></dt>
+<dd><p>Electrical conductivity, in S/cm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.CS">
+<span class="sig-name descname"><span class="pre">CS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.CS" title="永久链接至目标">¶</a></dt>
+<dd><p>The product of electrical conductivity and Seebeck
+coefficient, in [S/cm]*[uV/K].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.S">
+<span class="sig-name descname"><span class="pre">S</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.S" title="永久链接至目标">¶</a></dt>
+<dd><p>Seebeck coefficient, in uV/K.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.PF">
+<span class="sig-name descname"><span class="pre">PF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.PF" title="永久链接至目标">¶</a></dt>
+<dd><p>Power factor, in uW/(cm.K^2).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.CL">
+<span class="sig-name descname"><span class="pre">CL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.CL" title="永久链接至目标">¶</a></dt>
+<dd><p>The product of electrical conductivity and Lorenz
+number (or electronic thermal conductivity divided by
+absolute temperature), in [W/(m.K)] / [K].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.L">
+<span class="sig-name descname"><span class="pre">L</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.L" title="永久链接至目标">¶</a></dt>
+<dd><p>Lorenz number, in 1E-8 W.Ohm/K^2.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.Ke">
+<span class="sig-name descname"><span class="pre">Ke</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.Ke" title="永久链接至目标">¶</a></dt>
+<dd><p>Electronic thermal conductivity, in W/(m.K).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.U">
+<span class="sig-name descname"><span class="pre">U</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.U" title="永久链接至目标">¶</a></dt>
+<dd><p>Carrier drift mobility, in cm^2/(V.s).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.RH">
+<span class="sig-name descname"><span class="pre">RH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.RH" title="永久链接至目标">¶</a></dt>
+<dd><p>Hall coefficient, in cm^3/C.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.UH">
+<span class="sig-name descname"><span class="pre">UH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.UH" title="永久链接至目标">¶</a></dt>
+<dd><p>Carrier Hall mobility, in cm^2/(V.s).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.NH">
+<span class="sig-name descname"><span class="pre">NH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.NH" title="永久链接至目标">¶</a></dt>
+<dd><p>Hall carrier concentration, in 1E19 cm^-3.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.BaseBand.solve_EF">
+<span class="sig-name descname"><span class="pre">solve_EF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">near</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">between</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.BaseBand.solve_EF" title="永久链接至目标">¶</a></dt>
+<dd><p>A wrapper for the scipy.optimize.root_scalar method used to solve
+for the Fermi energy from specified thermoelectric transport
+properties and temperatures.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prop</strong> (<em>str</em>) – The thermoelectric transport property, such as ‘S’, ‘C’.</p></li>
+<li><p><strong>value</strong> (<em>ndarray</em>) – The target value of the specified property.</p></li>
+<li><p><strong>T</strong> (<em>ndarray</em>) – The absolute temperature.</p></li>
+<li><p><strong>near</strong> (<em>float</em><em>, </em><em>optional</em>) – Initial guess for the Fermi energy value. Default is 0.</p></li>
+<li><p><strong>between</strong> (<em>tuple like</em><em> (</em><em>float</em><em>, </em><em>float</em><em>)</em><em>, </em><em>optional</em>) – Guess range for the Fermi energy. Default is None.Recommended
+for monotonic properties, use ‘near’.</p></li>
+<li><p><strong>**kwargs</strong> (<em>any</em><em>, </em><em>optional</em>) – Additional parameters to pass to scipy.optimize.root_scalar.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Fermi levels in eV.</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.bandlib.MultiBand">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.bandlib.</span></span><span class="sig-name descname"><span class="pre">MultiBand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deltas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">btypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.MultiBand" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.bandlib.BaseBand" title="teflow.bandlib.BaseBand"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseBand</span></code></a></p>
+<p>A class for modeling multiple energy bands. Please note that its
+property calculations are now derived from sub-bands, rather than
+directly from the ‘dos’, ‘trs’, and ‘hall’ methods.</p>
+<p>Initialize an instance of MultiBand.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bands</strong> (<em>tuple</em><em> of </em><a class="reference internal" href="#teflow.bandlib.BaseBand" title="teflow.bandlib.BaseBand"><em>BaseBand</em></a>) – A collection of instances of <a class="reference internal" href="#teflow.bandlib.BaseBand" title="teflow.bandlib.BaseBand"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseBand</span></code></a>.</p></li>
+<li><p><strong>deltas</strong> (<em>tuple</em><em> of </em><em>float</em>) – Energy offsets for each band.</p></li>
+<li><p><strong>btypes</strong> (<em>tuple</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Types of bands for each entry in <cite>bands</cite>. This can be a sequence
+matching the length of <cite>bands</cite>, or a single value applicable to
+all bands. ‘C’ signifies conduction bands, while ‘V’ signifies
+valence bands. If not specified (<cite>None</cite>), band types will be
+inferred using the <a class="reference internal" href="#teflow.bandlib.MultiBand.guess_btypes" title="teflow.bandlib.MultiBand.guess_btypes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">guess_btypes()</span></code></a> method based on <cite>deltas</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.bandlib.MultiBand.cacheable">
+<span class="sig-name descname"><span class="pre">cacheable</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'C',</span> <span class="pre">'CCRH',</span> <span class="pre">'CL',</span> <span class="pre">'CS',</span> <span class="pre">'EF',</span> <span class="pre">'K_0',</span> <span class="pre">'K_1',</span> <span class="pre">'K_2',</span> <span class="pre">'Kbip',</span> <span class="pre">'Ke',</span> <span class="pre">'L',</span> <span class="pre">'N',</span> <span class="pre">'NH',</span> <span class="pre">'PF',</span> <span class="pre">'RH',</span> <span class="pre">'S',</span> <span class="pre">'T',</span> <span class="pre">'U',</span> <span class="pre">'UH'}</span></em><a class="headerlink" href="#teflow.bandlib.MultiBand.cacheable" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.MultiBand.dos">
+<span class="sig-name descname"><span class="pre">dos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.MultiBand.dos" title="永久链接至目标">¶</a></dt>
+<dd><p>Density of states, in 1E19 state/(eV.cm^3).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.MultiBand.trs">
+<span class="sig-name descname"><span class="pre">trs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.MultiBand.trs" title="永久链接至目标">¶</a></dt>
+<dd><p>Transport distribution function, in S/cm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.MultiBand.hall">
+<span class="sig-name descname"><span class="pre">hall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.MultiBand.hall" title="永久链接至目标">¶</a></dt>
+<dd><p>Hall transport distribution function, in S.cm/(V.s), i.e.
+[S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.MultiBand.Kbip">
+<span class="sig-name descname"><span class="pre">Kbip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.MultiBand.Kbip" title="永久链接至目标">¶</a></dt>
+<dd><p>Bipolar thermal conductivity, in W/(m.K).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.MultiBand.guess_btypes">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">guess_btypes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deltas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.MultiBand.guess_btypes" title="永久链接至目标">¶</a></dt>
+<dd><p>Guess the band types (btypes) based on the given energy offsets
+(<cite>deltas</cite>). This method classifies each band as a conduction band
+(‘C’) for positive delta or a valence band (‘V’) for negative delta.
+Deltas close to zero (1E-6) are considered ambiguous and result in
+a <cite>ValueError</cite>. However, if non-zero values in <cite>deltas</cite> are
+consistently positive or negative (excluding near-zero values), all
+bands are classified as either conduction or valence bands accordingly.</p>
+<p>Examples: deltas –&gt; btypes</p>
+<ul class="simple">
+<li><p>[  0,  0.1,  0.2] –&gt; [‘C’, ‘C’, ‘C’]</p></li>
+<li><p>[0.1,  0.1, -0.2] –&gt; [‘C’, ‘C’, ‘V’]</p></li>
+<li><p>[  0, -0.1, -0.2] –&gt; [‘V’, ‘V’, ‘V’]</p></li>
+<li><p>[  0,  0.1, -0.2] –&gt; ValueError (Failed to classify the first band)</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>deltas</strong> (<em>list</em><em> of </em><em>float</em>) – A list of floats representing the energy offsets for each band.</p>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of strings (‘C’ for conduction bands, ‘V’ for valence bands)
+representing the band types. The length of the list is equal to
+the length of <cite>deltas</cite>.</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSPB">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.bandlib.</span></span><span class="sig-name descname"><span class="pre">APSSPB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m_d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kmass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.APSSPB" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.bandlib.BaseBand" title="teflow.bandlib.BaseBand"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseBand</span></code></a></p>
+<p>A class for describing single parabolic band (SPB) model when the
+acoustic phonon scattering (APS) mechanism predominates. In this
+model, there are three key parameters determine thermoelectric
+properties:</p>
+<ol class="loweralpha simple">
+<li><p>The effective mass of the density of states <span class="math notranslate nohighlight">\(m_d^{\ast}\)</span></p></li>
+<li><p>The intrinsic electrical conductivity <span class="math notranslate nohighlight">\(\sigma_0\)</span></p></li>
+<li><p>The ratio of longitudinal to transverse effective masses
+<span class="math notranslate nohighlight">\(K^{\ast}\)</span></p></li>
+</ol>
+<p>These parameters correspond to class attributes m_d, sigma0, and
+Kmass, respectively. The core of constructing the class is
+obtaining the values of these parameters.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSPB.m_d">
+<span class="sig-name descname"><span class="pre">m_d</span></span><a class="headerlink" href="#teflow.bandlib.APSSPB.m_d" title="永久链接至目标">¶</a></dt>
+<dd><p>Effective mass of the density of states in <span class="math notranslate nohighlight">\(m_e\)</span>,
+primarily influencing carrier concentration calculations.
+It should be a positive float, by default 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSPB.sigma0">
+<span class="sig-name descname"><span class="pre">sigma0</span></span><a class="headerlink" href="#teflow.bandlib.APSSPB.sigma0" title="永久链接至目标">¶</a></dt>
+<dd><p>Intrinsic electrical conductivity in <cite>S/cm</cite>, the core
+parameter influencing thermoelectric transport properties.
+It should be a positive float, by default 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSPB.Kmass">
+<span class="sig-name descname"><span class="pre">Kmass</span></span><a class="headerlink" href="#teflow.bandlib.APSSPB.Kmass" title="永久链接至目标">¶</a></dt>
+<dd><p>The ratio of longitudinal to transverse effective mass,
+affecting calculations related to Hall coefficients. It
+should be a positive float, by default 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSPB.dos">
+<span class="sig-name descname"><span class="pre">dos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.APSSPB.dos" title="永久链接至目标">¶</a></dt>
+<dd><p>Density of states, in 1E19 state/(eV.cm^3).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSPB.trs">
+<span class="sig-name descname"><span class="pre">trs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.APSSPB.trs" title="永久链接至目标">¶</a></dt>
+<dd><p>Transport distribution function, in S/cm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSPB.hall">
+<span class="sig-name descname"><span class="pre">hall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.APSSPB.hall" title="永久链接至目标">¶</a></dt>
+<dd><p>Hall transport distribution function, in S.cm/(V.s), i.e.
+[S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)].</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSPB.Kstar">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Kstar</span></span><a class="headerlink" href="#teflow.bandlib.APSSPB.Kstar" title="永久链接至目标">¶</a></dt>
+<dd><p>Anisotropy factor of effective mass for Hall effect.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSPB.UWT">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">UWT</span></span><a class="headerlink" href="#teflow.bandlib.APSSPB.UWT" title="永久链接至目标">¶</a></dt>
+<dd><p>Temperature-independent weighted mobility, in cm^2/(V.s).</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSPB.PFmax">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PFmax</span></span><a class="headerlink" href="#teflow.bandlib.APSSPB.PFmax" title="永久链接至目标">¶</a></dt>
+<dd><p>The maximum power factor, in uW/(cm.K^2).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSPB.EFopt">
+<span class="sig-name descname"><span class="pre">EFopt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.APSSPB.EFopt" title="永久链接至目标">¶</a></dt>
+<dd><p>Optimal Fermi level for the maximum power factor, in eV</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSPB.from_DP">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_DP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Cii</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.APSSPB.from_DP" title="永久链接至目标">¶</a></dt>
+<dd><p>Construct the class based on the Deformation Potential
+(DP) theory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>m1</strong> (<em>float</em><em>, </em><em>optional</em>) – The ratio of the longitudinal effective mass to the static
+electron mass, by default 1.</p></li>
+<li><p><strong>m2</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The ratio of the transverse effective mass to the static
+electron mass. If None (default), it is set equal to m1.</p></li>
+<li><p><strong>Nv</strong> (<em>int</em><em>, </em><em>optional</em>) – Valley degeneracy, by default 1.</p></li>
+<li><p><strong>Cii</strong> (<em>float</em><em>, </em><em>optional</em>) – Elastic constant in GPa, by default 1.</p></li>
+<li><p><strong>Ed</strong> (<em>float</em><em>, </em><em>optional</em>) – Deformation potential in eV, by default 1.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSPB.from_UWT">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_UWT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m_d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UWT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kmass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.APSSPB.from_UWT" title="永久链接至目标">¶</a></dt>
+<dd><p>Construct the class based on temperature-independent weighted
+mobility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>m_d</strong> (<em>float</em><em>, </em><em>optional</em>) – Effective mass of the density of states in static electron mass,
+by default 1.</p></li>
+<li><p><strong>UWT</strong> (<em>float</em><em>, </em><em>optional</em>) – Temperature-independent weighted mobility in cm^2/(V.s), by
+default 1.</p></li>
+<li><p><strong>Kmass</strong> (<em>float</em><em>, </em><em>optional</em>) – The ratio of longitudinal to transverse effective mass, by
+default 1.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSPB.valuate">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valuate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataC</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataN</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kmass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.APSSPB.valuate" title="永久链接至目标">¶</a></dt>
+<dd><p>A class method for quickly evaluating the carriar transport
+properties (such as Lorenz number <cite>L</cite> and the temperature-independent
+weighted mobility <cite>UWT</cite>) based on experimental data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataS</strong> (<em>ndarray</em>) – Experimental data for Seebeck coefficient in uV/K.</p></li>
+<li><p><strong>dataT</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Experimental data for temperature in Kelvin.
+Defaults to None.</p></li>
+<li><p><strong>dataC</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Experimental data for electrical conductivity in S/cm.
+Defaults to None.</p></li>
+<li><p><strong>dataN</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Experimental data for carrier concentration in 1E19 cm^-3.
+Defaults to None.</p></li>
+<li><p><strong>hall</strong> (<em>boolean</em><em>, </em><em>optional</em>) – Whether to consider the Hall effect. Defaults to False.</p></li>
+<li><p><strong>Kmass</strong> (<em>float</em><em>, </em><em>optional</em>) – The ratio of longitudinal to transverse effective mass, by
+default 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>An attribute dictionary containing:</p>
+<ul class="simple">
+<li><p><cite>L</cite>: Lorenz number in 1E-8 W.Ohm/K^2`.</p></li>
+<li><p><cite>Ke</cite>: Electronic thermal conductivity in W/(m.K),
+only if both <cite>dataT</cite> and <cite>dataC</cite> are provided.</p></li>
+<li><p><cite>sigma0</cite>: Intrinsic electrical conductivity in S/cm,
+only if both <cite>dataT</cite> and <cite>dataC</cite> are provided.</p></li>
+<li><p><cite>UWT</cite>: Temperature-independent weighted mobility in cm^2/(V.s),
+only if both <cite>dataT</cite> and <cite>dataC</cite> are provided.</p></li>
+<li><p><cite>PFmax</cite>: The maximum power factor in uW/(cm.K^2),
+only if both <cite>dataT</cite> and <cite>dataC</cite> are provided.</p></li>
+<li><p><cite>m_d</cite>: The ratio of effective mass to the electron mass,
+only if both <cite>dataT</cite> and <cite>dataN</cite> are provided.</p></li>
+<li><p><cite>Nopt</cite>: The optimal carrier concentration in 1E19 cm^(-3),
+only if both <cite>dataT</cite> and <cite>dataN</cite> are provided.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="teflow.utils.html#teflow.utils.AttrDict" title="teflow.utils.AttrDict">AttrDict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSKB">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.bandlib.</span></span><span class="sig-name descname"><span class="pre">APSSKB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m_d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Eg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kmass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.APSSKB" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.bandlib.BaseBand" title="teflow.bandlib.BaseBand"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseBand</span></code></a></p>
+<p>A class for describing single Kane band (SKB) model when the acoustic
+phonon scattering (APS) mechanism predominates. In contrast to the
+classical single parabolic band (SPB) model (see <a class="reference internal" href="#teflow.bandlib.APSSPB" title="teflow.bandlib.APSSPB"><code class="xref py py-class docutils literal notranslate"><span class="pre">APSSPB</span></code></a>), an
+additional parameter describing the energy band shape, namely the bandgap
+(Eg), is introduced.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSKB.m_d">
+<span class="sig-name descname"><span class="pre">m_d</span></span><a class="headerlink" href="#teflow.bandlib.APSSKB.m_d" title="永久链接至目标">¶</a></dt>
+<dd><p>Effective mass of the density of states in <span class="math notranslate nohighlight">\(m_e\)</span>,
+primarily influencing carrier concentration calculations.
+It should be a positive float, by default 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSKB.sigma0">
+<span class="sig-name descname"><span class="pre">sigma0</span></span><a class="headerlink" href="#teflow.bandlib.APSSKB.sigma0" title="永久链接至目标">¶</a></dt>
+<dd><p>Intrinsic electrical conductivity in S/cm, the core
+parameter influencing thermoelectric transport properties.
+It should be a positive float, by default 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSKB.Eg">
+<span class="sig-name descname"><span class="pre">Eg</span></span><a class="headerlink" href="#teflow.bandlib.APSSKB.Eg" title="永久链接至目标">¶</a></dt>
+<dd><p>Parameter bandgap in eV, which significantly influences
+various transport properties. It should be a positive
+float, by default 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSKB.Kmass">
+<span class="sig-name descname"><span class="pre">Kmass</span></span><a class="headerlink" href="#teflow.bandlib.APSSKB.Kmass" title="永久链接至目标">¶</a></dt>
+<dd><p>The ratio of longitudinal to transverse effective mass,
+affecting calculations related to Hall coefficients. It
+should be a positive float, by default 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSKB.dos">
+<span class="sig-name descname"><span class="pre">dos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.APSSKB.dos" title="永久链接至目标">¶</a></dt>
+<dd><p>Density of states, in 1E19 state/(eV.cm^3).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSKB.trs">
+<span class="sig-name descname"><span class="pre">trs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.APSSKB.trs" title="永久链接至目标">¶</a></dt>
+<dd><p>Transport distribution function, in S/cm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSKB.hall">
+<span class="sig-name descname"><span class="pre">hall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.APSSKB.hall" title="永久链接至目标">¶</a></dt>
+<dd><p>Hall transport distribution function, in S.cm/(V.s), i.e.
+[S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)].</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSKB.Kstar">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Kstar</span></span><a class="headerlink" href="#teflow.bandlib.APSSKB.Kstar" title="永久链接至目标">¶</a></dt>
+<dd><p>Anisotropy factor of effective mass for Hall effect.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSKB.UWT">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">UWT</span></span><a class="headerlink" href="#teflow.bandlib.APSSKB.UWT" title="永久链接至目标">¶</a></dt>
+<dd><p>Temperature-independent weighted mobility, in cm^2/(V.s).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSKB.from_DP">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_DP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Cii</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Eg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.APSSKB.from_DP" title="永久链接至目标">¶</a></dt>
+<dd><p>Construct the class based on the Deformation Potential
+(DP) theory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>m1</strong> (<em>float</em><em>, </em><em>optional</em>) – The ratio of the longitudinal effective mass to the static
+electron mass, by default 1.</p></li>
+<li><p><strong>m2</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The ratio of the transverse effective mass to the static
+electron mass. If None (default), it is set equal to m1.</p></li>
+<li><p><strong>Nv</strong> (<em>int</em><em>, </em><em>optional</em>) – Valley degeneracy, by default 1.</p></li>
+<li><p><strong>Cii</strong> (<em>float</em><em>, </em><em>optional</em>) – Elastic constant in GPa, by default 1.</p></li>
+<li><p><strong>Ed</strong> (<em>float</em><em>, </em><em>optional</em>) – Deformation potential in eV, by default 1.</p></li>
+<li><p><strong>Eg</strong> (<em>float</em><em>, </em><em>optional</em>) – Bandgap in eV, by default 1.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSKB.from_UWT">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_UWT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m_d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UWT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Eg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kmass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.APSSKB.from_UWT" title="永久链接至目标">¶</a></dt>
+<dd><p>Construct the class based on temperature-independent weighted
+mobility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>m_d</strong> (<em>float</em><em>, </em><em>optional</em>) – Effective mass of the density of states in static electron mass,
+by default 1.</p></li>
+<li><p><strong>UWT</strong> (<em>float</em><em>, </em><em>optional</em>) – Temperature-independent weighted mobility in cm^2/(V.s), by
+default 1.</p></li>
+<li><p><strong>Eg</strong> (<em>float</em><em>, </em><em>optional</em>) – Bandgap in eV, by default 1.</p></li>
+<li><p><strong>Kmass</strong> (<em>float</em><em>, </em><em>optional</em>) – The ratio of longitudinal to transverse effective mass, by
+default 1.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.APSSKB.valuate">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valuate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataC</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataN</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Eg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kmass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.APSSKB.valuate" title="永久链接至目标">¶</a></dt>
+<dd><p>A class method for quickly evaluating the carriar transport
+properties (such as Lorenz number <cite>L</cite> and the temperature-independent
+weighted mobility <cite>UWT</cite>) based on experimental data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataS</strong> (<em>ndarray</em>) – Experimental data for Seebeck coefficient in uV/K.</p></li>
+<li><p><strong>dataT</strong> (<em>ndarray</em>) – Experimental data for temperature in Kelvin.</p></li>
+<li><p><strong>dataC</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Experimental data for electrical conductivity in S/cm.
+Defaults to None.</p></li>
+<li><p><strong>dataN</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Experimental data for carrier concentration in 1E19 cm^-3.
+Defaults to None.</p></li>
+<li><p><strong>Eg</strong> (<em>float</em><em>, </em><em>optional</em>) – Bandgap in eV, by default 1.</p></li>
+<li><p><strong>hall</strong> (<em>boolean</em><em>, </em><em>optional</em>) – Whether to consider the Hall effect. Defaults to False.</p></li>
+<li><p><strong>Kmass</strong> (<em>float</em><em>, </em><em>optional</em>) – The ratio of longitudinal to transverse effective mass, by
+default 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>An attribute dictionary containing:</p>
+<ul class="simple">
+<li><p><cite>L</cite>: Lorenz number in 1E-8 W.Ohm/K^2`.</p></li>
+<li><p><cite>Ke</cite>: Electronic thermal conductivity in W/(m.K),
+only if <cite>dataC</cite> is provided.</p></li>
+<li><p><cite>sigma0</cite>: Intrinsic electrical conductivity in S/cm,
+only if <cite>dataC</cite> is provided.</p></li>
+<li><p><cite>UWT</cite>: Temperature-independent weighted mobility in cm^2/(V.s),
+only if <cite>dataC</cite> is provided.</p></li>
+<li><p><cite>m_d</cite>: The ratio of effective mass to the electron mass,
+only if <cite>dataN</cite> is provided.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="teflow.utils.html#teflow.utils.AttrDict" title="teflow.utils.AttrDict">AttrDict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.bandlib.LinearBand">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.bandlib.</span></span><span class="sig-name descname"><span class="pre">LinearBand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.LinearBand" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.bandlib.BaseBand" title="teflow.bandlib.BaseBand"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseBand</span></code></a></p>
+<p>A class for describing linear band model:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}E &amp;= v_F \cdot \hbar |k| \\
+g(E) &amp;= \frac{E^2}{\pi^2 \hbar^3 v_F^3} \\
+\sigma_s(E, T) &amp;= \sigma_0 \text{ when } E &gt; 0\end{split}\]</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.bandlib.LinearBand.sigma0">
+<span class="sig-name descname"><span class="pre">sigma0</span></span><a class="headerlink" href="#teflow.bandlib.LinearBand.sigma0" title="永久链接至目标">¶</a></dt>
+<dd><p>Intrinsic electrical conductivity in S/cm, the core
+parameter influencing thermoelectric transport properties.
+It should be a positive float, by default 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.bandlib.LinearBand.vF">
+<span class="sig-name descname"><span class="pre">vF</span></span><a class="headerlink" href="#teflow.bandlib.LinearBand.vF" title="永久链接至目标">¶</a></dt>
+<dd><p>Fermi velocity in Angstrom/fs, i.e. 10^5 m/s. It should be
+a positive float, by default 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.LinearBand.dos">
+<span class="sig-name descname"><span class="pre">dos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.LinearBand.dos" title="永久链接至目标">¶</a></dt>
+<dd><p>Density of states, in 1E19 state/(eV.cm^3).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.LinearBand.trs">
+<span class="sig-name descname"><span class="pre">trs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.LinearBand.trs" title="永久链接至目标">¶</a></dt>
+<dd><p>Transport distribution function, in S/cm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.LinearBand.hall">
+<span class="sig-name descname"><span class="pre">hall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.LinearBand.hall" title="永久链接至目标">¶</a></dt>
+<dd><p>Hall transport distribution function. Not implemented now!</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.bandlib.RSPB">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.bandlib.</span></span><span class="sig-name descname"><span class="pre">RSPB</span></span><a class="headerlink" href="#teflow.bandlib.RSPB" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class for modeling the Restructured Single Parabolic Band
+(RSPB) model in thermoelectric materials.
+This class contains three types of attributes:</p>
+<ul class="simple">
+<li><p><strong>Ending with ‘r’</strong>: Represents reduced properties, usually
+requiring a reduced carrier concentration (<cite>Nr</cite>) as input.
+An optional parameter <cite>factor</cite> can also be passed in,
+which defaults to 1. This indicates the return of
+reduced material property values.
+If a factor corresponding to the material property
+(indicated by attributes ending with ‘0’) is passed in,
+the material property values in common units will be returned.</p></li>
+<li><p><strong>Ending with ‘0’</strong>: Represents factors for material properties
+in common units.</p></li>
+<li><p><strong>Starting with ‘i’</strong>: Inverse functions of the reduced properties,
+used to solve the reduced carrier concentration from
+reduced material property values (or property values in
+common units, determined by the optional parameter <cite>factor</cite>).</p></li>
+</ul>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.bandlib.RSPB.N0">
+<span class="sig-name descname"><span class="pre">N0</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2.5094122298407915</span></em><a class="headerlink" href="#teflow.bandlib.RSPB.N0" title="永久链接至目标">¶</a></dt>
+<dd><p>Unit:: 1E19 cm^-3</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.bandlib.RSPB.S0">
+<span class="sig-name descname"><span class="pre">S0</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">86.17333262145179</span></em><a class="headerlink" href="#teflow.bandlib.RSPB.S0" title="永久链接至目标">¶</a></dt>
+<dd><p>Unit:: uV/K</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.bandlib.RSPB.L0">
+<span class="sig-name descname"><span class="pre">L0</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.7425843255087367</span></em><a class="headerlink" href="#teflow.bandlib.RSPB.L0" title="永久链接至目标">¶</a></dt>
+<dd><p>Unit:: 1E-8 W.Ohm/K^2</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.bandlib.RSPB.C0">
+<span class="sig-name descname"><span class="pre">C0</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4.020521639724753</span></em><a class="headerlink" href="#teflow.bandlib.RSPB.C0" title="永久链接至目标">¶</a></dt>
+<dd><p>Unit:: S/cm</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.bandlib.RSPB.PF0">
+<span class="sig-name descname"><span class="pre">PF0</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.029855763500282857</span></em><a class="headerlink" href="#teflow.bandlib.RSPB.PF0" title="永久链接至目标">¶</a></dt>
+<dd><p>Unit:: uW/(cm.K^2)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.RSPB.Nmr">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Nmr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Nr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.RSPB.Nmr" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.RSPB.Sr">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Sr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Nr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.075</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.RSPB.Sr" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.RSPB.iSr">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">iSr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Sr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.075</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.RSPB.iSr" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.RSPB.Ur">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Ur</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Nr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.RSPB.Ur" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.RSPB.iUr">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">iUr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Ur</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.RSPB.iUr" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.RSPB.Lr">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Lr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Nr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.RSPB.Lr" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.RSPB.iLr">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">iLr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Lr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.RSPB.iLr" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.RSPB.Cr">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Cr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Nr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UWT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.RSPB.Cr" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.RSPB.PFr">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PFr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Nr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UWT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.075</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.RSPB.PFr" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.bandlib.RSPB.valuate">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valuate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataC</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataN</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.075</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.RSPB.valuate" title="永久链接至目标">¶</a></dt>
+<dd><p>A class method for quickly evaluating the carriar transport
+properties (such as Lorenz number <cite>L</cite> and the temperature-independent
+weighted mobility <cite>UWT</cite>) based on experimental data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataC</strong> (<em>ndarray</em>) – Experimental data for electrical conductivity in S/cm.</p></li>
+<li><p><strong>dataS</strong> (<em>ndarray</em>) – Experimental data for Seebeck coefficient in uV/K.</p></li>
+<li><p><strong>dataT</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Experimental data for temperature in Kelvin.
+Used in conjunction with <cite>dataN</cite> to calculate <cite>m_eff</cite>.
+Defaults to None.</p></li>
+<li><p><strong>dataN</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Experimental data for carrier concentration in 1E19 cm^-3.
+Used in conjunction with <cite>dataT</cite> to calculate <cite>m_eff</cite>.
+Defaults to None.</p></li>
+<li><p><strong>delta</strong> (<em>float</em><em>, </em><em>optional</em>) – A parameter related to the Seebeck coefficient, defaults to 0.075.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>An attribute dictionary containing:</p>
+<ul class="simple">
+<li><p><cite>L</cite>: Lorenz number in 1E-8 W.Ohm/K^2`.</p></li>
+<li><p><cite>UWT</cite>: Temperature-independent weighted mobility in cm^2/(V.s).</p></li>
+<li><p><cite>PFmax</cite>: The maximum power factor in uW/(cm.K^2).</p></li>
+<li><p><cite>Ke</cite>: Electronic thermal conductivity in W/(m.K),
+only if both <cite>dataT</cite> and <cite>dataN</cite> are provided.</p></li>
+<li><p><cite>m_eff</cite>: The ratio of effective mass to the electron mass,
+only if both <cite>dataT</cite> and <cite>dataN</cite> are provided.</p></li>
+<li><p><cite>Nopt</cite>: The optimal carrier concentration in 1E19 cm^(-3),
+only if both <cite>dataT</cite> and <cite>dataN</cite> are provided.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="teflow.utils.html#teflow.utils.AttrDict" title="teflow.utils.AttrDict">AttrDict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="teflow.bandlib.bandline">
+<span class="sig-prename descclassname"><span class="pre">teflow.bandlib.</span></span><span class="sig-name descname"><span class="pre">bandline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Eg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.bandline" title="永久链接至目标">¶</a></dt>
+<dd><p>Model an idealized electronic dispersion relation based on
+the given parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>k</strong> (<em>ndarray</em>) – Wave vector in rad/Ang (radians per angstrom), i.e.,
+containing the <span class="math notranslate nohighlight">\(2 \pi\)</span> factor.</p></li>
+<li><p><strong>m_b</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Ratio of the band effective mass to the electron mass.
+Defaults to 1.</p></li>
+<li><p><strong>k0</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Wave vector offset in rad/Ang. Defaults to 0.</p></li>
+<li><p><strong>E0</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Energy offset in eV. Defaults to 0.</p></li>
+<li><p><strong>Eg</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Bandgap in eV. If set to None (default), it represents a parabolic band.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Energy values in eV.</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="teflow.bandlib.dosline">
+<span class="sig-prename descclassname"><span class="pre">teflow.bandlib.</span></span><span class="sig-name descname"><span class="pre">dosline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vcell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Eg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.dosline" title="永久链接至目标">¶</a></dt>
+<dd><p>Model an idealized density-of-states (DOS) based on the given parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>E</strong> (<em>ndarray</em>) – Energy values in eV.</p></li>
+<li><p><strong>m_d</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Ratio of the DOS effective mass to the electron mass.
+Defaults to 1.</p></li>
+<li><p><strong>E0</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Energy offset in eV. Defaults to 0.</p></li>
+<li><p><strong>Vcell</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Volume of the unit cell in cubic angstrom (Ang^3). Defaults to 1.</p></li>
+<li><p><strong>Eg</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Bandgap in eV. If set to None (default), it represents a parabolic band.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density-of-states values in states/(eV.cell).
+When <cite>Vcell</cite> is set to its default value of 1,
+the unit is also equivalent to states/(eV.Ang^3)
+or 1E24 states/(eV.cm^3).</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="teflow.bandlib.parse_Bands">
+<span class="sig-prename descclassname"><span class="pre">teflow.bandlib.</span></span><span class="sig-name descname"><span class="pre">parse_Bands</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.bandlib.parse_Bands" title="永久链接至目标">¶</a></dt>
+<dd><p>Parse bands model, and label list of props from a config file</p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">目录</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">teflow.bandlib module</a><ul>
+<li><a class="reference internal" href="#teflow.bandlib.UNIT"><code class="docutils literal notranslate"><span class="pre">UNIT</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.kB_eV"><code class="docutils literal notranslate"><span class="pre">kB_eV</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.m_e"><code class="docutils literal notranslate"><span class="pre">m_e</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.hbar"><code class="docutils literal notranslate"><span class="pre">hbar</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.q"><code class="docutils literal notranslate"><span class="pre">q</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand"><code class="docutils literal notranslate"><span class="pre">BaseBand</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.cacheable"><code class="docutils literal notranslate"><span class="pre">BaseBand.cacheable</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.dos"><code class="docutils literal notranslate"><span class="pre">BaseBand.dos()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.trs"><code class="docutils literal notranslate"><span class="pre">BaseBand.trs()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.hall"><code class="docutils literal notranslate"><span class="pre">BaseBand.hall()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.compile"><code class="docutils literal notranslate"><span class="pre">BaseBand.compile()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.clear"><code class="docutils literal notranslate"><span class="pre">BaseBand.clear()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.fetch"><code class="docutils literal notranslate"><span class="pre">BaseBand.fetch()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.N"><code class="docutils literal notranslate"><span class="pre">BaseBand.N()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.K_0"><code class="docutils literal notranslate"><span class="pre">BaseBand.K_0()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.K_1"><code class="docutils literal notranslate"><span class="pre">BaseBand.K_1()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.K_2"><code class="docutils literal notranslate"><span class="pre">BaseBand.K_2()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.CCRH"><code class="docutils literal notranslate"><span class="pre">BaseBand.CCRH()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.C"><code class="docutils literal notranslate"><span class="pre">BaseBand.C()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.CS"><code class="docutils literal notranslate"><span class="pre">BaseBand.CS()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.S"><code class="docutils literal notranslate"><span class="pre">BaseBand.S()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.PF"><code class="docutils literal notranslate"><span class="pre">BaseBand.PF()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.CL"><code class="docutils literal notranslate"><span class="pre">BaseBand.CL()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.L"><code class="docutils literal notranslate"><span class="pre">BaseBand.L()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.Ke"><code class="docutils literal notranslate"><span class="pre">BaseBand.Ke()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.U"><code class="docutils literal notranslate"><span class="pre">BaseBand.U()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.RH"><code class="docutils literal notranslate"><span class="pre">BaseBand.RH()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.UH"><code class="docutils literal notranslate"><span class="pre">BaseBand.UH()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.NH"><code class="docutils literal notranslate"><span class="pre">BaseBand.NH()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.BaseBand.solve_EF"><code class="docutils literal notranslate"><span class="pre">BaseBand.solve_EF()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.bandlib.MultiBand"><code class="docutils literal notranslate"><span class="pre">MultiBand</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.bandlib.MultiBand.cacheable"><code class="docutils literal notranslate"><span class="pre">MultiBand.cacheable</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.MultiBand.dos"><code class="docutils literal notranslate"><span class="pre">MultiBand.dos()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.MultiBand.trs"><code class="docutils literal notranslate"><span class="pre">MultiBand.trs()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.MultiBand.hall"><code class="docutils literal notranslate"><span class="pre">MultiBand.hall()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.MultiBand.Kbip"><code class="docutils literal notranslate"><span class="pre">MultiBand.Kbip()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.MultiBand.guess_btypes"><code class="docutils literal notranslate"><span class="pre">MultiBand.guess_btypes()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSPB"><code class="docutils literal notranslate"><span class="pre">APSSPB</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.bandlib.APSSPB.m_d"><code class="docutils literal notranslate"><span class="pre">APSSPB.m_d</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSPB.sigma0"><code class="docutils literal notranslate"><span class="pre">APSSPB.sigma0</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSPB.Kmass"><code class="docutils literal notranslate"><span class="pre">APSSPB.Kmass</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSPB.dos"><code class="docutils literal notranslate"><span class="pre">APSSPB.dos()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSPB.trs"><code class="docutils literal notranslate"><span class="pre">APSSPB.trs()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSPB.hall"><code class="docutils literal notranslate"><span class="pre">APSSPB.hall()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSPB.Kstar"><code class="docutils literal notranslate"><span class="pre">APSSPB.Kstar</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSPB.UWT"><code class="docutils literal notranslate"><span class="pre">APSSPB.UWT</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSPB.PFmax"><code class="docutils literal notranslate"><span class="pre">APSSPB.PFmax</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSPB.EFopt"><code class="docutils literal notranslate"><span class="pre">APSSPB.EFopt()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSPB.from_DP"><code class="docutils literal notranslate"><span class="pre">APSSPB.from_DP()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSPB.from_UWT"><code class="docutils literal notranslate"><span class="pre">APSSPB.from_UWT()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSPB.valuate"><code class="docutils literal notranslate"><span class="pre">APSSPB.valuate()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSKB"><code class="docutils literal notranslate"><span class="pre">APSSKB</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.bandlib.APSSKB.m_d"><code class="docutils literal notranslate"><span class="pre">APSSKB.m_d</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSKB.sigma0"><code class="docutils literal notranslate"><span class="pre">APSSKB.sigma0</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSKB.Eg"><code class="docutils literal notranslate"><span class="pre">APSSKB.Eg</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSKB.Kmass"><code class="docutils literal notranslate"><span class="pre">APSSKB.Kmass</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSKB.dos"><code class="docutils literal notranslate"><span class="pre">APSSKB.dos()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSKB.trs"><code class="docutils literal notranslate"><span class="pre">APSSKB.trs()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSKB.hall"><code class="docutils literal notranslate"><span class="pre">APSSKB.hall()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSKB.Kstar"><code class="docutils literal notranslate"><span class="pre">APSSKB.Kstar</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSKB.UWT"><code class="docutils literal notranslate"><span class="pre">APSSKB.UWT</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSKB.from_DP"><code class="docutils literal notranslate"><span class="pre">APSSKB.from_DP()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSKB.from_UWT"><code class="docutils literal notranslate"><span class="pre">APSSKB.from_UWT()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.APSSKB.valuate"><code class="docutils literal notranslate"><span class="pre">APSSKB.valuate()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.bandlib.LinearBand"><code class="docutils literal notranslate"><span class="pre">LinearBand</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.bandlib.LinearBand.sigma0"><code class="docutils literal notranslate"><span class="pre">LinearBand.sigma0</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.LinearBand.vF"><code class="docutils literal notranslate"><span class="pre">LinearBand.vF</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.LinearBand.dos"><code class="docutils literal notranslate"><span class="pre">LinearBand.dos()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.LinearBand.trs"><code class="docutils literal notranslate"><span class="pre">LinearBand.trs()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.LinearBand.hall"><code class="docutils literal notranslate"><span class="pre">LinearBand.hall()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.bandlib.RSPB"><code class="docutils literal notranslate"><span class="pre">RSPB</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.bandlib.RSPB.N0"><code class="docutils literal notranslate"><span class="pre">RSPB.N0</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.RSPB.S0"><code class="docutils literal notranslate"><span class="pre">RSPB.S0</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.RSPB.L0"><code class="docutils literal notranslate"><span class="pre">RSPB.L0</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.RSPB.C0"><code class="docutils literal notranslate"><span class="pre">RSPB.C0</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.RSPB.PF0"><code class="docutils literal notranslate"><span class="pre">RSPB.PF0</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.RSPB.Nmr"><code class="docutils literal notranslate"><span class="pre">RSPB.Nmr()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.RSPB.Sr"><code class="docutils literal notranslate"><span class="pre">RSPB.Sr()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.RSPB.iSr"><code class="docutils literal notranslate"><span class="pre">RSPB.iSr()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.RSPB.Ur"><code class="docutils literal notranslate"><span class="pre">RSPB.Ur()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.RSPB.iUr"><code class="docutils literal notranslate"><span class="pre">RSPB.iUr()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.RSPB.Lr"><code class="docutils literal notranslate"><span class="pre">RSPB.Lr()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.RSPB.iLr"><code class="docutils literal notranslate"><span class="pre">RSPB.iLr()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.RSPB.Cr"><code class="docutils literal notranslate"><span class="pre">RSPB.Cr()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.RSPB.PFr"><code class="docutils literal notranslate"><span class="pre">RSPB.PFr()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.RSPB.valuate"><code class="docutils literal notranslate"><span class="pre">RSPB.valuate()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.bandlib.bandline"><code class="docutils literal notranslate"><span class="pre">bandline()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.dosline"><code class="docutils literal notranslate"><span class="pre">dosline()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.bandlib.parse_Bands"><code class="docutils literal notranslate"><span class="pre">parse_Bands()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>上一主题</h4>
+    <p class="topless"><a href="index.html"
+                          title="上一章">API 参考</a></p>
+  </div>
+  <div>
+    <h4>下一主题</h4>
+    <p class="topless"><a href="teflow.engout.html"
+                          title="下一章">teflow.engout module</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api_doc/teflow.bandlib.rst.txt"
+            rel="nofollow">显示源代码</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="提交" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="teflow.engout.html" title="teflow.engout module"
+             >下一页</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="API 参考"
+             >上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">TEflow  文档</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >API 参考</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">teflow.bandlib module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; 版权所有 2023-2024 Jianbo ZHU.
+      由 <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2创建。
+    </div>
+  </body>
+</html>

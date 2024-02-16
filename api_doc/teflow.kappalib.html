@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>teflow.kappalib module &#8212; TEflow  文档</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css?v=0a676766" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=babeb00e"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/translations.js?v=beaddf03"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="teflow.utils module" href="teflow.utils.html" />
+    <link rel="prev" title="teflow.interface module" href="teflow.interface.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="teflow.utils.html" title="teflow.utils module"
+             accesskey="N">下一页</a> |</li>
+        <li class="right" >
+          <a href="teflow.interface.html" title="teflow.interface module"
+             accesskey="P">上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">TEflow  文档</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">API 参考</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">teflow.kappalib module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-teflow.kappalib">
+<span id="teflow-kappalib-module"></span><h1>teflow.kappalib module<a class="headerlink" href="#module-teflow.kappalib" title="此标题的永久链接">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappalib.Variable">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappalib.</span></span><span class="sig-name descname"><span class="pre">Variable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.Variable" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class to represent a variable that notifies subscribers upon
+value changes, used for synchronizing variables within a model.</p>
+<p>Initialize a new Variable instance:</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tag</strong> (<em>str</em>) – Sets the <code class="xref py py-attr docutils literal notranslate"><span class="pre">tag</span></code> attribute.</p></li>
+<li><p><strong>initial</strong> (<em>float</em><em>, </em><em>optional</em>) – The initial guess of <a class="reference internal" href="#teflow.kappalib.Variable.value" title="teflow.kappalib.Variable.value"><code class="xref py py-attr docutils literal notranslate"><span class="pre">value</span></code></a> attribute, defaults to 1.</p></li>
+<li><p><strong>lower</strong> (<em>float</em><em>, </em><em>optional</em>) – Sets the <code class="xref py py-attr docutils literal notranslate"><span class="pre">lower</span></code> attribute, defaults to 0.</p></li>
+<li><p><strong>upper</strong> (<em>float</em><em>, </em><em>optional</em>) – Sets the <code class="xref py py-attr docutils literal notranslate"><span class="pre">upper</span></code> attribute, defaults to 1000.</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Sets the <code class="xref py py-attr docutils literal notranslate"><span class="pre">scale</span></code> attribute, defaults to 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">抛出<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the initial value is not between the lower and upper bounds.</p>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="teflow.kappalib.Variable.value">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#teflow.kappalib.Variable.value" title="永久链接至目标">¶</a></dt>
+<dd><p>The current value of the variable. Setting a new value will
+automatically trigger the <a class="reference internal" href="#teflow.kappalib.Variable.notify" title="teflow.kappalib.Variable.notify"><code class="xref py py-meth docutils literal notranslate"><span class="pre">notify()</span></code></a> method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">抛出<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the new value is not between the lower and upper bounds.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappalib.Variable.register">
+<span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subscriber</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.Variable.register" title="永久链接至目标">¶</a></dt>
+<dd><p>Registers a subscriber that will be notified of value changes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>instance</strong> (<em>object</em>) – The instance to notify when the variable changes.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – The parameter name in the instance that will be updated.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappalib.Variable.notify">
+<span class="sig-name descname"><span class="pre">notify</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.Variable.notify" title="永久链接至目标">¶</a></dt>
+<dd><p>Notifies all registered subscribers about the updated value.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappalib.Parameters">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappalib.</span></span><span class="sig-name descname"><span class="pre">Parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.Parameters" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">OrderedDict</span></code></p>
+<p>A dictionary-like container to manage model parameters,
+automatically synchronizing any contained Variable instances.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappalib.BaseKappaModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappalib.</span></span><span class="sig-name descname"><span class="pre">BaseKappaModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.BaseKappaModel" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Abstract base class for kappa models.</p>
+<p>This class serves as a template for kappa models, providing a framework
+for implementing model-specific calculations and fitting procedures.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**parameters</strong> (<em>dict</em>) – A dictionary of parameters to initialize the model. These parameters
+are managed by a <cite>Parameters</cite> instance, allowing for synchronization
+with <cite>Variable</cite> objects if used.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappalib.BaseKappaModel.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataK</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.BaseKappaModel.fit" title="永久链接至目标">¶</a></dt>
+<dd><p>Fits the model to the provided data using specified variables.
+In the absence of specified variables, this method directly calculates
+and returns the kappa values for the given temperatures based on
+the current parameters. This method primarily utilizes the
+<cite>scipy.optimize.curve_fit</cite> function, with <cite>kwargs</cite> providing
+additional options to tailor the fitting process. However,
+note that ‘p0’ and ‘bounds’ parameters are superseded by the
+settings in the Variable instances, and should be adjusted
+through their respective attributes, not via <cite>kwargs</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappalib.KappaCallaway">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappalib.</span></span><span class="sig-name descname"><span class="pre">KappaCallaway</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">td</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.KappaCallaway" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappalib.BaseKappaModel" title="teflow.kappalib.BaseKappaModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseKappaModel</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\kappa = \frac{1}{3} \int_0^{\omega_D}
+          \tau v_s^2 g(\omega)
+          \hbar \omega \frac{\partial f}{\partial T}
+          d\omega\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vs</strong> (<em>float</em>) – Sound velocity (<span class="math notranslate nohighlight">\(v_s\)</span>), in km/s.</p></li>
+<li><p><strong>td</strong> (<em>float</em>) – Debye temperature (<span class="math notranslate nohighlight">\(\Theta\)</span>), in Kelvin.</p></li>
+<li><p><strong>components</strong> (<em>list</em>) – Components of the model, such as scattering mechanism.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="teflow.kappalib.KappaCallaway.wcut">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">wcut</span></span><a class="headerlink" href="#teflow.kappalib.KappaCallaway.wcut" title="永久链接至目标">¶</a></dt>
+<dd><p>Cut-off (angular) frequency, i.e.
+<span class="math notranslate nohighlight">\(\hbar \omega_{cut} = k_B \Theta\)</span>,
+in rad/ps.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappalib.KappaCallaway.scattering">
+<span class="sig-name descname"><span class="pre">scattering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.KappaCallaway.scattering" title="永久链接至目标">¶</a></dt>
+<dd><p>Scattering rate, in THz.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappalib.KappaCallaway.spectral">
+<span class="sig-name descname"><span class="pre">spectral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accumulate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.KappaCallaway.spectral" title="永久链接至目标">¶</a></dt>
+<dd><p>Spectral thermal conductivity <span class="math notranslate nohighlight">\(\kappa_s(\omega)\)</span> in ps.W/(m.K):</p>
+<div class="math notranslate nohighlight">
+\[\kappa_s(\omega) = \tau
+    \frac{\omega ^2}{2 v_s \pi ^2}
+    k_B \left ( \frac{\hbar \omega}{k_B T}\right )^2
+    \cfrac{\exp \left( \cfrac{\hbar \omega}{k_B T} \right )}{
+        \left [
+            \exp \left( \cfrac{\hbar \omega}{k_B T} - 1\right)
+        \right ]^2
+    }
+\text{, then }
+\kappa = \int_0^{\omega_D} \kappa_s(\omega) d\omega\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> (<em>ndarray</em>) – Phonon angular frequency in rad/ps.</p></li>
+<li><p><strong>T</strong> (<em>ndarray</em>) – Temperatures in K.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappalib.KappaCallaway.cumulative">
+<span class="sig-name descname"><span class="pre">cumulative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accumulate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.KappaCallaway.cumulative" title="永久链接至目标">¶</a></dt>
+<dd><p>Cumulative thermal conductivity <span class="math notranslate nohighlight">\(\kappa_c(\omega)\)</span> in W/(m.K):</p>
+<div class="math notranslate nohighlight">
+\[\kappa_c(\omega) = \int_0^{\omega} \kappa_s(\omega) d\omega\]</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappalib.KappaCallaway.cumulative_mfp_t">
+<span class="sig-name descname"><span class="pre">cumulative_mfp_t</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mfp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accumulate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbatch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.KappaCallaway.cumulative_mfp_t" title="永久链接至目标">¶</a></dt>
+<dd><p>Calculates the cumulative thermal conductivity (in W/(m.K)) across phonon
+mean-free-path (in nm) at a specified temperature point:</p>
+<div class="math notranslate nohighlight">
+\[\kappa_c(\lambda; T) = \int_{\lambda(\omega; T) \le \lambda}
+\kappa_s(\omega; T) d\omega\]</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappalib.BaseScattering">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappalib.</span></span><span class="sig-name descname"><span class="pre">BaseScattering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.BaseScattering" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappalib.ThreePhonon">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappalib.</span></span><span class="sig-name descname"><span class="pre">ThreePhonon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.ThreePhonon" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappalib.BaseScattering" title="teflow.kappalib.BaseScattering"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseScattering</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\tau_i^{-1} = A \omega ^2 T\]</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappalib.ThreePhonon.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'U'</span></em><a class="headerlink" href="#teflow.kappalib.ThreePhonon.tag" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappalib.PointDefect">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappalib.</span></span><span class="sig-name descname"><span class="pre">PointDefect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">B</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.PointDefect" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappalib.BaseScattering" title="teflow.kappalib.BaseScattering"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseScattering</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\tau_i^{-1} = B \omega ^4\]</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappalib.PointDefect.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'PD'</span></em><a class="headerlink" href="#teflow.kappalib.PointDefect.tag" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappalib.GrainBoundary">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappalib.</span></span><span class="sig-name descname"><span class="pre">GrainBoundary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.GrainBoundary" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappalib.BaseScattering" title="teflow.kappalib.BaseScattering"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseScattering</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\tau_i^{-1} = \frac{v_s}{L}\]</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappalib.GrainBoundary.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'GB'</span></em><a class="headerlink" href="#teflow.kappalib.GrainBoundary.tag" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappalib.CahillScattering">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappalib.</span></span><span class="sig-name descname"><span class="pre">CahillScattering</span></span><a class="headerlink" href="#teflow.kappalib.CahillScattering" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappalib.BaseScattering" title="teflow.kappalib.BaseScattering"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseScattering</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\tau_i^{-1} = \frac{\omega}{\pi}\]</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappalib.CahillScattering.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'MIN'</span></em><a class="headerlink" href="#teflow.kappalib.CahillScattering.tag" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappalib.KappaBipolar">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappalib.</span></span><span class="sig-name descname"><span class="pre">KappaBipolar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Kbp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Eg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.KappaBipolar" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappalib.BaseKappaModel" title="teflow.kappalib.BaseKappaModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseKappaModel</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\kappa_{bip} = \kappa_{bp} \left ( \frac{T}{T_{amb}} \right ) ^p
+    \exp \left( -\frac{E_g}{2k_BT} \right)
+\text{, where } T_{amb} = 300 K\]</div>
+<p>Ref: O. C. Yelgel et al., Phys. Rev. B, 85 125207, 2012.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Kbp</strong> (<em>float</em>) – Adjustable parameter (<span class="math notranslate nohighlight">\(\kappa_{bp}\)</span>), in W/(m.K).</p></li>
+<li><p><strong>Eg</strong> (<em>float</em>) – Band gap, in eV.</p></li>
+<li><p><strong>p</strong> (<em>float</em><em>, </em><em>optional</em>) – Adjustable parameter, by default 1.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappalib.KappaBipolar.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'BIP'</span></em><a class="headerlink" href="#teflow.kappalib.KappaBipolar.tag" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappalib.KappaPowerLaw">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappalib.</span></span><span class="sig-name descname"><span class="pre">KappaPowerLaw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Kamb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">K0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.KappaPowerLaw" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappalib.BaseKappaModel" title="teflow.kappalib.BaseKappaModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseKappaModel</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\kappa = \kappa_{amb} \left ( \frac{T_{amb}}{T} \right ) ^n
+          + \kappa_0 \text{, where } T_{amb} = 300 K\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Kamb</strong> (<em>float</em>) – Ambient thermal conductivity (<span class="math notranslate nohighlight">\(\kappa_{amb}\)</span>),
+corresponds to the thermal conductivity at the ambient temperature
+(300 K) with the background offset excluded.</p></li>
+<li><p><strong>n</strong> (<em>float</em><em>, </em><em>optional</em>) – The exponent in the expression, by default 1.</p></li>
+<li><p><strong>K0</strong> (<em>float</em><em>, </em><em>optional</em>) – Background offset (<span class="math notranslate nohighlight">\(\kappa_0\)</span>), by default 0.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappalib.KappaKlemens">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappalib.</span></span><span class="sig-name descname"><span class="pre">KappaKlemens</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Kpure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">td</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">G0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Va</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.KappaKlemens" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappalib.BaseKappaModel" title="teflow.kappalib.BaseKappaModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseKappaModel</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\frac{\kappa(x)}{\kappa_{pure}} =
+\frac{\tan^{-1}(u)}{u} \text{, where }
+u^2 = \cfrac{\pi \Theta V_a}{2\hbar v_s^2}
+\kappa_{pure}\Gamma_0 \cdot x (1-x)\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Kpure</strong> (<em>float</em>) – Kappa of the crystal with disorder (<span class="math notranslate nohighlight">\(\kappa_{pure}\)</span>),
+in W/(m.K).</p></li>
+<li><p><strong>vs</strong> (<em>float</em>) – Sound velocity (<span class="math notranslate nohighlight">\(v_s\)</span>), in km/s.</p></li>
+<li><p><strong>td</strong> (<em>float</em>) – Debye temperature (<span class="math notranslate nohighlight">\(\Theta\)</span>), in Kelvin.</p></li>
+<li><p><strong>G0</strong> (<em>float</em>) – The factor of disorder scaling parameter (<span class="math notranslate nohighlight">\(\Gamma_0\)</span>).</p></li>
+<li><p><strong>Va</strong> (<em>float</em>) – Average volume per atom (<span class="math notranslate nohighlight">\(V_a\)</span>), in cubic angstroms (A^3).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappalib.KappaKlemens.u2">
+<span class="sig-name descname"><span class="pre">u2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.KappaKlemens.u2" title="永久链接至目标">¶</a></dt>
+<dd><p>Calculates <span class="math notranslate nohighlight">\(u^2\)</span> from <span class="math notranslate nohighlight">\(x\)</span> based on model parameters.
+Users can customize the expression as needed by overriding this method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappalib.KappaKlemens.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataK</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappalib.KappaKlemens.fit" title="永久链接至目标">¶</a></dt>
+<dd><p>Overrides <a class="reference internal" href="#teflow.kappalib.BaseKappaModel" title="teflow.kappalib.BaseKappaModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseKappaModel</span></code></a>: replaces temperature data with
+composition data (dataX).</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">目录</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">teflow.kappalib module</a><ul>
+<li><a class="reference internal" href="#teflow.kappalib.Variable"><code class="docutils literal notranslate"><span class="pre">Variable</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappalib.Variable.value"><code class="docutils literal notranslate"><span class="pre">Variable.value</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappalib.Variable.register"><code class="docutils literal notranslate"><span class="pre">Variable.register()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappalib.Variable.notify"><code class="docutils literal notranslate"><span class="pre">Variable.notify()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappalib.Parameters"><code class="docutils literal notranslate"><span class="pre">Parameters</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappalib.BaseKappaModel"><code class="docutils literal notranslate"><span class="pre">BaseKappaModel</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappalib.BaseKappaModel.fit"><code class="docutils literal notranslate"><span class="pre">BaseKappaModel.fit()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappalib.KappaCallaway"><code class="docutils literal notranslate"><span class="pre">KappaCallaway</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappalib.KappaCallaway.wcut"><code class="docutils literal notranslate"><span class="pre">KappaCallaway.wcut</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappalib.KappaCallaway.scattering"><code class="docutils literal notranslate"><span class="pre">KappaCallaway.scattering()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappalib.KappaCallaway.spectral"><code class="docutils literal notranslate"><span class="pre">KappaCallaway.spectral()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappalib.KappaCallaway.cumulative"><code class="docutils literal notranslate"><span class="pre">KappaCallaway.cumulative()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappalib.KappaCallaway.cumulative_mfp_t"><code class="docutils literal notranslate"><span class="pre">KappaCallaway.cumulative_mfp_t()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappalib.BaseScattering"><code class="docutils literal notranslate"><span class="pre">BaseScattering</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappalib.ThreePhonon"><code class="docutils literal notranslate"><span class="pre">ThreePhonon</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappalib.ThreePhonon.tag"><code class="docutils literal notranslate"><span class="pre">ThreePhonon.tag</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappalib.PointDefect"><code class="docutils literal notranslate"><span class="pre">PointDefect</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappalib.PointDefect.tag"><code class="docutils literal notranslate"><span class="pre">PointDefect.tag</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappalib.GrainBoundary"><code class="docutils literal notranslate"><span class="pre">GrainBoundary</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappalib.GrainBoundary.tag"><code class="docutils literal notranslate"><span class="pre">GrainBoundary.tag</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappalib.CahillScattering"><code class="docutils literal notranslate"><span class="pre">CahillScattering</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappalib.CahillScattering.tag"><code class="docutils literal notranslate"><span class="pre">CahillScattering.tag</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappalib.KappaBipolar"><code class="docutils literal notranslate"><span class="pre">KappaBipolar</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappalib.KappaBipolar.tag"><code class="docutils literal notranslate"><span class="pre">KappaBipolar.tag</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappalib.KappaPowerLaw"><code class="docutils literal notranslate"><span class="pre">KappaPowerLaw</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappalib.KappaKlemens"><code class="docutils literal notranslate"><span class="pre">KappaKlemens</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappalib.KappaKlemens.u2"><code class="docutils literal notranslate"><span class="pre">KappaKlemens.u2()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappalib.KappaKlemens.fit"><code class="docutils literal notranslate"><span class="pre">KappaKlemens.fit()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>上一主题</h4>
+    <p class="topless"><a href="teflow.interface.html"
+                          title="上一章">teflow.interface module</a></p>
+  </div>
+  <div>
+    <h4>下一主题</h4>
+    <p class="topless"><a href="teflow.utils.html"
+                          title="下一章">teflow.utils module</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api_doc/teflow.kappalib.rst.txt"
+            rel="nofollow">显示源代码</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="提交" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="teflow.utils.html" title="teflow.utils module"
+             >下一页</a> |</li>
+        <li class="right" >
+          <a href="teflow.interface.html" title="teflow.interface module"
+             >上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">TEflow  文档</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >API 参考</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">teflow.kappalib module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; 版权所有 2023, Jianbo, ZHU.
+      由 <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2创建。
+    </div>
+  </body>
+</html>

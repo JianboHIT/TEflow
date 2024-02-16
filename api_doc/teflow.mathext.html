@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>teflow.mathext module &#8212; TEflow  文档</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css?v=0a676766" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=babeb00e"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/translations.js?v=beaddf03"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="teflow.utils module" href="teflow.utils.html" />
+    <link rel="prev" title="teflow.loader module" href="teflow.loader.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="teflow.utils.html" title="teflow.utils module"
+             accesskey="N">下一页</a> |</li>
+        <li class="right" >
+          <a href="teflow.loader.html" title="teflow.loader module"
+             accesskey="P">上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">TEflow  文档</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">API 参考</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">teflow.mathext module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-teflow.mathext">
+<span id="teflow-mathext-module"></span><h1>teflow.mathext module<a class="headerlink" href="#module-teflow.mathext" title="此标题的永久链接">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="teflow.mathext.fermidirac">
+<span class="sig-prename descclassname"><span class="pre">teflow.mathext.</span></span><span class="sig-name descname"><span class="pre">fermidirac</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.mathext.fermidirac" title="永久链接至目标">¶</a></dt>
+<dd><dl class="simple">
+<dt>Fermi-Dirac function:</dt><dd><p>1/(1+e^x)</p>
+</dd>
+<dt>The inverse function:</dt><dd><p>ln(1/y-1)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array_like</em>) – Argument of the Fermi-Dirac function</p></li>
+<li><p><strong>inverse</strong> (<em>bool</em><em>, </em><em>optional</em>) – Calculate the value of inverse function, by default False</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>An array of the same shape as x</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="teflow.mathext.interpx">
+<span class="sig-prename descclassname"><span class="pre">teflow.mathext.</span></span><span class="sig-name descname"><span class="pre">interpx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.mathext.interpx" title="永久链接至目标">¶</a></dt>
+<dd><p>Extends <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.interp()</span></code> to perform linear extrapolation for xp values
+outside the x range, differing from the constant extrapolation with end
+values or specified fill values used by the original function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array_like</em>) – A 1-dimensional array of x-coordinates of the data points. It must be
+strictly monotonically increasing and contain at least two elements.</p></li>
+<li><p><strong>y</strong> (<em>array_like</em>) – A 1-dimensional array of y-coordinates corresponding to <cite>x</cite>. The arrays
+<cite>x</cite> and <cite>y</cite> must have the same length.</p></li>
+<li><p><strong>xp</strong> (<em>array_like</em>) – The x-coordinates at which to interpolate/extrapolate values.</p></li>
+<li><p><strong>left</strong> (<em>float</em><em>, </em><em>optional</em>) – Value to return for x &lt; xp[0], default linear extrapolation.</p></li>
+<li><p><strong>right</strong> (<em>float</em><em>, </em><em>optional</em>) – Value to return for x &gt; xp[-1], default linear extrapolation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Interpolated/extrapolated values at <cite>xp</cite>, with the output shape
+matching that of <cite>xp</cite>.</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="teflow.mathext.mixing">
+<span class="sig-prename descclassname"><span class="pre">teflow.mathext.</span></span><span class="sig-name descname"><span class="pre">mixing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.mathext.mixing" title="永久链接至目标">¶</a></dt>
+<dd><p>Mix several datas with the same shape.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datas</strong> (<em>sequence</em><em> of </em><em>array_like</em>) – datas with the same shape</p></li>
+<li><p><strong>weight</strong> (<em>sequence</em><em> of </em><em>float</em><em>, </em><em>optional</em>) – weights of mixing, with the same shape of datas, by default ones_like(datas) array</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – scale factor, by default 1/sum(weight)</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>mixing result, with the same shape of data</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="teflow.mathext.smoothstep">
+<span class="sig-prename descclassname"><span class="pre">teflow.mathext.</span></span><span class="sig-name descname"><span class="pre">smoothstep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.mathext.smoothstep" title="永久链接至目标">¶</a></dt>
+<dd><p>Smoothstep function:</p>
+<blockquote>
+<div><p>0, x &lt; 0</p>
+<p>3x^2-2x^3, x &lt;= 0 &lt;= 1</p>
+<p>1, x &gt; 1</p>
+</div></blockquote>
+<p>The inverse function:</p>
+<blockquote>
+<div><p>1/2 - sin(arcsin(1-2*y)/3)</p>
+</div></blockquote>
+<p>It might be more convenient when the function is shifted x’ = (1-x)/2,
+which drops from 1 to 0 where -1 &lt;= 0 &lt;= 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array_like</em>) – Argument of the smoothstep function (<a class="reference external" href="https://en.wikipedia.org/wiki/Smoothstep">https://en.wikipedia.org/wiki/Smoothstep</a>)</p></li>
+<li><p><strong>inverse</strong> (<em>bool</em><em>, </em><em>optional</em>) – Calculate the value of inverse function, by default False</p></li>
+<li><p><strong>shift</strong> (<em>bool</em><em>, </em><em>optional</em>) – shift the origin smoothstep function with x’ = (1-x)/2, by default True</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>An array of the same shape as x</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="teflow.mathext.vinterp">
+<span class="sig-prename descclassname"><span class="pre">teflow.mathext.</span></span><span class="sig-name descname"><span class="pre">vinterp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reorder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.mathext.vinterp" title="永久链接至目标">¶</a></dt>
+<dd><p>Vectorized interpolation of values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>(</em><em>N</em><em>,</em><em>) </em><em>array_like</em>) – The x-coordinates of the data points.</p></li>
+<li><p><strong>y</strong> (<em>(</em><em>…</em><em>,</em><em>N</em><em>) </em><em>array_like</em>) – The y-coordinates corresponding to x. The length of the last dimension
+must be the same as x.</p></li>
+<li><p><strong>xp</strong> (<em>array_like</em>) – The x-coordinates at which to evaluate the interpolated values.</p></li>
+<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Specifies the interpolation method to be used. Supported methods include:</p>
+<ul>
+<li><p>’linear’ (default): Uses <a class="reference internal" href="#teflow.mathext.interpx" title="teflow.mathext.interpx"><code class="xref py py-func docutils literal notranslate"><span class="pre">interpx()</span></code></a> for linear interpolation.</p></li>
+<li><p>’line’: Uses raw <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.interp()</span></code> for linear interpolation.</p></li>
+<li><p>’poly&lt;N&gt;’: Uses <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.polynomial.polynomial.Polynomial.fit()</span></code>
+for polynomial interpolation of degree N. Replace &lt;N&gt; with the
+degree of the polynomial, e.g., ‘poly2’ for quadratic.</p></li>
+<li><p>’cubic’: Uses <code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.interpolate.CubicSpline()</span></code> for cubic
+spline interpolation.</p></li>
+<li><p>’pchip’: Uses <code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.interpolate.PchipInterpolator()</span></code> for
+Piecewise Cubic Hermite Interpolating Polynomial.</p></li>
+<li><p>’akima’: Uses <code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.interpolate.Akima1DInterpolator()</span></code> for
+Akima interpolation.</p></li>
+<li><p>’spline’: Uses <code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.interpolate.make_interp_spline()</span></code> to
+customize a B-spline representation of the data.</p></li>
+</ul>
+</p></li>
+<li><p><strong>reorder</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True (default), automatically reorders <cite>x</cite> and <cite>y</cite> if <cite>x</cite> is not
+monotonically increasing. If False, an error is raised if <cite>x</cite> is not
+monotonically increasing.</p></li>
+<li><p><strong>**kwargs</strong> (<em>any</em><em>, </em><em>optional</em>) – Additional keyword arguments to be passed to the corresponding
+interpolation method.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>The interpolated values.</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="teflow.mathext.vquad">
+<span class="sig-prename descclassname"><span class="pre">teflow.mathext.</span></span><span class="sig-name descname"><span class="pre">vquad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">where</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.mathext.vquad" title="永久链接至目标">¶</a></dt>
+<dd><p>Extend <cite>scipy.integrate.quad</cite> by adding support for broadcasting over
+<cite>a</cite>, <cite>b</cite>, <cite>args</cite>, <cite>where</cite>, and <cite>fill_value</cite>. The <cite>where</cite> and <cite>fill_value</cite>
+parameters are introduced for enhanced flexibility in controlling
+integration.</p>
+<p>Note that this function is not a true ufunc in the numpy sense. It
+leverages broadcasting and Python loops to offer a convenient interface
+for integrating a function across varying ranges and with diverse
+parameters. It prioritizes ease of use over optimal performance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>func</strong> (<em>callable</em>) – A Python function or method to integrate.</p></li>
+<li><p><strong>a</strong> (<em>array_like</em>) – Lower limit of integration.</p></li>
+<li><p><strong>b</strong> (<em>array_like</em>) – Upper limit of integration.</p></li>
+<li><p><strong>args</strong> (<em>tuple</em><em> of </em><em>array_like</em><em>, </em><em>optional</em>) – Extra arguments to pass to <cite>func</cite>. Each element of <cite>args</cite> will be
+broadcasted to match the shape of <cite>a</cite> and <cite>b</cite>. Default is an empty
+tuple.</p></li>
+<li><p><strong>where</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Boolean mask to specify where to perform the integration. Default
+is <cite>True</cite>, which means that the integration is performed everywhere.</p></li>
+<li><p><strong>fill_value</strong> (<em>array_like</em><em>, </em><em>optional</em>) – The value to use for masked positions. Default is <cite>0</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Additional keyword arguments passed to <cite>scipy.integrate.quad</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>ndarray</em> – Array of computed integral values with the same shape as the
+broadcasted shape of <cite>a</cite>, <cite>b</cite>, and each element of <cite>args</cite>.</p></li>
+<li><p><em>ndarray</em> – Array of estimated integration errors with the same shape as
+the first returned ndarray.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">示例</p>
+<p>Consider a function <cite>func(x, m, n)</cite> defined as:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">m</span><span class="o">*</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="k">if</span> <span class="n">x</span><span class="o">&lt;</span><span class="mi">0</span> <span class="k">else</span> <span class="n">n</span><span class="o">*</span><span class="n">x</span><span class="o">**</span><span class="mi">3</span>
+</pre></div>
+</div>
+<p>We can integrate <cite>func</cite> over the intervals <cite>[-1, 1]</cite> and <cite>[-2, 2]</cite> with
+<cite>args</cite> as <cite>(3, [[4], [8], [12]])</cite> . Here, <cite>3</cite> corresponds to
+the parameter <cite>m</cite> in <cite>func</cite>, and the column vector <cite>[[4], [8], [12]]</cite>
+corresponds to the parameter <cite>n</cite> in <cite>func</cite>. The broadcasting results in
+an output shape of <cite>(3, 2)</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vquad</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="p">[[</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">]]))[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">array([[ 2., 24.],</span>
+<span class="go">       [ 3., 40.],</span>
+<span class="go">       [ 4., 56.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">目录</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">teflow.mathext module</a><ul>
+<li><a class="reference internal" href="#teflow.mathext.fermidirac"><code class="docutils literal notranslate"><span class="pre">fermidirac()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.mathext.interpx"><code class="docutils literal notranslate"><span class="pre">interpx()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.mathext.mixing"><code class="docutils literal notranslate"><span class="pre">mixing()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.mathext.smoothstep"><code class="docutils literal notranslate"><span class="pre">smoothstep()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.mathext.vinterp"><code class="docutils literal notranslate"><span class="pre">vinterp()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.mathext.vquad"><code class="docutils literal notranslate"><span class="pre">vquad()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>上一主题</h4>
+    <p class="topless"><a href="teflow.loader.html"
+                          title="上一章">teflow.loader module</a></p>
+  </div>
+  <div>
+    <h4>下一主题</h4>
+    <p class="topless"><a href="teflow.utils.html"
+                          title="下一章">teflow.utils module</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api_doc/teflow.mathext.rst.txt"
+            rel="nofollow">显示源代码</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="提交" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="teflow.utils.html" title="teflow.utils module"
+             >下一页</a> |</li>
+        <li class="right" >
+          <a href="teflow.loader.html" title="teflow.loader module"
+             >上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">TEflow  文档</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >API 参考</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">teflow.mathext module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; 版权所有 2023-2024 Jianbo ZHU.
+      由 <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2创建。
+    </div>
+  </body>
+</html>

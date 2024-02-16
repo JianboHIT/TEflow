@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>teflow.utils module &#8212; TEflow  文档</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css?v=0a676766" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=babeb00e"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/translations.js?v=beaddf03"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="teflow.ztdev module" href="teflow.ztdev.html" />
+    <link rel="prev" title="teflow.mathext module" href="teflow.mathext.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="teflow.ztdev.html" title="teflow.ztdev module"
+             accesskey="N">下一页</a> |</li>
+        <li class="right" >
+          <a href="teflow.mathext.html" title="teflow.mathext module"
+             accesskey="P">上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">TEflow  文档</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">API 参考</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">teflow.utils module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-teflow.utils">
+<span id="teflow-utils-module"></span><h1>teflow.utils module<a class="headerlink" href="#module-teflow.utils" title="此标题的永久链接">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.utils.AttrDict">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.utils.</span></span><span class="sig-name descname"><span class="pre">AttrDict</span></span><a class="headerlink" href="#teflow.utils.AttrDict" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">OrderedDict</span></code></p>
+<p>A lightweight extended dictionary class, designed to maintain key order
+and enable attribute-style access via dot notation for a more intuitive
+interaction.</p>
+<p class="rubric">示例</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">AttrDict</span><span class="p">({</span><span class="s1">&#39;key1&#39;</span><span class="p">:</span> <span class="s1">&#39;value1&#39;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;key1&#39;</span><span class="p">]</span>
+<span class="go">&#39;value1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">key1</span>
+<span class="go">&#39;value1&#39;</span>
+</pre></div>
+</div>
+<p class="rubric">备注</p>
+<ul class="simple">
+<li><p>Dot access mode only supports accessing existing keys.
+Setting values using dot notation is not supported.</p></li>
+<li><p>This class may not handle nested dictionaries in dot access mode.</p></li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.utils.AttrDict.retain">
+<span class="sig-name descname"><span class="pre">retain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.utils.AttrDict.retain" title="永久链接至目标">¶</a></dt>
+<dd><p>Retain specified keys in the dictionary, optionally matching order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>keys</strong> (<em>Iterable</em><em> or </em><em>Sequence</em>) – The keys to be retained. When ‘match_order’ is False,
+‘keys’ can be any Iterable (like set, list, or string).
+When ‘match_order’ is True, ‘keys’ must be a Sequence
+(like list or tuple) to ensure the order of elements.</p></li>
+<li><p><strong>match_order</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the order of keys in the resulting dictionary will match
+the order of keys in the ‘keys’ parameter. Default is False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary of the keys that were removed and their values.</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+<dt class="field-even">抛出<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – If ‘keys’ is not an Iterable or not a Sequence when ‘match_order’
+    is True.</p>
+</dd>
+</dl>
+<p class="rubric">示例</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">AttrDict</span><span class="p">(</span><span class="n">b</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">g</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="s1">&#39;somewhat&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">popped</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">retain</span><span class="p">(</span><span class="s1">&#39;abcdefg&#39;</span><span class="p">,</span> <span class="n">match_order</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Equivalent to the above:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># popped = d.retain([&#39;a&#39;,&#39;b&#39;,&#39;c&#39;,&#39;d&#39;,&#39;e&#39;,&#39;f&#39;,&#39;g&#39;], match_order=True)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="go">AttrDict([(&#39;b&#39;, 2), (&#39;c&#39;, 2), (&#39;g&#39;, 3)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">popped</span><span class="p">)</span>
+<span class="go">{&#39;note&#39;: &#39;somewhat&#39;}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.utils.CfgParser">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.utils.</span></span><span class="sig-name descname"><span class="pre">CfgParser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">allow_section_whitespace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">case_sensitive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.utils.CfgParser" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigParser</span></code></p>
+<p>A custom configuration parser class derived from ConfigParser,
+with enhanced features:</p>
+<ul class="simple">
+<li><p>Allows for case sensitivity in configuration options.</p></li>
+<li><p>Allows whitespace in section names.</p></li>
+<li><p>Predefined converters for <cite>array</cite>, and <cite>list[_XXX]</cite> types.</p></li>
+<li><p>Delimiters: Only the ‘=’ character is accepted for separating keys
+and values in the configuration file, ensuring a consistent format.</p></li>
+<li><p>Comment Prefixes: The ‘#’ character is used to indicate comments,
+allowing for clear and concise configuration files.</p></li>
+<li><p>Inline Comment Prefixes: Inline comments are also indicated with the
+‘#’ character.</p></li>
+<li><p>Interpolation: Uses <cite>ExtendedInterpolation()</cite> to provide advanced
+string formatting within the configuration file, allowing values
+to reference other values or variables.</p></li>
+<li><p>Prefix Match: Introduce <a class="reference internal" href="#teflow.utils.CfgParser.pmatch" title="teflow.utils.CfgParser.pmatch"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pmatch()</span></code></a> method to identify
+[SectionName.SectionType] type sections.</p></li>
+</ul>
+<p>All these settings are initialized to ensure a consistent and clear
+configuration file format, while still allowing for advanced features
+and flexibility. Users can override these settings as per their
+requirements.</p>
+<p>Initialize the configuration parser with custom settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>case_sensitive</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the parsing should be case sensitive. Default is True.</p></li>
+<li><p><strong>allow_section_whitespace</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to allow whitespace in section names. Default is True.</p></li>
+<li><p><strong>**kwargs</strong> – Additional keyword arguments to pass to the ConfigParser.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.utils.CfgParser.pmatch">
+<span class="sig-name descname"><span class="pre">pmatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">section</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.utils.CfgParser.pmatch" title="永久链接至目标">¶</a></dt>
+<dd><p>Matches sections by prefix SectionName and retrieves content from
+[SectionName.SectionType] or [SectionName] formatted sections.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.utils.ExecWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.utils.</span></span><span class="sig-name descname"><span class="pre">ExecWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.utils.ExecWrapper" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A utility class for dynamically managing the arguments of a callable or
+a class constructor, allowing for dynamic argument updates and execution.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.utils.ExecWrapper.UNSET">
+<span class="sig-name descname"><span class="pre">UNSET</span></span><a class="headerlink" href="#teflow.utils.ExecWrapper.UNSET" title="永久链接至目标">¶</a></dt>
+<dd><p>The unset flag for an argument.</p>
+</dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obj</strong> (<em>Any</em>) – A callable object or class constructor to manage.</p></li>
+<li><p><strong>args</strong> (<em>list</em><em>, </em><em>optional</em>) – The names of required arguments for the managed object.</p></li>
+<li><p><strong>opts</strong> (<em>list</em><em>, </em><em>optional</em>) – The names of optional arguments for the managed object.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.utils.ExecWrapper.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.utils.ExecWrapper.execute" title="永久链接至目标">¶</a></dt>
+<dd><p>Executes the callable or instantiates the class. The arguments provided
+will override the corresponding stored values temporarily, but this
+applies only to the current execution. To make permanent changes to
+the arguments, use the <a class="reference internal" href="#teflow.utils.ExecWrapper.update" title="teflow.utils.ExecWrapper.update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">update()</span></code></a> method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> (<em>any</em><em>, </em><em>optional</em>) – Keyword arguments to be passed to the callable or constructor.</p>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the callable execution or class instantiation.</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
+</dd>
+<dt class="field-even">抛出<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If any required argument is missing.</p></li>
+<li><p><strong>RuntimeError</strong> – If the execution of the callable or the class instantiation fails.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.utils.ExecWrapper.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.utils.ExecWrapper.update" title="永久链接至目标">¶</a></dt>
+<dd><p>Updates the values of both required and optional arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> (<em>any</em><em>, </em><em>optional</em>) – Keyword arguments to update the values of arguments. Note that
+any invalid arguments passed will be ignored without warning.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.utils.ListDict">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.utils.</span></span><span class="sig-name descname"><span class="pre">ListDict</span></span><a class="headerlink" href="#teflow.utils.ListDict" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.utils.AttrDict" title="teflow.utils.AttrDict"><code class="xref py py-class docutils literal notranslate"><span class="pre">AttrDict</span></code></a></p>
+<p>Extends <a class="reference internal" href="#teflow.utils.AttrDict" title="teflow.utils.AttrDict"><code class="xref py py-class docutils literal notranslate"><span class="pre">AttrDict</span></code></a> to include methods for manipulating list
+values within the dictionary, such as <a class="reference internal" href="#teflow.utils.ListDict.append" title="teflow.utils.ListDict.append"><code class="xref py py-meth docutils literal notranslate"><span class="pre">append()</span></code></a>, <a class="reference internal" href="#teflow.utils.ListDict.extend" title="teflow.utils.ListDict.extend"><code class="xref py py-meth docutils literal notranslate"><span class="pre">extend()</span></code></a>,
+<a class="reference internal" href="#teflow.utils.ListDict.merge" title="teflow.utils.ListDict.merge"><code class="xref py py-meth docutils literal notranslate"><span class="pre">merge()</span></code></a>, and <a class="reference internal" href="#teflow.utils.ListDict.sum" title="teflow.utils.ListDict.sum"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sum()</span></code></a>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.utils.ListDict.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.utils.ListDict.append" title="永久链接至目标">¶</a></dt>
+<dd><p>Append values from another dictionary to the current instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obj</strong> (<em>dict</em>) – Dictionary from which values are to be appended.</p>
+</dd>
+<dt class="field-even">抛出<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the object to append is not a dictionary.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.utils.ListDict.extend">
+<span class="sig-name descname"><span class="pre">extend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.utils.ListDict.extend" title="永久链接至目标">¶</a></dt>
+<dd><p>Extend values from another dictionary to the current instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obj</strong> (<em>dict</em>) – Dictionary from which values are to be extended.</p>
+</dd>
+<dt class="field-even">抛出<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the object to extend is not a dictionary.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.utils.ListDict.merge">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toarray</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.utils.ListDict.merge" title="永久链接至目标">¶</a></dt>
+<dd><p>Merge a list of dictionaries to a new instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objs</strong> (<em>list</em><em> of </em><em>dicts</em>) – List of dictionaries to merge.</p></li>
+<li><p><strong>keys</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Keys to consider for merging. If not provided, uses keys
+from the first dictionary.</p></li>
+<li><p><strong>toarray</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, converts the merged result into a numpy.ndarray.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Merged dictionary.</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#teflow.utils.ListDict" title="teflow.utils.ListDict">ListDict</a></p>
+</dd>
+<dt class="field-even">抛出<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If any object in objs is not a dictionary.</p>
+</dd>
+</dl>
+<p class="rubric">示例</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d1</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d2</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">merged</span> <span class="o">=</span> <span class="n">ListDict</span><span class="o">.</span><span class="n">merge</span><span class="p">([</span><span class="n">d1</span><span class="p">,</span> <span class="n">d2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">merged</span><span class="p">)</span>
+<span class="go">ListDict([(&#39;a&#39;, [1, 3]), (&#39;b&#39;, [2, 4])])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.utils.ListDict.sum">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.utils.ListDict.sum" title="永久链接至目标">¶</a></dt>
+<dd><p>Sum values from a list of dictionaries to a new instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objs</strong> (<em>list</em><em> of </em><em>dicts</em>) – List of dictionaries to sum.</p></li>
+<li><p><strong>start</strong> (<em>int</em><em> or </em><em>float</em><em>, </em><em>optional</em>) – Starting value for sum. Default is 0.</p></li>
+<li><p><strong>keys</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Keys to consider for summing. If not provided, uses keys
+from the first dictionary.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with summed values.</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#teflow.utils.ListDict" title="teflow.utils.ListDict">ListDict</a></p>
+</dd>
+<dt class="field-even">抛出<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If any object in objs is not a dictionary.</p>
+</dd>
+</dl>
+<p class="rubric">示例</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d1</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d2</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">summed</span> <span class="o">=</span> <span class="n">ListDict</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">d1</span><span class="p">,</span> <span class="n">d2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">summed</span><span class="p">)</span>
+<span class="go">ListDict([(&#39;a&#39;, 4), (&#39;b&#39;, 6)])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.utils.Metric">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.utils.</span></span><span class="sig-name descname"><span class="pre">Metric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MSE'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.utils.Metric" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Metric class provides functionalities for computing various error
+metrics. This class can be initialized with a specific kind of
+metric (such as ‘MSE’, ‘RMSE’) and later be called directly to
+compute the error based on the initialized metric kind. Additionally,
+each metric kind can also be used directly as a static method.</p>
+<p class="rubric">示例</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span> <span class="o">=</span> <span class="n">Metric</span><span class="p">(</span><span class="s1">&#39;MSE&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y2</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
+<span class="go">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Metric</span><span class="o">.</span><span class="n">MSE</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
+<span class="go">3.0</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>kind</strong> (<em>str</em><em>, </em><em>optional</em>) – Kind of metric to be used. Default is ‘MSE’.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.utils.Metric.MAE">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MAE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.utils.Metric.MAE" title="永久链接至目标">¶</a></dt>
+<dd><p>Mean Absolute Error:</p>
+<div class="math notranslate nohighlight">
+\[\frac{1}{n} \sum_{i=1}^{n} |y_2[i] - y[i]|\]</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.utils.Metric.MAPE">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MAPE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.utils.Metric.MAPE" title="永久链接至目标">¶</a></dt>
+<dd><p>Mean Absolute Percentage Error:</p>
+<div class="math notranslate nohighlight">
+\[\frac{1}{n} \sum_{i=1}^{n}
+    \left| \frac{y_2[i] - y[i]}{y[i]} \right|\]</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.utils.Metric.MSE">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MSE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.utils.Metric.MSE" title="永久链接至目标">¶</a></dt>
+<dd><p>Mean-Square Error:</p>
+<div class="math notranslate nohighlight">
+\[\frac{1}{n} \sum_{i=1}^{n} (y_2[i] - y[i])^2\]</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.utils.Metric.RMSE">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">RMSE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.utils.Metric.RMSE" title="永久链接至目标">¶</a></dt>
+<dd><p>Root-Mean-Square error:</p>
+<div class="math notranslate nohighlight">
+\[\sqrt{\frac{1}{n} \sum_{i=1}^{n} (y_2[i] - y[i])^2}\]</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.utils.Metric.SMAPE">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SMAPE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.utils.Metric.SMAPE" title="永久链接至目标">¶</a></dt>
+<dd><p>Symmetric Mean Absolute Percentage Error:</p>
+<div class="math notranslate nohighlight">
+\[\frac{2}{n} \sum_{i=1}^{n}
+    \frac{|y_2[i] - y[i]|}{|y_2[i]| + |y[i]|}\]</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="teflow.utils.get_root_logger">
+<span class="sig-prename descclassname"><span class="pre">teflow.utils.</span></span><span class="sig-name descname"><span class="pre">get_root_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stdout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'a'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'[%(levelname)s]</span> <span class="pre">%(message)s'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datefmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'%Y-%m-%d</span> <span class="pre">%H:%M:%S'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'%(asctime)s</span> <span class="pre">[%(levelname)s</span> <span class="pre">&#64;</span> <span class="pre">%(name)s]</span> <span class="pre">%(message)s'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_datafmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'%Y-%m-%d</span> <span class="pre">%H:%M:%S'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pkgname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.utils.get_root_logger" title="永久链接至目标">¶</a></dt>
+<dd><p>Get root logger object</p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">目录</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">teflow.utils module</a><ul>
+<li><a class="reference internal" href="#teflow.utils.AttrDict"><code class="docutils literal notranslate"><span class="pre">AttrDict</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.utils.AttrDict.retain"><code class="docutils literal notranslate"><span class="pre">AttrDict.retain()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.utils.CfgParser"><code class="docutils literal notranslate"><span class="pre">CfgParser</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.utils.CfgParser.pmatch"><code class="docutils literal notranslate"><span class="pre">CfgParser.pmatch()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.utils.ExecWrapper"><code class="docutils literal notranslate"><span class="pre">ExecWrapper</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.utils.ExecWrapper.UNSET"><code class="docutils literal notranslate"><span class="pre">ExecWrapper.UNSET</span></code></a></li>
+<li><a class="reference internal" href="#teflow.utils.ExecWrapper.execute"><code class="docutils literal notranslate"><span class="pre">ExecWrapper.execute()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.utils.ExecWrapper.update"><code class="docutils literal notranslate"><span class="pre">ExecWrapper.update()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.utils.ListDict"><code class="docutils literal notranslate"><span class="pre">ListDict</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.utils.ListDict.append"><code class="docutils literal notranslate"><span class="pre">ListDict.append()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.utils.ListDict.extend"><code class="docutils literal notranslate"><span class="pre">ListDict.extend()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.utils.ListDict.merge"><code class="docutils literal notranslate"><span class="pre">ListDict.merge()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.utils.ListDict.sum"><code class="docutils literal notranslate"><span class="pre">ListDict.sum()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.utils.Metric"><code class="docutils literal notranslate"><span class="pre">Metric</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.utils.Metric.MAE"><code class="docutils literal notranslate"><span class="pre">Metric.MAE()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.utils.Metric.MAPE"><code class="docutils literal notranslate"><span class="pre">Metric.MAPE()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.utils.Metric.MSE"><code class="docutils literal notranslate"><span class="pre">Metric.MSE()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.utils.Metric.RMSE"><code class="docutils literal notranslate"><span class="pre">Metric.RMSE()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.utils.Metric.SMAPE"><code class="docutils literal notranslate"><span class="pre">Metric.SMAPE()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.utils.get_root_logger"><code class="docutils literal notranslate"><span class="pre">get_root_logger()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>上一主题</h4>
+    <p class="topless"><a href="teflow.mathext.html"
+                          title="上一章">teflow.mathext module</a></p>
+  </div>
+  <div>
+    <h4>下一主题</h4>
+    <p class="topless"><a href="teflow.ztdev.html"
+                          title="下一章">teflow.ztdev module</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api_doc/teflow.utils.rst.txt"
+            rel="nofollow">显示源代码</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="提交" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="teflow.ztdev.html" title="teflow.ztdev module"
+             >下一页</a> |</li>
+        <li class="right" >
+          <a href="teflow.mathext.html" title="teflow.mathext module"
+             >上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">TEflow  文档</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >API 参考</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">teflow.utils module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; 版权所有 2023-2024 Jianbo ZHU.
+      由 <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2创建。
+    </div>
+  </body>
+</html>

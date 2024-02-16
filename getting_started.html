@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>快速上手 &#8212; TEflow  文档</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css?v=0a676766" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=babeb00e"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/translations.js?v=beaddf03"></script>
+    <link rel="index" title="索引" href="genindex.html" />
+    <link rel="search" title="搜索" href="search.html" />
+    <link rel="next" title="使用指南" href="usage/index.html" />
+    <link rel="prev" title="程序介绍" href="introduction.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="总索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="usage/index.html" title="使用指南"
+             accesskey="N">下一页</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="程序介绍"
+             accesskey="P">上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">TEflow  文档</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">快速上手</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="id1">
+<h1>快速上手<a class="headerlink" href="#id1" title="此标题的永久链接">¶</a></h1>
+<section id="id2">
+<h2>程序安装<a class="headerlink" href="#id2" title="此标题的永久链接">¶</a></h2>
+<p>此软件包核心只依赖 python3.8+ 环境和 numpy/scipy 库，
+我们可以通过 pip 直接安装所需要的库：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>teflow
+</pre></div>
+</div>
+<p>确保网络连接正常，依赖的库会自动安装。
+再或者，我们也可以选择从源码安装，预览新功能。
+源码发布在 Github / Gitee 上。</p>
+<div class="admonition attention">
+<p class="admonition-title">注意</p>
+<p>python3.7 已经在 2023 年 6 月停止了维护更新，
+我们的程序也都是在 python3.8 的环境下开发和测试，
+虽然部分功能在更低的版本上可能可以运行，
+但我们并不打算保证低版本的兼容性，或修复由此导致的问题。
+而且，在测试中我们发现相比 python3.6, 我们的程序包
+在 python3.8 中可以提速 2 ~ 5 倍，
+因此我们强烈建议用户放弃在低版本 python 上使用该程序的计划。</p>
+</div>
+</section>
+<section id="id3">
+<h2>命令行操作<a class="headerlink" href="#id3" title="此标题的永久链接">¶</a></h2>
+<p>在正确安装之后，我们可以通过命令行来使用 TEflow 程序（缩写为 <code class="docutils literal notranslate"><span class="pre">tef</span></code> ）。
+在 Linux 系统下进行命令操作一个非常自然的事情，
+在 Windows 或其它平台下，需要首先进入终端，然后进行命令操作。
+一般地，我们可以通过 -h (或 –help) 选项来显示帮助信息。
+如果 TEflow 成功安装的话，
+当我们运行 <code class="docutils literal notranslate"><span class="pre">tef</span> <span class="pre">-h</span></code> 之后，应该会获得类似下面的显示信息
+(后续随着软件发展可能显示内容可能会有不同):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ tef -h
+
+      ________  ________
+     |        \|        \     ,...  ,,
+      \$$$$$$$$| $$$$$$$$   .d&#39; &quot;&quot;`7MM
+        | $$   | $$__       dM`     MM
+        | $$   | $$  \     mMMmm    MM  ,pW&quot;Wq.`7M&#39;    ,A    `MF&#39;
+        | $$   | $$$$$      MM      MM 6W&#39;   `Wb VA   ,VAA   ,V
+        | $$   | $$_____    MM      MM 8M     M8  VA ,V  VA ,V
+        | $$   | $$     \   MM      MM YA.   ,A9   VVV    VVV
+         \$$    \$$$$$$$$ .JMML.  .JMML.`Ybmd9&#39;     W      W
+
+                         (v0.0.1a3, Copyright 2023 Jianbo ZHU)
+______________________________________________________________________
+&gt;&gt;&gt; Streamline your thermoelectric workflow from materials to devices
+
+Usage: tef-subcommand [-h] ...
+
+Subcommands:
+    format  Format thermoelectric properties data
+      band  Insight carriar transport with band models
+     ztdev  Calculate ZTdev of thermoelectric generator
+    interp  Data interpolation and extrapolation
+    mixing  Mixing the datafile with same array-shape
+    refine  Remove redundant &amp; extract the concerned data
+    cutoff  Cut-off data at the threshold temperature
+</pre></div>
+</div>
+<p>我们可以通过 <code class="docutils literal notranslate"><span class="pre">tef-xxxxxx</span> <span class="pre">-h</span></code> 来详细查看子命令 <code class="docutils literal notranslate"><span class="pre">xxxxxx</span></code> 的用法和支持选项。
+比如:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ tef-ztdev -h
+usage: tef-ztdev [-h] [-b] [-y] [-s SUFFIX] INPUTFILE [OUTPUTFILE]
+
+Calculate ZTdev of thermoelectric generator - TEflow(0.0.1a3)
+
+  &gt;&gt;&gt; Prepare a data file with columns in the following order: T, C, S, and
+  K. Alternatively, you can format the data file with Tc, Th, and a pre-
+  calculated Yita; in this case, include the -y (or --yita) option to
+  indicate the use of this format.
+
+positional arguments:
+  INPUTFILE             Input file name (must be provided)
+  OUTPUTFILE            Output file name (optional, auto-generated if omitted)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -b, --bare            Output data without header
+  -y, --yita            Use this option when the input file is formatted with
+                        columns Tc, Th, Yita
+  -s SUFFIX, --suffix SUFFIX
+                        Suffix for generating the output file name (default: ztdev)
+</pre></div>
+</div>
+<p>为了计算热电材料的工程 ZT 值，我们需要准备一个输入文件，
+里面包含 4 列材料属性数据，依次是温度 (K)，电导率 (S/cm)，
+塞贝克系数 (uV/K)，和热导率 (W/(m.K))。
+在 Github / Gitee 仓库的 examples/ZTdev 文件中有更详细的描述。
+然后，我们运行如下命令就可以进行计算
+(假设数据文件名为 data.txt):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>tef-ztdev<span class="w"> </span>data.txt
+</pre></div>
+</div>
+<p>参照屏幕显示，输出结果会被保存在文件 <code class="docutils literal notranslate"><span class="pre">data_ztdev.txt</span></code> 。
+当然，按照前面显示的帮助信息，我们可以自己指定输出文件名。
+比如我们希望结果保存在 <code class="docutils literal notranslate"><span class="pre">ZTdev-S1.txt</span></code>,
+我们可以运行如下命令:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>tef-ztdev<span class="w"> </span>data.txt<span class="w"> </span>ZTdev-S1.txt
+</pre></div>
+</div>
+<p>我们可以进一步利用其它的选项做更加复杂的事情。</p>
+</section>
+<section id="id4">
+<h2>用作第三方库<a class="headerlink" href="#id4" title="此标题的永久链接">¶</a></h2>
+<p>如果你需要集成 TEflow 程序包的功能到你自己的程序，
+比如批量化或者流程化数据处理时，
+最直接的方式就是调用 <strong>valuate()</strong> 方法。
+对于绝大多数子模块或者类，我们一般会提供一个名为 <strong>valuate()</strong>
+的函数或者方法，它会在通用的默认参数下调用相关的计算。
+比如，我们想计算一系列材料的工程 ZT 值，准备了相应的数据文件，
+文件名为 data-S1.txt, data-S2.txt, …, data-S10.txt ，
+我们可以通过下面的方式来直接计算所有数据:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">teflow</span> <span class="kn">import</span> <span class="n">ztdev</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;data-S</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">.txt&#39;</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">rst</span> <span class="o">=</span> <span class="n">ztdev</span><span class="o">.</span><span class="n">valuate</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">rst</span><span class="p">[</span><span class="s1">&#39;Tc&#39;</span><span class="p">],</span> <span class="n">rst</span><span class="p">[</span><span class="s1">&#39;Th&#39;</span><span class="p">],</span><span class="n">rst</span><span class="p">[</span><span class="s1">&#39;Yita&#39;</span><span class="p">],</span><span class="n">rst</span><span class="p">[</span><span class="s1">&#39;ZTdev&#39;</span><span class="p">]]</span>
+<span class="gp">... </span>    <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;output-S</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">.txt&#39;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>在这个代码片段中，我们采用了 numpy.loadtxt() 方法来读取数据
+(这里 <code class="docutils literal notranslate"><span class="pre">unpack=True</span></code> 是非常重要的，它确保数据的每一列被单独的存储；
+而 <code class="docutils literal notranslate"><span class="pre">i+1</span></code> 被使用是由于 python 的索引是 0 开始的),
+然后调用 ztdev.valuate() 方法进行计算，
+计算结果以字典形式保存，
+最后我们整理格式并保存到相应的文件。</p>
+<p>在程序包中，我们还提供了其它更多的功能，比如热电势的计算等。
+我们为每一个函数和类都写了详细的文档，可以直接查看源码，
+也可以查看本文档的 <a class="reference internal" href="api_doc/index.html"><span class="doc">API 参考</span></a> 章节。</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">目录</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">快速上手</a><ul>
+<li><a class="reference internal" href="#id2">程序安装</a></li>
+<li><a class="reference internal" href="#id3">命令行操作</a></li>
+<li><a class="reference internal" href="#id4">用作第三方库</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>上一主题</h4>
+    <p class="topless"><a href="introduction.html"
+                          title="上一章">程序介绍</a></p>
+  </div>
+  <div>
+    <h4>下一主题</h4>
+    <p class="topless"><a href="usage/index.html"
+                          title="下一章">使用指南</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/getting_started.rst.txt"
+            rel="nofollow">显示源代码</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="提交" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="总索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="usage/index.html" title="使用指南"
+             >下一页</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="程序介绍"
+             >上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">TEflow  文档</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">快速上手</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; 版权所有 2023-2024 Jianbo ZHU.
+      由 <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2创建。
+    </div>
+  </body>
+</html>

@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>teflow.kappa module &#8212; TEflow  文档</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css?v=0a676766" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=babeb00e"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/translations.js?v=beaddf03"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="teflow.loader module" href="teflow.loader.html" />
+    <link rel="prev" title="teflow.interface module" href="teflow.interface.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="teflow.loader.html" title="teflow.loader module"
+             accesskey="N">下一页</a> |</li>
+        <li class="right" >
+          <a href="teflow.interface.html" title="teflow.interface module"
+             accesskey="P">上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">TEflow  文档</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">API 参考</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">teflow.kappa module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-teflow.kappa">
+<span id="teflow-kappa-module"></span><h1>teflow.kappa module<a class="headerlink" href="#module-teflow.kappa" title="此标题的永久链接">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappa.Variable">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappa.</span></span><span class="sig-name descname"><span class="pre">Variable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.Variable" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A singleton class based on the ‘tag’ attribute to represent
+a variable that notifies subscribers upon value changes,
+used for synchronizing variables across models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tag</strong> (<em>str</em>) – Sets the <code class="xref py py-attr docutils literal notranslate"><span class="pre">tag</span></code> attribute.</p></li>
+<li><p><strong>initial</strong> (<em>float</em><em>, </em><em>optional</em>) – The initial guess of <a class="reference internal" href="#teflow.kappa.Variable.value" title="teflow.kappa.Variable.value"><code class="xref py py-attr docutils literal notranslate"><span class="pre">value</span></code></a> attribute, defaults to 1.</p></li>
+<li><p><strong>lower</strong> (<em>float</em><em>, </em><em>optional</em>) – Sets the <code class="xref py py-attr docutils literal notranslate"><span class="pre">lower</span></code> attribute, defaults to 0.</p></li>
+<li><p><strong>upper</strong> (<em>float</em><em>, </em><em>optional</em>) – Sets the <code class="xref py py-attr docutils literal notranslate"><span class="pre">upper</span></code> attribute, defaults to 1000.</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Sets the <code class="xref py py-attr docutils literal notranslate"><span class="pre">scale</span></code> attribute, defaults to 1.</p></li>
+<li><p><strong>constraint</strong> (<em>callable</em><em>, </em><em>optional</em>) – A callable object used to compute the value of the current
+variable from other dependent variables.</p></li>
+<li><p><strong>depends</strong> (<em>list</em><em> or </em><em>tuple</em><em> of </em><em>Variables</em><em>, </em><em>optional</em>) – Variables required by the <cite>constraint</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">抛出<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the initial value is not between the lower and upper bounds,
+    or if <cite>constraint</cite> is provided but is not a callable,
+    or if any element in <cite>depends</cite> is not an instance of Variable.</p>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="teflow.kappa.Variable.constrained">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">constrained</span></span><a class="headerlink" href="#teflow.kappa.Variable.constrained" title="永久链接至目标">¶</a></dt>
+<dd><p>Constraint status (read-only).</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="teflow.kappa.Variable.value">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#teflow.kappa.Variable.value" title="永久链接至目标">¶</a></dt>
+<dd><p>The current value of the variable. Manually setting a new value will
+automatically trigger the <a class="reference internal" href="#teflow.kappa.Variable.notify" title="teflow.kappa.Variable.notify"><code class="xref py py-meth docutils literal notranslate"><span class="pre">notify()</span></code></a> method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">抛出<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the new value is not between the lower and upper bounds.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappa.Variable.register">
+<span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subscriber</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.Variable.register" title="永久链接至目标">¶</a></dt>
+<dd><p>Registers a subscriber that will be notified of value changes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>instance</strong> (<em>object</em>) – The instance to notify when the variable changes.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – The name of parameter that will be updated.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappa.Variable.notify">
+<span class="sig-name descname"><span class="pre">notify</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.Variable.notify" title="永久链接至目标">¶</a></dt>
+<dd><p>Notifies all registered subscribers about the updated value.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappa.Parameters">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappa.</span></span><span class="sig-name descname"><span class="pre">Parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.Parameters" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">OrderedDict</span></code></p>
+<p>A dictionary-like container for managing model parameters,
+automatically synchronizing with any contained <a class="reference internal" href="#teflow.kappa.Variable" title="teflow.kappa.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> instances.
+Note that, the communication with <a class="reference internal" href="#teflow.kappa.Variable" title="teflow.kappa.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> instances is designed
+to be passive to enhance performance of code. As such, changes to
+<a class="reference internal" href="#teflow.kappa.Variable" title="teflow.kappa.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> will reflect in all registered Parameters instances,
+but direct modifications to Parameters only affect itself.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappa.BaseKappaModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappa.</span></span><span class="sig-name descname"><span class="pre">BaseKappaModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.BaseKappaModel" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Abstract base class for kappa models.</p>
+<p>This class serves as a template for kappa models, providing a framework
+for implementing model-specific calculations and fitting procedures.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappa.BaseKappaModel.paras">
+<span class="sig-name descname"><span class="pre">paras</span></span><a class="headerlink" href="#teflow.kappa.BaseKappaModel.paras" title="永久链接至目标">¶</a></dt>
+<dd><p>All parameters of the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#teflow.kappa.Parameters" title="teflow.kappa.Parameters">Parameters</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**parameters</strong> (<em>dict</em>) – A dictionary of parameters to initialize the model. These parameters
+are managed by a <cite>Parameters</cite> instance, allowing for synchronization
+with <cite>Variable</cite> objects if used.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappa.BaseKappaModel.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataK</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.BaseKappaModel.fit" title="永久链接至目标">¶</a></dt>
+<dd><p>Fits the model to the provided data using specified variables.
+In the absence of specified variables, this method directly calculates
+and returns the kappa values for the given temperatures based on
+the current parameters. This method primarily utilizes the
+<cite>scipy.optimize.curve_fit</cite> function, with <cite>kwargs</cite> providing
+additional options to tailor the fitting process. However,
+note that ‘p0’ and ‘bounds’ parameters are superseded by the
+settings in the Variable instances, and should be adjusted
+through their respective attributes, not via <cite>kwargs</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappa.KappaDebye">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappa.</span></span><span class="sig-name descname"><span class="pre">KappaDebye</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">td</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.KappaDebye" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappa.BaseKappaModel" title="teflow.kappa.BaseKappaModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseKappaModel</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\kappa = \frac{1}{3} \int_0^{\omega_D}
+          \tau v_s^2 g(\omega)
+          \hbar \omega \frac{\partial f}{\partial T}
+          d\omega\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vs</strong> (<em>float</em>) – Sound velocity (<span class="math notranslate nohighlight">\(v_s\)</span>), in km/s.</p></li>
+<li><p><strong>td</strong> (<em>float</em>) – Debye temperature (<span class="math notranslate nohighlight">\(\Theta\)</span>), in Kelvin.</p></li>
+<li><p><strong>components</strong> (<em>list</em>) – Components of the model, such as scattering mechanism.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappa.KappaDebye.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'DEBYE'</span></em><a class="headerlink" href="#teflow.kappa.KappaDebye.tag" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="teflow.kappa.KappaDebye.wd">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">wd</span></span><a class="headerlink" href="#teflow.kappa.KappaDebye.wd" title="永久链接至目标">¶</a></dt>
+<dd><p>Debye cut-off (angular) frequency <span class="math notranslate nohighlight">\(\omega_D\)</span>
+(given by <span class="math notranslate nohighlight">\(\hbar \omega_D = k_B \Theta\)</span>)
+in rad/ps.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappa.KappaDebye.scattering">
+<span class="sig-name descname"><span class="pre">scattering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.KappaDebye.scattering" title="永久链接至目标">¶</a></dt>
+<dd><p>Scattering rate, in THz.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappa.KappaDebye.spectral">
+<span class="sig-name descname"><span class="pre">spectral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accumulate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.KappaDebye.spectral" title="永久链接至目标">¶</a></dt>
+<dd><p>Spectral thermal conductivity <span class="math notranslate nohighlight">\(\kappa_s(\omega)\)</span> in ps.W/(m.K):</p>
+<div class="math notranslate nohighlight">
+\[\kappa_s(\omega) = \tau
+    \frac{\omega ^2}{2 v_s \pi ^2}
+    k_B \left ( \frac{\hbar \omega}{k_B T}\right )^2
+    \cfrac{\exp \left( \cfrac{\hbar \omega}{k_B T} \right )}{
+        \left [
+            \exp \left( \cfrac{\hbar \omega}{k_B T} - 1\right)
+        \right ]^2
+    }
+\text{, then }
+\kappa = \int_0^{\omega_D} \kappa_s(\omega) d\omega\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> (<em>ndarray</em>) – Phonon angular frequency in rad/ps.</p></li>
+<li><p><strong>T</strong> (<em>ndarray</em>) – Temperatures in K.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappa.KappaDebye.cumulative">
+<span class="sig-name descname"><span class="pre">cumulative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accumulate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.KappaDebye.cumulative" title="永久链接至目标">¶</a></dt>
+<dd><p>Cumulative thermal conductivity <span class="math notranslate nohighlight">\(\kappa_c(\omega)\)</span> in W/(m.K):</p>
+<div class="math notranslate nohighlight">
+\[\kappa_c(\omega) = \int_0^{\omega} \kappa_s(\omega) d\omega\]</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappa.KappaDebye.cumulative_mfp_t">
+<span class="sig-name descname"><span class="pre">cumulative_mfp_t</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mfp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accumulate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbatch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.KappaDebye.cumulative_mfp_t" title="永久链接至目标">¶</a></dt>
+<dd><p>Calculates the cumulative thermal conductivity (in W/(m.K)) across phonon
+mean-free-path (<span class="math notranslate nohighlight">\(\lambda\)</span>, in nm) at a specified temperature point:</p>
+<div class="math notranslate nohighlight">
+\[\kappa_c(\lambda; T) = \int_{\lambda(\omega; T) \le \lambda}
+\kappa_s(\omega; T) d\omega\]</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappa.KappaDebye.vs_to_td">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">vs_to_td</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Va</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.KappaDebye.vs_to_td" title="永久链接至目标">¶</a></dt>
+<dd><div class="math notranslate nohighlight">
+\[\Theta = \frac{\hbar\omega_D}{k_B} = \frac{\hbar}{k_B}
+    \left( \frac{6\pi^2}{V_a} \right) ^ {1/3} v_s\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vs</strong> (<em>float</em>) – Average sound velocity (<span class="math notranslate nohighlight">\(v_s\)</span>), in km/s.</p></li>
+<li><p><strong>Va</strong> (<em>float</em>) – Average volume per atom (<span class="math notranslate nohighlight">\(V_a\)</span>), in cubic angstroms (A^3).</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Debye temperature (<span class="math notranslate nohighlight">\(\Theta\)</span>), in Kelvin.</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappa.KappaDebye.vs_to_gm">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">vs_to_gm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.KappaDebye.vs_to_gm" title="永久链接至目标">¶</a></dt>
+<dd><div class="math notranslate nohighlight">
+\[\gamma = \frac{3}{2} \frac{1+\mu}{2-3\mu}
+\text{, where }
+\frac{v_1}{v_2} = \sqrt{\frac{2-2\mu}{1-2\mu}}\]</div>
+<p>Ref: D. S. Sanditov et al., Tech. Phys., 56 1619, 2011.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>v1</strong> (<em>float</em>) – Longitudinal sound velocity in km/s.</p></li>
+<li><p><strong>v2</strong> (<em>float</em>) – Transverse sound velocity in km/s.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gruneisen parameter (<span class="math notranslate nohighlight">\(\gamma\)</span>).</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappa.KappaDebye.vs_mean">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">vs_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.KappaDebye.vs_mean" title="永久链接至目标">¶</a></dt>
+<dd><div class="math notranslate nohighlight">
+\[v_{s,p} = \left( \frac{v_1^p+2v_2^p}{3} \right)^{1/p}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>v1</strong> (<em>float</em>) – Longitudinal sound velocity in km/s.</p></li>
+<li><p><strong>v2</strong> (<em>float</em>) – Transverse sound velocity in km/s.</p></li>
+<li><p><strong>p</strong> (<em>int</em><em>, </em><em>optional</em>) – The exponent, by default -3.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Generalized mean of sound velocities.</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappa.BaseScattering">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappa.</span></span><span class="sig-name descname"><span class="pre">BaseScattering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.BaseScattering" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Abstract base class for scattering rate (in THz, i.e. 1/ps) model
+<span class="math notranslate nohighlight">\(\tau_i^{-1}(\omega, T)\)</span>.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappa.BaseScattering.paras">
+<span class="sig-name descname"><span class="pre">paras</span></span><a class="headerlink" href="#teflow.kappa.BaseScattering.paras" title="永久链接至目标">¶</a></dt>
+<dd><p>All parameters of the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#teflow.kappa.Parameters" title="teflow.kappa.Parameters">Parameters</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**parameters</strong> (<em>dict</em>) – A dictionary of parameters to initialize the model. These parameters
+are managed by a <cite>Parameters</cite> instance, allowing for synchronization
+with <cite>Variable</cite> objects if used.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappa.ThreePhonon">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappa.</span></span><span class="sig-name descname"><span class="pre">ThreePhonon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Va</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.ThreePhonon" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappa.BaseScattering" title="teflow.kappa.BaseScattering"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseScattering</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\tau_i^{-1} = A \frac{k_B V_a^{1/3} \gamma^2}{M_0 M_a v_s^3} \omega ^2 T
+               \exp \left( -\frac{[\Theta]}{3T} \right)
+             = A^{\prime} \omega ^2 T
+               \exp \left( -\frac{[\Theta]}{3T} \right)\]</div>
+<p>Hint: To diable the exponential term, simply set Theta (<span class="math notranslate nohighlight">\([\Theta]\)</span>)
+to 0, even though it typically signifies the Debye temperature.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gm</strong> (<em>float</em>) – Gruneisen parameter (<span class="math notranslate nohighlight">\(\gamma\)</span>), dimensionless.</p></li>
+<li><p><strong>vs</strong> (<em>float</em>) – Average sound velocity (<span class="math notranslate nohighlight">\(v_s\)</span>), in km/s.</p></li>
+<li><p><strong>Va</strong> (<em>float</em>) – Average volume per atom (<span class="math notranslate nohighlight">\(V_a\)</span>), in cubic angstroms (A^3).</p></li>
+<li><p><strong>Ma</strong> (<em>float</em>) – Average atomic mass per atom (<span class="math notranslate nohighlight">\(M_a\)</span>), in atomic mass units (amu).</p></li>
+<li><p><strong>A</strong> (<em>float</em><em>, </em><em>optional</em>) – Dimensionless adjustable parameter, by default 1.</p></li>
+<li><p><strong>Theta</strong> (<em>float</em><em>, </em><em>optional</em>) – Debye temperature (<span class="math notranslate nohighlight">\([\Theta]\)</span>) in Kelvin.
+If set to 0 (default), the exponential term will be disabled.</p></li>
+<li><p><strong>coef</strong> (<em>float</em><em>, </em><em>optional</em>) – A comprehensive adjustable parameter (<span class="math notranslate nohighlight">\(A^{\prime}\)</span>).
+When set, all parameters except <cite>Theta</cite> become non-effective.
+Typically, its magnitude is around 10^(-18). By default, it is None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappa.ThreePhonon.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'PH'</span></em><a class="headerlink" href="#teflow.kappa.ThreePhonon.tag" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="teflow.kappa.ThreePhonon.coef">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">coef</span></span><a class="headerlink" href="#teflow.kappa.ThreePhonon.coef" title="永久链接至目标">¶</a></dt>
+<dd><p>Value of <span class="math notranslate nohighlight">\(A^{\prime}\)</span></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappa.PointDefect">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappa.</span></span><span class="sig-name descname"><span class="pre">PointDefect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Va</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">G</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.PointDefect" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappa.BaseScattering" title="teflow.kappa.BaseScattering"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseScattering</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\tau_i^{-1} = \frac{V_a \Gamma}{4 \pi v_s^3} \omega ^4
+             = B^{\prime} \omega ^4\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vs</strong> (<em>float</em>) – Average sound velocity (<span class="math notranslate nohighlight">\(v_s\)</span>), in km/s.</p></li>
+<li><p><strong>Va</strong> (<em>float</em>) – Average volume per atom (<span class="math notranslate nohighlight">\(V_a\)</span>), in cubic angstroms (A^3).</p></li>
+<li><p><strong>G</strong> (<em>float</em>) – Dimensionless disorder scattering parameter (<span class="math notranslate nohighlight">\(\Gamma\)</span>)</p></li>
+<li><p><strong>coef</strong> (<em>float</em><em>, </em><em>optional</em>) – A comprehensive adjustable parameter (<span class="math notranslate nohighlight">\(B^{\prime}\)</span>).
+When set, all parameters (<cite>vs</cite>, <cite>Va</cite>, and <cite>G</cite>)  become non-effective.
+Typically, its magnitude is around 10^(-41). By default, it is None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappa.PointDefect.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'PD'</span></em><a class="headerlink" href="#teflow.kappa.PointDefect.tag" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="teflow.kappa.PointDefect.coef">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">coef</span></span><a class="headerlink" href="#teflow.kappa.PointDefect.coef" title="永久链接至目标">¶</a></dt>
+<dd><p>Value of <span class="math notranslate nohighlight">\(B^{\prime}\)</span></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappa.GrainBoundary">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappa.</span></span><span class="sig-name descname"><span class="pre">GrainBoundary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.GrainBoundary" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappa.BaseScattering" title="teflow.kappa.BaseScattering"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseScattering</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\tau_i^{-1} = \alpha \frac{v_s}{L}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vs</strong> (<em>float</em>) – Average sound velocity (<span class="math notranslate nohighlight">\(v_s\)</span>), in km/s.</p></li>
+<li><p><strong>L</strong> (<em>float</em>) – Average grain size (<span class="math notranslate nohighlight">\(L\)</span>), in um.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – Dimensionless adjustable parameter (<span class="math notranslate nohighlight">\(\alpha\)</span>), by default 1.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappa.GrainBoundary.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'GB'</span></em><a class="headerlink" href="#teflow.kappa.GrainBoundary.tag" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappa.Nanoparticles">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappa.</span></span><span class="sig-name descname"><span class="pre">Nanoparticles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">D0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">D1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.Nanoparticles" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappa.BaseScattering" title="teflow.kappa.BaseScattering"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseScattering</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\tau_i^{-1} = v_s \left( \sigma_{geometrical}^{-1}
+    + \sigma_{Rayleigh}^{-1} \right)^{-1}N_1\]</div>
+<div class="math notranslate nohighlight">
+\[\sigma_{geometrical} = 2 \pi R^2\]</div>
+<div class="math notranslate nohighlight">
+\[\sigma_{Rayleigh} = \frac{16}{9} \pi R^2 \left[
+        \alpha^2 \left(\frac{D_1-D_0}{4D_0}\right)^2
+        + 3 \alpha^8 \left(\frac{Y_1-Y_0}{Y_0}\right)^2
+    \right] \left(\frac{\omega R}{v_s}\right)^4\]</div>
+<div class="math notranslate nohighlight">
+\[N_1 = \frac{\phi}{\overline{V_1}} = \cfrac{\phi}{\cfrac{4}{3}\pi R^3}\]</div>
+<p>Hints:</p>
+<p>1. <span class="math notranslate nohighlight">\(Y_0\)</span> and <span class="math notranslate nohighlight">\(Y_1\)</span> indicate the force constants of the host and
+nanoparticle, respectively, as defined in the original reference
+(W. Kim et al., J. Appl. Phys., 99, 084306, 2006).
+Practically, they can approximately be replaced by the Young’s modulus.</p>
+<p>2. <span class="math notranslate nohighlight">\(\alpha\)</span>, designated as the trigonometric ratio in the original
+paper, is typically assumed to be 1 in subsequent comprehensive works.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vs</strong> (<em>float</em>) – Average sound velocity (<span class="math notranslate nohighlight">\(v_s\)</span>), in km/s.</p></li>
+<li><p><strong>R</strong> (<em>float</em>) – Average radius of the nanoparticles (<span class="math notranslate nohighlight">\(R\)</span>), in nm.</p></li>
+<li><p><strong>phi</strong> (<em>float</em>) – Volume fraction of the nanoparticles (<span class="math notranslate nohighlight">\(\phi\)</span>),
+in the range (0, 1) theoretically.</p></li>
+<li><p><strong>D0</strong> (<em>float</em>) – Mass density of the host material (<span class="math notranslate nohighlight">\(D_0\)</span>), in g/cm^3.</p></li>
+<li><p><strong>D1</strong> (<em>float</em>) – Mass density of the nanoparticles (<span class="math notranslate nohighlight">\(D_1\)</span>), in g/cm^3.</p></li>
+<li><p><strong>Y0</strong> (<em>float</em><em>, </em><em>optional</em>) – Young modulus of the host material (<span class="math notranslate nohighlight">\(Y_0\)</span>) in GPa, by default 1.</p></li>
+<li><p><strong>Y1</strong> (<em>float</em><em>, </em><em>optional</em>) – Young modulus of the nanoparticles (<span class="math notranslate nohighlight">\(Y_1\)</span>) in GPa, by default 1.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – The trigonometric ratio (<span class="math notranslate nohighlight">\(\alpha\)</span>), by default 1.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappa.Nanoparticles.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'NP'</span></em><a class="headerlink" href="#teflow.kappa.Nanoparticles.tag" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappa.Dislocations">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappa.</span></span><span class="sig-name descname"><span class="pre">Dislocations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Nd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Va</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Bd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">F</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.55</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.Dislocations" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappa.BaseScattering" title="teflow.kappa.BaseScattering"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseScattering</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\tau_i^{-1} = \tau_{DC}^{-1} + \tau_{DS}^{-1}\]</div>
+<div class="math notranslate nohighlight">
+\[\tau_{DC}^{-1} = \alpha N_d \frac{V_a^{4/3}}{v_s^2} \omega^3\]</div>
+<div class="math notranslate nohighlight">
+\[\tau_{DS}^{-1} = \frac{2^{11/2}}{3^{7/2}} \alpha F N_d B_d^2 \gamma^2 \omega\]</div>
+<div class="math notranslate nohighlight">
+\[F = \frac{1}{2} + \frac{1}{24} \left( \frac{1-2\mu}{1-\mu} \right)^2
+    \left[ 1 + \sqrt{2} \left( \frac{v_1}{v_2} \right)^2 \right]^2\]</div>
+<p>Hints:</p>
+<p>1. <span class="math notranslate nohighlight">\(\alpha\)</span> is a weight factor to account for the mutual orientation of the
+direction of the temperature gradient and the dislocation line. For dislocations
+perpendicular to the temperature gradient <span class="math notranslate nohighlight">\(\alpha=1\)</span>, while for those parallel
+to the gradient <span class="math notranslate nohighlight">\(\alpha=0\)</span>. If dislocation lines are orientated at random with
+respect to the temperature gradient, the average value found by integration is
+<span class="math notranslate nohighlight">\(\alpha=0.55\)</span> (ref: P. G. Klemens, Proc. Phys. Soc. A 68 1113, 1955).</p>
+<p>2. Note that the parameter <span class="math notranslate nohighlight">\(F\)</span> is directly determined by the Poisson’s ratio
+(<span class="math notranslate nohighlight">\(\mu\)</span>) and the ratio of longitudinal to transverse sound velocities
+(<span class="math notranslate nohighlight">\({v_1}/{v_2}\)</span>). To simplify further, we can consider the relationship
+<span class="math notranslate nohighlight">\(\left( {v_1}/{v_2} \right)^2 = ({2-2\mu})/({1-2\mu})\)</span>.
+For common bulk materials, <span class="math notranslate nohighlight">\(\mu\)</span> typically ranges between 1/5 and 1/3,
+corresponding to <span class="math notranslate nohighlight">\(F\)</span> values between 0.962 and 1.034. Therefore, in the absence
+of detailed material properties, it is reasonable to approximate <span class="math notranslate nohighlight">\(F\)</span> as 1.</p>
+<p>3. In the expression for <span class="math notranslate nohighlight">\(\tau_{DS}^{-1}\)</span>, representing phonon scattering by the
+static strain field, the constant of proportionality has seen variations in Klement’s research.
+In the original 1955 publication (P. G. Klemens, Proc. Phys. Soc. A 68 1113, 1955),
+the value was calculated to be <span class="math notranslate nohighlight">\(2^{3/2}/3^{7/2}(\approx 0.06)\)</span>.
+This was subsequently revised in 1958 by a factor of 16, resulting in
+<span class="math notranslate nohighlight">\(2^{11/2}/3^{7/2}(\approx 0.97)\)</span>, primarily to address the underestimation
+of the dislocation strain field in the initial value
+(P. G. Klemens, Solid State Phys. Adv. Res. Appl. 7, 1-98, 1958).
+In the current program, the revised value is adopted.
+If different considerations are required, the magnitude of <span class="math notranslate nohighlight">\(\tau_{DS}^{-1}\)</span>
+can be directly adjusted by modifying the parameter <span class="math notranslate nohighlight">\(F\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Nd</strong> (<em>float</em>) – The number of dislocation lines per unit area (<span class="math notranslate nohighlight">\(N_d\)</span>),
+in 1E10 cm^(-2).</p></li>
+<li><p><strong>vs</strong> (<em>float</em>) – Average sound velocity (<span class="math notranslate nohighlight">\(v_s\)</span>), in km/s.</p></li>
+<li><p><strong>Va</strong> (<em>float</em>) – Average volume per atom (<span class="math notranslate nohighlight">\(V_a\)</span>), in cubic angstroms (A^3).</p></li>
+<li><p><strong>Bd</strong> (<em>float</em>) – The magnitudes of Burgers vector (<span class="math notranslate nohighlight">\(B_d\)</span>), in angstroms.</p></li>
+<li><p><strong>gm</strong> (<em>float</em>) – Effective Gruneisen parameter (<span class="math notranslate nohighlight">\(\gamma\)</span>), dimensionless.</p></li>
+<li><p><strong>F</strong> (<em>float</em><em>, </em><em>optional</em>) – A material-dependent parameter (<span class="math notranslate nohighlight">\(F\)</span>), by default 1.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – The weight factor (<span class="math notranslate nohighlight">\(\alpha\)</span>), by default 0.55.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappa.Dislocations.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'DL'</span></em><a class="headerlink" href="#teflow.kappa.Dislocations.tag" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappa.StackingFaults">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappa.</span></span><span class="sig-name descname"><span class="pre">StackingFaults</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Nsf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Va</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.StackingFaults" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappa.BaseScattering" title="teflow.kappa.BaseScattering"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseScattering</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\tau_i^{-1} = \alpha N_{sf} \frac{V_a^{2/3}}{v_s} \gamma^2 \omega^2\]</div>
+<p>Hint: The constant of proportionality (<span class="math notranslate nohighlight">\(\alpha\)</span>) varies
+across different publications. In the original 1957 publication
+(P. G. Klemens, Can. J. Phys., 35 441, 1957), the value was derived as
+<span class="math notranslate nohighlight">\(1/18 \times 4/3 (\approx 0.074)\)</span>. This value was later revised
+to 0.7 (P. G. Klemens, Solid State Phys. Adv. Res. Appl. 7, 1-98, 1958),
+which is also the default value adopted by the current program.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Nsf</strong> (<em>float</em>) – The number of stacking faults crossing a line of unit length
+(<span class="math notranslate nohighlight">\(N_{sf}\)</span>), in 10^6 m^(-1), also known as 1/um.</p></li>
+<li><p><strong>vs</strong> (<em>float</em>) – Average sound velocity (<span class="math notranslate nohighlight">\(v_s\)</span>), in km/s.</p></li>
+<li><p><strong>Va</strong> (<em>float</em>) – Average volume per atom (<span class="math notranslate nohighlight">\(V_a\)</span>), in cubic angstroms (A^3).</p></li>
+<li><p><strong>gm</strong> (<em>float</em>) – Effective Gruneisen parameter (<span class="math notranslate nohighlight">\(\gamma\)</span>), dimensionless.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – Dimensionless adjustable parameter (<span class="math notranslate nohighlight">\(\alpha\)</span>), by default 0.7.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappa.StackingFaults.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'SF'</span></em><a class="headerlink" href="#teflow.kappa.StackingFaults.tag" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappa.FreeElectrons">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappa.</span></span><span class="sig-name descname"><span class="pre">FreeElectrons</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">md</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">EF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">D0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Rep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.FreeElectrons" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappa.BaseScattering" title="teflow.kappa.BaseScattering"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseScattering</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\tau_i^{-1} = \frac{(E_d m_d^\ast)^2}{2 \pi \hbar^3 D_0 v_s} R_{ep}\ \omega
+    = C^\prime R_{ep} \ \omega\]</div>
+<div class="math notranslate nohighlight">
+\[R_{ep} = 1-\frac{k_BT}{\hbar \omega} \ln
+        \frac{
+            1+\exp[(\frac{\hbar^2 \omega^2}{8m_d^\ast v_s^2}
+                     + \frac{1}{2}m_d^\ast v_s^2
+                     + \frac{1}{2}\hbar\omega - E_F)/k_BT]
+        }{
+            1+\exp[(\frac{\hbar^2 \omega^2}{8m_d^\ast v_s^2}
+                     + \frac{1}{2}m_d^\ast v_s^2
+                     - \frac{1}{2}\hbar\omega - E_F)/k_BT]
+        }\]</div>
+<p>Ref: J. M. Ziman, Philos. Mag. 1, 191, 1956.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vs</strong> (<em>float</em>) – Average sound velocity (<span class="math notranslate nohighlight">\(v_s\)</span>), in km/s.</p></li>
+<li><p><strong>md</strong> (<em>float</em>) – Density-of-state effective mass (<span class="math notranslate nohighlight">\(m_d^\ast\)</span>), in <span class="math notranslate nohighlight">\(m_e\)</span>.</p></li>
+<li><p><strong>EF</strong> (<em>float</em>) – Fermi energy (<span class="math notranslate nohighlight">\(E_F\)</span>), in eV.</p></li>
+<li><p><strong>Ed</strong> (<em>float</em>) – Deformation potential (<span class="math notranslate nohighlight">\(E_d\)</span>), in eV.</p></li>
+<li><p><strong>D0</strong> (<em>float</em>) – Mass density of the material (<span class="math notranslate nohighlight">\(D_0\)</span>), in g/cm^3.</p></li>
+<li><p><strong>Rep</strong> (<em>float</em><em>, </em><em>optional</em>) – A dimensionless parameter (<span class="math notranslate nohighlight">\(R_{ep}\)</span>) in the range of (0, 1)
+related to Fermi level (or doping concentration). At ultra-high
+carrier concentrations, it tends towards 1. The default is None,
+indicating that it will be calculated based on Fermi level <cite>EF</cite>.
+If set, <cite>EF</cite> become non-effective.</p></li>
+<li><p><strong>coef</strong> (<em>float</em><em>, </em><em>optional</em>) – A comprehensive adjustable parameter (<span class="math notranslate nohighlight">\(C^{\prime}\)</span>).
+When set, all parameters except <cite>Rep</cite> become non-effective.
+By default, it is None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappa.FreeElectrons.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'EP'</span></em><a class="headerlink" href="#teflow.kappa.FreeElectrons.tag" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="teflow.kappa.FreeElectrons.coef">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">coef</span></span><a class="headerlink" href="#teflow.kappa.FreeElectrons.coef" title="永久链接至目标">¶</a></dt>
+<dd><p>Value of <span class="math notranslate nohighlight">\(C^{\prime}\)</span></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappa.FreeElectrons.Rep">
+<span class="sig-name descname"><span class="pre">Rep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.FreeElectrons.Rep" title="永久链接至目标">¶</a></dt>
+<dd><p>Returen the provided <cite>Rep</cite>, or the value calculated by <cite>EF</cite> if not provided.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappa.CahillScattering">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappa.</span></span><span class="sig-name descname"><span class="pre">CahillScattering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.CahillScattering" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappa.BaseScattering" title="teflow.kappa.BaseScattering"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseScattering</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\tau_i^{-1} = \alpha \frac{\omega}{\pi}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – Dimensionless adjustable parameter (<span class="math notranslate nohighlight">\(\alpha\)</span>), by default 1.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappa.CahillScattering.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'CAHILL'</span></em><a class="headerlink" href="#teflow.kappa.CahillScattering.tag" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappa.KappaSlack">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappa.</span></span><span class="sig-name descname"><span class="pre">KappaSlack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">td</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Va</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.KappaSlack" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappa.BaseKappaModel" title="teflow.kappa.BaseKappaModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseKappaModel</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\kappa = A \frac{M_a V_a^{1/3} \Theta^3}{\gamma^2 N^{2/3}T}\]</div>
+<p>Hint: Here <span class="math notranslate nohighlight">\(\Theta\)</span> refers to the “traditional” Debye temperature
+(namely, that determined from the elastic constants or specific heat),
+not the acoustic-mode Debye temperature <span class="math notranslate nohighlight">\(\Theta_a\)</span>.
+Their relationship is <span class="math notranslate nohighlight">\(\Theta^3 = N \cdot \Theta_a^3\)</span>,
+where <span class="math notranslate nohighlight">\(N\)</span> is the number of atoms per unit cell.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>td</strong> (<em>float</em>) – Debye temperature (<span class="math notranslate nohighlight">\(\Theta\)</span>), in Kelvin.</p></li>
+<li><p><strong>gm</strong> (<em>float</em>) – Gruneisen parameter (<span class="math notranslate nohighlight">\(\gamma\)</span>), dimensionless.</p></li>
+<li><p><strong>Ma</strong> (<em>float</em>) – Average atomic mass per atom (<span class="math notranslate nohighlight">\(M_a\)</span>), in atomic mass units (amu).</p></li>
+<li><p><strong>Va</strong> (<em>float</em>) – Average volume per atom (<span class="math notranslate nohighlight">\(V_a\)</span>), in cubic angstroms (A^3).</p></li>
+<li><p><strong>N</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of atoms per unit cell, by default 1.</p></li>
+<li><p><strong>A</strong> (<em>float</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Adjustable parameter <span class="math notranslate nohighlight">\(A\)</span> in the model, which can be set as
+either a constant value or the name of a predefined model for
+computation during initialization. The default value is 1E-6,
+which is its typical magnitude as well. To customize a new model,
+inherit from this class and implement a property named
+<cite>coef_&lt;modelname&gt;</cite>, then it will be automatically invoked.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappa.KappaSlack.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'SLACK'</span></em><a class="headerlink" href="#teflow.kappa.KappaSlack.tag" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="teflow.kappa.KappaSlack.coef">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">coef</span></span><a class="headerlink" href="#teflow.kappa.KappaSlack.coef" title="永久链接至目标">¶</a></dt>
+<dd><p>The value of parameter <span class="math notranslate nohighlight">\(A\)</span> in the model.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="teflow.kappa.KappaSlack.coef_Julian">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">coef_Julian</span></span><a class="headerlink" href="#teflow.kappa.KappaSlack.coef_Julian" title="永久链接至目标">¶</a></dt>
+<dd><div class="math notranslate nohighlight">
+\[A = \frac{2.43 \times 10^{-6}}{1-0.514/\gamma+0.228/\gamma^2}\]</div>
+<p>Ref: C. L. Julian, Physical Review, 137 A128, 1965.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="teflow.kappa.KappaSlack.coef_Qin">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">coef_Qin</span></span><a class="headerlink" href="#teflow.kappa.KappaSlack.coef_Qin" title="永久链接至目标">¶</a></dt>
+<dd><div class="math notranslate nohighlight">
+\[A = \frac{1}{1+1/\gamma + 8.3 \times 10^5/\gamma^{2.4}}\]</div>
+<p>Ref: G. Qin et al., Mater. Adv., 3 6683, 2022.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="teflow.kappa.KappaSlack.coef_Constant">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">coef_Constant</span></span><a class="headerlink" href="#teflow.kappa.KappaSlack.coef_Constant" title="永久链接至目标">¶</a></dt>
+<dd><p>This property works when the parameter <cite>A</cite> is specified as a
+numerical value during initialization, and returns the
+provided value of <cite>A</cite> directly.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappa.KappaBipolar">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappa.</span></span><span class="sig-name descname"><span class="pre">KappaBipolar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Kbp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Eg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.KappaBipolar" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappa.BaseKappaModel" title="teflow.kappa.BaseKappaModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseKappaModel</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\kappa_{bip} = \kappa_{bp} \left ( \frac{T}{T_{amb}} \right ) ^p
+    \exp \left( -\frac{E_g}{2k_BT} \right)
+\text{, where } T_{amb} = 300 K\]</div>
+<p>Ref: O. C. Yelgel et al., Phys. Rev. B, 85 125207, 2012.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Kbp</strong> (<em>float</em>) – Adjustable parameter (<span class="math notranslate nohighlight">\(\kappa_{bp}\)</span>), in W/(m.K).</p></li>
+<li><p><strong>Eg</strong> (<em>float</em>) – Band gap, in eV.</p></li>
+<li><p><strong>p</strong> (<em>float</em><em>, </em><em>optional</em>) – Adjustable parameter, by default 1.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappa.KappaBipolar.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'BIPOLAR'</span></em><a class="headerlink" href="#teflow.kappa.KappaBipolar.tag" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappa.KappaPowerLaw">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappa.</span></span><span class="sig-name descname"><span class="pre">KappaPowerLaw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Kamb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">K0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.KappaPowerLaw" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappa.BaseKappaModel" title="teflow.kappa.BaseKappaModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseKappaModel</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\kappa = \kappa_{amb} \left ( \frac{T}{T_{amb}} \right ) ^n
+          + \kappa_0 \text{, where } T_{amb} = 300 K\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Kamb</strong> (<em>float</em>) – Ambient thermal conductivity (<span class="math notranslate nohighlight">\(\kappa_{amb}\)</span>),
+corresponds to the thermal conductivity at the ambient temperature
+(300 K) with the background offset excluded.</p></li>
+<li><p><strong>n</strong> (<em>float</em><em>, </em><em>optional</em>) – The exponent in the expression, by default -1.</p></li>
+<li><p><strong>K0</strong> (<em>float</em><em>, </em><em>optional</em>) – Background offset (<span class="math notranslate nohighlight">\(\kappa_0\)</span>), by default 0.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappa.KappaPowerLaw.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'POWERLAW'</span></em><a class="headerlink" href="#teflow.kappa.KappaPowerLaw.tag" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="teflow.kappa.KappaKlemens">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">teflow.kappa.</span></span><span class="sig-name descname"><span class="pre">KappaKlemens</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Kpure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">td</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">G0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Va</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.KappaKlemens" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#teflow.kappa.BaseKappaModel" title="teflow.kappa.BaseKappaModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseKappaModel</span></code></a></p>
+<div class="math notranslate nohighlight">
+\[\frac{\kappa(x)}{\kappa_{pure}} =
+\frac{\tan^{-1}(u)}{u} \text{, where }
+u^2 = \cfrac{\pi \Theta V_a}{2\hbar v_s^2}
+\kappa_{pure}\Gamma_0 \cdot x (1-x)\]</div>
+<p>Ref: P. G. Klemens, Phys. Rev., 119 507-509, 1960.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Kpure</strong> (<em>float</em>) – Kappa of the crystal with disorder (<span class="math notranslate nohighlight">\(\kappa_{pure}\)</span>),
+in W/(m.K).</p></li>
+<li><p><strong>vs</strong> (<em>float</em>) – Sound velocity (<span class="math notranslate nohighlight">\(v_s\)</span>), in km/s.</p></li>
+<li><p><strong>td</strong> (<em>float</em>) – Debye temperature (<span class="math notranslate nohighlight">\(\Theta\)</span>), in Kelvin.</p></li>
+<li><p><strong>G0</strong> (<em>float</em>) – The factor of disorder scaling parameter (<span class="math notranslate nohighlight">\(\Gamma_0\)</span>).</p></li>
+<li><p><strong>Va</strong> (<em>float</em>) – Average volume per atom (<span class="math notranslate nohighlight">\(V_a\)</span>), in cubic angstroms (A^3).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="teflow.kappa.KappaKlemens.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'KLEMENS'</span></em><a class="headerlink" href="#teflow.kappa.KappaKlemens.tag" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappa.KappaKlemens.u2">
+<span class="sig-name descname"><span class="pre">u2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.KappaKlemens.u2" title="永久链接至目标">¶</a></dt>
+<dd><p>Calculates <span class="math notranslate nohighlight">\(u^2\)</span> from <span class="math notranslate nohighlight">\(x\)</span> based on model parameters.
+Users can customize the expression as needed by overriding this method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="teflow.kappa.KappaKlemens.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataK</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.KappaKlemens.fit" title="永久链接至目标">¶</a></dt>
+<dd><p>Overrides <a class="reference internal" href="#teflow.kappa.BaseKappaModel" title="teflow.kappa.BaseKappaModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseKappaModel</span></code></a>: Fits dataX rather than dataT.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="teflow.kappa.parse_KappaFit">
+<span class="sig-prename descclassname"><span class="pre">teflow.kappa.</span></span><span class="sig-name descname"><span class="pre">parse_KappaFit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.kappa.parse_KappaFit" title="永久链接至目标">¶</a></dt>
+<dd><p>Parse kappa model from configuration file</p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">目录</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">teflow.kappa module</a><ul>
+<li><a class="reference internal" href="#teflow.kappa.Variable"><code class="docutils literal notranslate"><span class="pre">Variable</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappa.Variable.constrained"><code class="docutils literal notranslate"><span class="pre">Variable.constrained</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.Variable.value"><code class="docutils literal notranslate"><span class="pre">Variable.value</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.Variable.register"><code class="docutils literal notranslate"><span class="pre">Variable.register()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.Variable.notify"><code class="docutils literal notranslate"><span class="pre">Variable.notify()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappa.Parameters"><code class="docutils literal notranslate"><span class="pre">Parameters</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.BaseKappaModel"><code class="docutils literal notranslate"><span class="pre">BaseKappaModel</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappa.BaseKappaModel.paras"><code class="docutils literal notranslate"><span class="pre">BaseKappaModel.paras</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.BaseKappaModel.fit"><code class="docutils literal notranslate"><span class="pre">BaseKappaModel.fit()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappa.KappaDebye"><code class="docutils literal notranslate"><span class="pre">KappaDebye</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappa.KappaDebye.tag"><code class="docutils literal notranslate"><span class="pre">KappaDebye.tag</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.KappaDebye.wd"><code class="docutils literal notranslate"><span class="pre">KappaDebye.wd</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.KappaDebye.scattering"><code class="docutils literal notranslate"><span class="pre">KappaDebye.scattering()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.KappaDebye.spectral"><code class="docutils literal notranslate"><span class="pre">KappaDebye.spectral()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.KappaDebye.cumulative"><code class="docutils literal notranslate"><span class="pre">KappaDebye.cumulative()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.KappaDebye.cumulative_mfp_t"><code class="docutils literal notranslate"><span class="pre">KappaDebye.cumulative_mfp_t()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.KappaDebye.vs_to_td"><code class="docutils literal notranslate"><span class="pre">KappaDebye.vs_to_td()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.KappaDebye.vs_to_gm"><code class="docutils literal notranslate"><span class="pre">KappaDebye.vs_to_gm()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.KappaDebye.vs_mean"><code class="docutils literal notranslate"><span class="pre">KappaDebye.vs_mean()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappa.BaseScattering"><code class="docutils literal notranslate"><span class="pre">BaseScattering</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappa.BaseScattering.paras"><code class="docutils literal notranslate"><span class="pre">BaseScattering.paras</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappa.ThreePhonon"><code class="docutils literal notranslate"><span class="pre">ThreePhonon</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappa.ThreePhonon.tag"><code class="docutils literal notranslate"><span class="pre">ThreePhonon.tag</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.ThreePhonon.coef"><code class="docutils literal notranslate"><span class="pre">ThreePhonon.coef</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappa.PointDefect"><code class="docutils literal notranslate"><span class="pre">PointDefect</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappa.PointDefect.tag"><code class="docutils literal notranslate"><span class="pre">PointDefect.tag</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.PointDefect.coef"><code class="docutils literal notranslate"><span class="pre">PointDefect.coef</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappa.GrainBoundary"><code class="docutils literal notranslate"><span class="pre">GrainBoundary</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappa.GrainBoundary.tag"><code class="docutils literal notranslate"><span class="pre">GrainBoundary.tag</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappa.Nanoparticles"><code class="docutils literal notranslate"><span class="pre">Nanoparticles</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappa.Nanoparticles.tag"><code class="docutils literal notranslate"><span class="pre">Nanoparticles.tag</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappa.Dislocations"><code class="docutils literal notranslate"><span class="pre">Dislocations</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappa.Dislocations.tag"><code class="docutils literal notranslate"><span class="pre">Dislocations.tag</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappa.StackingFaults"><code class="docutils literal notranslate"><span class="pre">StackingFaults</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappa.StackingFaults.tag"><code class="docutils literal notranslate"><span class="pre">StackingFaults.tag</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappa.FreeElectrons"><code class="docutils literal notranslate"><span class="pre">FreeElectrons</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappa.FreeElectrons.tag"><code class="docutils literal notranslate"><span class="pre">FreeElectrons.tag</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.FreeElectrons.coef"><code class="docutils literal notranslate"><span class="pre">FreeElectrons.coef</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.FreeElectrons.Rep"><code class="docutils literal notranslate"><span class="pre">FreeElectrons.Rep()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappa.CahillScattering"><code class="docutils literal notranslate"><span class="pre">CahillScattering</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappa.CahillScattering.tag"><code class="docutils literal notranslate"><span class="pre">CahillScattering.tag</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappa.KappaSlack"><code class="docutils literal notranslate"><span class="pre">KappaSlack</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappa.KappaSlack.tag"><code class="docutils literal notranslate"><span class="pre">KappaSlack.tag</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.KappaSlack.coef"><code class="docutils literal notranslate"><span class="pre">KappaSlack.coef</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.KappaSlack.coef_Julian"><code class="docutils literal notranslate"><span class="pre">KappaSlack.coef_Julian</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.KappaSlack.coef_Qin"><code class="docutils literal notranslate"><span class="pre">KappaSlack.coef_Qin</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.KappaSlack.coef_Constant"><code class="docutils literal notranslate"><span class="pre">KappaSlack.coef_Constant</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappa.KappaBipolar"><code class="docutils literal notranslate"><span class="pre">KappaBipolar</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappa.KappaBipolar.tag"><code class="docutils literal notranslate"><span class="pre">KappaBipolar.tag</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappa.KappaPowerLaw"><code class="docutils literal notranslate"><span class="pre">KappaPowerLaw</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappa.KappaPowerLaw.tag"><code class="docutils literal notranslate"><span class="pre">KappaPowerLaw.tag</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappa.KappaKlemens"><code class="docutils literal notranslate"><span class="pre">KappaKlemens</span></code></a><ul>
+<li><a class="reference internal" href="#teflow.kappa.KappaKlemens.tag"><code class="docutils literal notranslate"><span class="pre">KappaKlemens.tag</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.KappaKlemens.u2"><code class="docutils literal notranslate"><span class="pre">KappaKlemens.u2()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.kappa.KappaKlemens.fit"><code class="docutils literal notranslate"><span class="pre">KappaKlemens.fit()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teflow.kappa.parse_KappaFit"><code class="docutils literal notranslate"><span class="pre">parse_KappaFit()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>上一主题</h4>
+    <p class="topless"><a href="teflow.interface.html"
+                          title="上一章">teflow.interface module</a></p>
+  </div>
+  <div>
+    <h4>下一主题</h4>
+    <p class="topless"><a href="teflow.loader.html"
+                          title="下一章">teflow.loader module</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api_doc/teflow.kappa.rst.txt"
+            rel="nofollow">显示源代码</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="提交" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="teflow.loader.html" title="teflow.loader module"
+             >下一页</a> |</li>
+        <li class="right" >
+          <a href="teflow.interface.html" title="teflow.interface module"
+             >上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">TEflow  文档</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >API 参考</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">teflow.kappa module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; 版权所有 2023-2024 Jianbo ZHU.
+      由 <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2创建。
+    </div>
+  </body>
+</html>

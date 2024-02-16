@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>热电器件优值 &#8212; TEflow  文档</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css?v=0a676766" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=babeb00e"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/translations.js?v=beaddf03"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="数据处理" href="data_manipulation.html" />
+    <link rel="prev" title="工程热电优值" href="engineering_output.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="data_manipulation.html" title="数据处理"
+             accesskey="N">下一页</a> |</li>
+        <li class="right" >
+          <a href="engineering_output.html" title="工程热电优值"
+             accesskey="P">上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">TEflow  文档</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">使用指南</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">热电器件优值</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="id1">
+<h1>热电器件优值<a class="headerlink" href="#id1" title="此标题的永久链接">¶</a></h1>
+<section id="id2">
+<h2>背景与原理<a class="headerlink" href="#id2" title="此标题的永久链接">¶</a></h2>
+<p>器件热电优值基于 Snyder 的工作，其核心在于首先基于差分方法计算出一个转化效率，
+然后基于此转化效率按照公式 <a class="reference internal" href="#equation-efficiency">(1)</a> 逆推相应的热电优值。</p>
+<div class="math notranslate nohighlight" id="equation-efficiency">
+<span class="eqno">(1)<a class="headerlink" href="#equation-efficiency" title="此公式的永久链接">¶</a></span>\[\eta = \frac{\Delta T}{T_h}
+\frac {\sqrt{1+ZT} - 1}{\sqrt{1+ZT} + T_c / T_h}\]</div>
+<p>为了计算器件转化效率，
+Snyder 等人是进行一些变量替换将原先的二阶微分方程降阶为一阶微分方程，
+然后基于差分方法求解。这里我们不过多赘述，只提及两个概念，
+一个是约化电流，一个是热电势。在原生提供的表格求解器中，
+我们需要手动地调整约化电流值或者利用插件实现电流调优从而最大化转化效率。
+这里我们通过程序自动的完成所有工作，直接读入热电材料性质，
+然后计算相应的器件热电优值。</p>
+</section>
+<section id="id3">
+<h2>具体实现<a class="headerlink" href="#id3" title="此标题的永久链接">¶</a></h2>
+<section id="id4">
+<h3>1. 命令调用<a class="headerlink" href="#id4" title="此标题的永久链接">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>tef-ztdev<span class="w"> </span>-h
+</pre></div>
+</div>
+</section>
+<section id="valuate">
+<h3>2. 调用 valuate 函数<a class="headerlink" href="#valuate" title="此标题的永久链接">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">teflow.ztdev</span> <span class="kn">import</span> <span class="n">valuate</span>
+
+<span class="n">datas_TCSK</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">rst</span> <span class="o">=</span> <span class="n">valuate</span><span class="p">(</span><span class="n">datas_TCSK</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">rst</span><span class="p">[</span><span class="s1">&#39;ZTdev&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id5">
+<h2>扩展<a class="headerlink" href="#id5" title="此标题的永久链接">¶</a></h2>
+<p>这里提出了一个非常有建设性的想法，即以最终器件的效率来反向评估材料性质。
+依照这种思想，我们也可以依据一个复杂的器件的转化效率来评估所有材料的平均热电优值。
+因此我们在模块中设置了独立的函数来帮助我们从先验的转化效率预估材料。
+具体可以参考 <a class="reference internal" href="../api_doc/teflow.ztdev.html"><span class="doc">API介绍</span></a> 中的内容。</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">目录</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">热电器件优值</a><ul>
+<li><a class="reference internal" href="#id2">背景与原理</a></li>
+<li><a class="reference internal" href="#id3">具体实现</a><ul>
+<li><a class="reference internal" href="#id4">1. 命令调用</a></li>
+<li><a class="reference internal" href="#valuate">2. 调用 valuate 函数</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id5">扩展</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>上一主题</h4>
+    <p class="topless"><a href="engineering_output.html"
+                          title="上一章">工程热电优值</a></p>
+  </div>
+  <div>
+    <h4>下一主题</h4>
+    <p class="topless"><a href="data_manipulation.html"
+                          title="下一章">数据处理</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/usage/device_zt.rst.txt"
+            rel="nofollow">显示源代码</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="提交" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="data_manipulation.html" title="数据处理"
+             >下一页</a> |</li>
+        <li class="right" >
+          <a href="engineering_output.html" title="工程热电优值"
+             >上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">TEflow  文档</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >使用指南</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">热电器件优值</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; 版权所有 2023-2024 Jianbo ZHU.
+      由 <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2创建。
+    </div>
+  </body>
+</html>

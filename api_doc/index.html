@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>API 参考 &#8212; TEflow  文档</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css?v=0a676766" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=babeb00e"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/translations.js?v=beaddf03"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="teflow.bandlib module" href="teflow.bandlib.html" />
+    <link rel="prev" title="数据处理" href="../usage/data_manipulation.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="teflow.bandlib.html" title="teflow.bandlib module"
+             accesskey="N">下一页</a> |</li>
+        <li class="right" >
+          <a href="../usage/data_manipulation.html" title="数据处理"
+             accesskey="P">上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">TEflow  文档</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">API 参考</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="api">
+<h1>API 参考<a class="headerlink" href="#api" title="此标题的永久链接">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="此标题的永久链接">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="teflow.bandlib.html">teflow.bandlib module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.UNIT"><code class="docutils literal notranslate"><span class="pre">UNIT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.kB_eV"><code class="docutils literal notranslate"><span class="pre">kB_eV</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.m_e"><code class="docutils literal notranslate"><span class="pre">m_e</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.hbar"><code class="docutils literal notranslate"><span class="pre">hbar</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.q"><code class="docutils literal notranslate"><span class="pre">q</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand"><code class="docutils literal notranslate"><span class="pre">BaseBand</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.cacheable"><code class="docutils literal notranslate"><span class="pre">BaseBand.cacheable</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.dos"><code class="docutils literal notranslate"><span class="pre">BaseBand.dos()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.trs"><code class="docutils literal notranslate"><span class="pre">BaseBand.trs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.hall"><code class="docutils literal notranslate"><span class="pre">BaseBand.hall()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.compile"><code class="docutils literal notranslate"><span class="pre">BaseBand.compile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.clear"><code class="docutils literal notranslate"><span class="pre">BaseBand.clear()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.fetch"><code class="docutils literal notranslate"><span class="pre">BaseBand.fetch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.N"><code class="docutils literal notranslate"><span class="pre">BaseBand.N()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.K_0"><code class="docutils literal notranslate"><span class="pre">BaseBand.K_0()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.K_1"><code class="docutils literal notranslate"><span class="pre">BaseBand.K_1()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.K_2"><code class="docutils literal notranslate"><span class="pre">BaseBand.K_2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.CCRH"><code class="docutils literal notranslate"><span class="pre">BaseBand.CCRH()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.C"><code class="docutils literal notranslate"><span class="pre">BaseBand.C()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.CS"><code class="docutils literal notranslate"><span class="pre">BaseBand.CS()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.S"><code class="docutils literal notranslate"><span class="pre">BaseBand.S()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.PF"><code class="docutils literal notranslate"><span class="pre">BaseBand.PF()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.CL"><code class="docutils literal notranslate"><span class="pre">BaseBand.CL()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.L"><code class="docutils literal notranslate"><span class="pre">BaseBand.L()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.Ke"><code class="docutils literal notranslate"><span class="pre">BaseBand.Ke()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.U"><code class="docutils literal notranslate"><span class="pre">BaseBand.U()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.RH"><code class="docutils literal notranslate"><span class="pre">BaseBand.RH()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.UH"><code class="docutils literal notranslate"><span class="pre">BaseBand.UH()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.NH"><code class="docutils literal notranslate"><span class="pre">BaseBand.NH()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.BaseBand.solve_EF"><code class="docutils literal notranslate"><span class="pre">BaseBand.solve_EF()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.MultiBand"><code class="docutils literal notranslate"><span class="pre">MultiBand</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.MultiBand.cacheable"><code class="docutils literal notranslate"><span class="pre">MultiBand.cacheable</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.MultiBand.dos"><code class="docutils literal notranslate"><span class="pre">MultiBand.dos()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.MultiBand.trs"><code class="docutils literal notranslate"><span class="pre">MultiBand.trs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.MultiBand.hall"><code class="docutils literal notranslate"><span class="pre">MultiBand.hall()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.MultiBand.Kbip"><code class="docutils literal notranslate"><span class="pre">MultiBand.Kbip()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.MultiBand.guess_btypes"><code class="docutils literal notranslate"><span class="pre">MultiBand.guess_btypes()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSPB"><code class="docutils literal notranslate"><span class="pre">APSSPB</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSPB.m_d"><code class="docutils literal notranslate"><span class="pre">APSSPB.m_d</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSPB.sigma0"><code class="docutils literal notranslate"><span class="pre">APSSPB.sigma0</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSPB.Kmass"><code class="docutils literal notranslate"><span class="pre">APSSPB.Kmass</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSPB.dos"><code class="docutils literal notranslate"><span class="pre">APSSPB.dos()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSPB.trs"><code class="docutils literal notranslate"><span class="pre">APSSPB.trs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSPB.hall"><code class="docutils literal notranslate"><span class="pre">APSSPB.hall()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSPB.Kstar"><code class="docutils literal notranslate"><span class="pre">APSSPB.Kstar</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSPB.UWT"><code class="docutils literal notranslate"><span class="pre">APSSPB.UWT</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSPB.PFmax"><code class="docutils literal notranslate"><span class="pre">APSSPB.PFmax</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSPB.EFopt"><code class="docutils literal notranslate"><span class="pre">APSSPB.EFopt()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSPB.from_DP"><code class="docutils literal notranslate"><span class="pre">APSSPB.from_DP()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSPB.from_UWT"><code class="docutils literal notranslate"><span class="pre">APSSPB.from_UWT()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSPB.valuate"><code class="docutils literal notranslate"><span class="pre">APSSPB.valuate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSKB"><code class="docutils literal notranslate"><span class="pre">APSSKB</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSKB.m_d"><code class="docutils literal notranslate"><span class="pre">APSSKB.m_d</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSKB.sigma0"><code class="docutils literal notranslate"><span class="pre">APSSKB.sigma0</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSKB.Eg"><code class="docutils literal notranslate"><span class="pre">APSSKB.Eg</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSKB.Kmass"><code class="docutils literal notranslate"><span class="pre">APSSKB.Kmass</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSKB.dos"><code class="docutils literal notranslate"><span class="pre">APSSKB.dos()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSKB.trs"><code class="docutils literal notranslate"><span class="pre">APSSKB.trs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSKB.hall"><code class="docutils literal notranslate"><span class="pre">APSSKB.hall()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSKB.Kstar"><code class="docutils literal notranslate"><span class="pre">APSSKB.Kstar</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSKB.UWT"><code class="docutils literal notranslate"><span class="pre">APSSKB.UWT</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSKB.from_DP"><code class="docutils literal notranslate"><span class="pre">APSSKB.from_DP()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSKB.from_UWT"><code class="docutils literal notranslate"><span class="pre">APSSKB.from_UWT()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.APSSKB.valuate"><code class="docutils literal notranslate"><span class="pre">APSSKB.valuate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.LinearBand"><code class="docutils literal notranslate"><span class="pre">LinearBand</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.LinearBand.sigma0"><code class="docutils literal notranslate"><span class="pre">LinearBand.sigma0</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.LinearBand.vF"><code class="docutils literal notranslate"><span class="pre">LinearBand.vF</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.LinearBand.dos"><code class="docutils literal notranslate"><span class="pre">LinearBand.dos()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.LinearBand.trs"><code class="docutils literal notranslate"><span class="pre">LinearBand.trs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.LinearBand.hall"><code class="docutils literal notranslate"><span class="pre">LinearBand.hall()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.RSPB"><code class="docutils literal notranslate"><span class="pre">RSPB</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.RSPB.N0"><code class="docutils literal notranslate"><span class="pre">RSPB.N0</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.RSPB.S0"><code class="docutils literal notranslate"><span class="pre">RSPB.S0</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.RSPB.L0"><code class="docutils literal notranslate"><span class="pre">RSPB.L0</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.RSPB.C0"><code class="docutils literal notranslate"><span class="pre">RSPB.C0</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.RSPB.PF0"><code class="docutils literal notranslate"><span class="pre">RSPB.PF0</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.RSPB.Nmr"><code class="docutils literal notranslate"><span class="pre">RSPB.Nmr()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.RSPB.Sr"><code class="docutils literal notranslate"><span class="pre">RSPB.Sr()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.RSPB.iSr"><code class="docutils literal notranslate"><span class="pre">RSPB.iSr()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.RSPB.Ur"><code class="docutils literal notranslate"><span class="pre">RSPB.Ur()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.RSPB.iUr"><code class="docutils literal notranslate"><span class="pre">RSPB.iUr()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.RSPB.Lr"><code class="docutils literal notranslate"><span class="pre">RSPB.Lr()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.RSPB.iLr"><code class="docutils literal notranslate"><span class="pre">RSPB.iLr()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.RSPB.Cr"><code class="docutils literal notranslate"><span class="pre">RSPB.Cr()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.RSPB.PFr"><code class="docutils literal notranslate"><span class="pre">RSPB.PFr()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.RSPB.valuate"><code class="docutils literal notranslate"><span class="pre">RSPB.valuate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.bandline"><code class="docutils literal notranslate"><span class="pre">bandline()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.dosline"><code class="docutils literal notranslate"><span class="pre">dosline()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.bandlib.html#teflow.bandlib.parse_Bands"><code class="docutils literal notranslate"><span class="pre">parse_Bands()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="teflow.engout.html">teflow.engout module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="teflow.engout.html#teflow.engout.BaseDevice"><code class="docutils literal notranslate"><span class="pre">BaseDevice</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.engout.html#teflow.engout.BaseDevice.build"><code class="docutils literal notranslate"><span class="pre">BaseDevice.build()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.engout.html#teflow.engout.BaseDevice.simulate"><code class="docutils literal notranslate"><span class="pre">BaseDevice.simulate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.engout.html#teflow.engout.BaseDevice.valuate"><code class="docutils literal notranslate"><span class="pre">BaseDevice.valuate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.engout.html#teflow.engout.GenCore"><code class="docutils literal notranslate"><span class="pre">GenCore</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.engout.html#teflow.engout.GenLeg"><code class="docutils literal notranslate"><span class="pre">GenLeg</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.engout.html#teflow.engout.GenLeg.build"><code class="docutils literal notranslate"><span class="pre">GenLeg.build()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.engout.html#teflow.engout.GenLeg.simulate"><code class="docutils literal notranslate"><span class="pre">GenLeg.simulate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.engout.html#teflow.engout.GenLeg.valuate"><code class="docutils literal notranslate"><span class="pre">GenLeg.valuate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.engout.html#teflow.engout.GenPair"><code class="docutils literal notranslate"><span class="pre">GenPair</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.engout.html#teflow.engout.GenPair.build"><code class="docutils literal notranslate"><span class="pre">GenPair.build()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.engout.html#teflow.engout.GenPair.simulate"><code class="docutils literal notranslate"><span class="pre">GenPair.simulate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.engout.html#teflow.engout.GenPair.valuate"><code class="docutils literal notranslate"><span class="pre">GenPair.valuate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="teflow.interface.html">teflow.interface module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="teflow.interface.html#teflow.interface.do_band"><code class="docutils literal notranslate"><span class="pre">do_band()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.interface.html#teflow.interface.do_cutoff"><code class="docutils literal notranslate"><span class="pre">do_cutoff()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.interface.html#teflow.interface.do_engout"><code class="docutils literal notranslate"><span class="pre">do_engout()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.interface.html#teflow.interface.do_format"><code class="docutils literal notranslate"><span class="pre">do_format()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.interface.html#teflow.interface.do_help"><code class="docutils literal notranslate"><span class="pre">do_help()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.interface.html#teflow.interface.do_interp"><code class="docutils literal notranslate"><span class="pre">do_interp()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.interface.html#teflow.interface.do_kappa"><code class="docutils literal notranslate"><span class="pre">do_kappa()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.interface.html#teflow.interface.do_mixing"><code class="docutils literal notranslate"><span class="pre">do_mixing()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.interface.html#teflow.interface.do_refine"><code class="docutils literal notranslate"><span class="pre">do_refine()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.interface.html#teflow.interface.do_ztdev"><code class="docutils literal notranslate"><span class="pre">do_ztdev()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="teflow.kappa.html">teflow.kappa module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.Variable"><code class="docutils literal notranslate"><span class="pre">Variable</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.Variable.constrained"><code class="docutils literal notranslate"><span class="pre">Variable.constrained</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.Variable.value"><code class="docutils literal notranslate"><span class="pre">Variable.value</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.Variable.register"><code class="docutils literal notranslate"><span class="pre">Variable.register()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.Variable.notify"><code class="docutils literal notranslate"><span class="pre">Variable.notify()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.Parameters"><code class="docutils literal notranslate"><span class="pre">Parameters</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.BaseKappaModel"><code class="docutils literal notranslate"><span class="pre">BaseKappaModel</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.BaseKappaModel.paras"><code class="docutils literal notranslate"><span class="pre">BaseKappaModel.paras</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.BaseKappaModel.fit"><code class="docutils literal notranslate"><span class="pre">BaseKappaModel.fit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaDebye"><code class="docutils literal notranslate"><span class="pre">KappaDebye</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaDebye.tag"><code class="docutils literal notranslate"><span class="pre">KappaDebye.tag</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaDebye.wd"><code class="docutils literal notranslate"><span class="pre">KappaDebye.wd</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaDebye.scattering"><code class="docutils literal notranslate"><span class="pre">KappaDebye.scattering()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaDebye.spectral"><code class="docutils literal notranslate"><span class="pre">KappaDebye.spectral()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaDebye.cumulative"><code class="docutils literal notranslate"><span class="pre">KappaDebye.cumulative()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaDebye.cumulative_mfp_t"><code class="docutils literal notranslate"><span class="pre">KappaDebye.cumulative_mfp_t()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaDebye.vs_to_td"><code class="docutils literal notranslate"><span class="pre">KappaDebye.vs_to_td()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaDebye.vs_to_gm"><code class="docutils literal notranslate"><span class="pre">KappaDebye.vs_to_gm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaDebye.vs_mean"><code class="docutils literal notranslate"><span class="pre">KappaDebye.vs_mean()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.BaseScattering"><code class="docutils literal notranslate"><span class="pre">BaseScattering</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.BaseScattering.paras"><code class="docutils literal notranslate"><span class="pre">BaseScattering.paras</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.ThreePhonon"><code class="docutils literal notranslate"><span class="pre">ThreePhonon</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.ThreePhonon.tag"><code class="docutils literal notranslate"><span class="pre">ThreePhonon.tag</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.ThreePhonon.coef"><code class="docutils literal notranslate"><span class="pre">ThreePhonon.coef</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.PointDefect"><code class="docutils literal notranslate"><span class="pre">PointDefect</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.PointDefect.tag"><code class="docutils literal notranslate"><span class="pre">PointDefect.tag</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.PointDefect.coef"><code class="docutils literal notranslate"><span class="pre">PointDefect.coef</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.GrainBoundary"><code class="docutils literal notranslate"><span class="pre">GrainBoundary</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.GrainBoundary.tag"><code class="docutils literal notranslate"><span class="pre">GrainBoundary.tag</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.Nanoparticles"><code class="docutils literal notranslate"><span class="pre">Nanoparticles</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.Nanoparticles.tag"><code class="docutils literal notranslate"><span class="pre">Nanoparticles.tag</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.Dislocations"><code class="docutils literal notranslate"><span class="pre">Dislocations</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.Dislocations.tag"><code class="docutils literal notranslate"><span class="pre">Dislocations.tag</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.StackingFaults"><code class="docutils literal notranslate"><span class="pre">StackingFaults</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.StackingFaults.tag"><code class="docutils literal notranslate"><span class="pre">StackingFaults.tag</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.FreeElectrons"><code class="docutils literal notranslate"><span class="pre">FreeElectrons</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.FreeElectrons.tag"><code class="docutils literal notranslate"><span class="pre">FreeElectrons.tag</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.FreeElectrons.coef"><code class="docutils literal notranslate"><span class="pre">FreeElectrons.coef</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.FreeElectrons.Rep"><code class="docutils literal notranslate"><span class="pre">FreeElectrons.Rep()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.CahillScattering"><code class="docutils literal notranslate"><span class="pre">CahillScattering</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.CahillScattering.tag"><code class="docutils literal notranslate"><span class="pre">CahillScattering.tag</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaSlack"><code class="docutils literal notranslate"><span class="pre">KappaSlack</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaSlack.tag"><code class="docutils literal notranslate"><span class="pre">KappaSlack.tag</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaSlack.coef"><code class="docutils literal notranslate"><span class="pre">KappaSlack.coef</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaSlack.coef_Julian"><code class="docutils literal notranslate"><span class="pre">KappaSlack.coef_Julian</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaSlack.coef_Qin"><code class="docutils literal notranslate"><span class="pre">KappaSlack.coef_Qin</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaSlack.coef_Constant"><code class="docutils literal notranslate"><span class="pre">KappaSlack.coef_Constant</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaBipolar"><code class="docutils literal notranslate"><span class="pre">KappaBipolar</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaBipolar.tag"><code class="docutils literal notranslate"><span class="pre">KappaBipolar.tag</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaPowerLaw"><code class="docutils literal notranslate"><span class="pre">KappaPowerLaw</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaPowerLaw.tag"><code class="docutils literal notranslate"><span class="pre">KappaPowerLaw.tag</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaKlemens"><code class="docutils literal notranslate"><span class="pre">KappaKlemens</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaKlemens.tag"><code class="docutils literal notranslate"><span class="pre">KappaKlemens.tag</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaKlemens.u2"><code class="docutils literal notranslate"><span class="pre">KappaKlemens.u2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.KappaKlemens.fit"><code class="docutils literal notranslate"><span class="pre">KappaKlemens.fit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.kappa.html#teflow.kappa.parse_KappaFit"><code class="docutils literal notranslate"><span class="pre">parse_KappaFit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="teflow.loader.html">teflow.loader module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="teflow.loader.html#teflow.loader.AtomicWeight"><code class="docutils literal notranslate"><span class="pre">AtomicWeight</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.loader.html#teflow.loader.Compound"><code class="docutils literal notranslate"><span class="pre">Compound</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.loader.html#teflow.loader.Compound.from_string"><code class="docutils literal notranslate"><span class="pre">Compound.from_string()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.loader.html#teflow.loader.Compound.natom"><code class="docutils literal notranslate"><span class="pre">Compound.natom</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.loader.html#teflow.loader.Compound.to_string"><code class="docutils literal notranslate"><span class="pre">Compound.to_string()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.loader.html#teflow.loader.Compound.weight_ave"><code class="docutils literal notranslate"><span class="pre">Compound.weight_ave</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.loader.html#teflow.loader.Compound.weights"><code class="docutils literal notranslate"><span class="pre">Compound.weights</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.loader.html#teflow.loader.TEdatacol"><code class="docutils literal notranslate"><span class="pre">TEdatacol</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.loader.html#teflow.loader.TEdatacol.get"><code class="docutils literal notranslate"><span class="pre">TEdatacol.get()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.loader.html#teflow.loader.TEdataset"><code class="docutils literal notranslate"><span class="pre">TEdataset</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.loader.html#teflow.loader.TEdataset.CONDALIAS"><code class="docutils literal notranslate"><span class="pre">TEdataset.CONDALIAS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.loader.html#teflow.loader.TEdataset.IGNORED"><code class="docutils literal notranslate"><span class="pre">TEdataset.IGNORED</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.loader.html#teflow.loader.TEdataset.PATTERN"><code class="docutils literal notranslate"><span class="pre">TEdataset.PATTERN</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.loader.html#teflow.loader.TEdataset.TEMPSYMBOL"><code class="docutils literal notranslate"><span class="pre">TEdataset.TEMPSYMBOL</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.loader.html#teflow.loader.TEdataset.from_file"><code class="docutils literal notranslate"><span class="pre">TEdataset.from_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.loader.html#teflow.loader.TEdataset.get"><code class="docutils literal notranslate"><span class="pre">TEdataset.get()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.loader.html#teflow.loader.TEdataset.gget"><code class="docutils literal notranslate"><span class="pre">TEdataset.gget()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.loader.html#teflow.loader.TEdataset.parse_group"><code class="docutils literal notranslate"><span class="pre">TEdataset.parse_group()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.loader.html#teflow.loader.parseCTA"><code class="docutils literal notranslate"><span class="pre">parseCTA()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.loader.html#teflow.loader.parseLFA"><code class="docutils literal notranslate"><span class="pre">parseLFA()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.loader.html#teflow.loader.parseZEM"><code class="docutils literal notranslate"><span class="pre">parseZEM()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="teflow.mathext.html">teflow.mathext module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="teflow.mathext.html#teflow.mathext.fermidirac"><code class="docutils literal notranslate"><span class="pre">fermidirac()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.mathext.html#teflow.mathext.interpx"><code class="docutils literal notranslate"><span class="pre">interpx()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.mathext.html#teflow.mathext.mixing"><code class="docutils literal notranslate"><span class="pre">mixing()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.mathext.html#teflow.mathext.smoothstep"><code class="docutils literal notranslate"><span class="pre">smoothstep()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.mathext.html#teflow.mathext.vinterp"><code class="docutils literal notranslate"><span class="pre">vinterp()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.mathext.html#teflow.mathext.vquad"><code class="docutils literal notranslate"><span class="pre">vquad()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="teflow.utils.html">teflow.utils module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="teflow.utils.html#teflow.utils.AttrDict"><code class="docutils literal notranslate"><span class="pre">AttrDict</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.utils.html#teflow.utils.AttrDict.retain"><code class="docutils literal notranslate"><span class="pre">AttrDict.retain()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.utils.html#teflow.utils.CfgParser"><code class="docutils literal notranslate"><span class="pre">CfgParser</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.utils.html#teflow.utils.CfgParser.pmatch"><code class="docutils literal notranslate"><span class="pre">CfgParser.pmatch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.utils.html#teflow.utils.ExecWrapper"><code class="docutils literal notranslate"><span class="pre">ExecWrapper</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.utils.html#teflow.utils.ExecWrapper.UNSET"><code class="docutils literal notranslate"><span class="pre">ExecWrapper.UNSET</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.utils.html#teflow.utils.ExecWrapper.execute"><code class="docutils literal notranslate"><span class="pre">ExecWrapper.execute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.utils.html#teflow.utils.ExecWrapper.update"><code class="docutils literal notranslate"><span class="pre">ExecWrapper.update()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.utils.html#teflow.utils.ListDict"><code class="docutils literal notranslate"><span class="pre">ListDict</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.utils.html#teflow.utils.ListDict.append"><code class="docutils literal notranslate"><span class="pre">ListDict.append()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.utils.html#teflow.utils.ListDict.extend"><code class="docutils literal notranslate"><span class="pre">ListDict.extend()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.utils.html#teflow.utils.ListDict.merge"><code class="docutils literal notranslate"><span class="pre">ListDict.merge()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.utils.html#teflow.utils.ListDict.sum"><code class="docutils literal notranslate"><span class="pre">ListDict.sum()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.utils.html#teflow.utils.Metric"><code class="docutils literal notranslate"><span class="pre">Metric</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="teflow.utils.html#teflow.utils.Metric.MAE"><code class="docutils literal notranslate"><span class="pre">Metric.MAE()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.utils.html#teflow.utils.Metric.MAPE"><code class="docutils literal notranslate"><span class="pre">Metric.MAPE()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.utils.html#teflow.utils.Metric.MSE"><code class="docutils literal notranslate"><span class="pre">Metric.MSE()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.utils.html#teflow.utils.Metric.RMSE"><code class="docutils literal notranslate"><span class="pre">Metric.RMSE()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="teflow.utils.html#teflow.utils.Metric.SMAPE"><code class="docutils literal notranslate"><span class="pre">Metric.SMAPE()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.utils.html#teflow.utils.get_root_logger"><code class="docutils literal notranslate"><span class="pre">get_root_logger()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="teflow.ztdev.html">teflow.ztdev module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="teflow.ztdev.html#teflow.ztdev.cal_Phi"><code class="docutils literal notranslate"><span class="pre">cal_Phi()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.ztdev.html#teflow.ztdev.cal_Yita"><code class="docutils literal notranslate"><span class="pre">cal_Yita()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.ztdev.html#teflow.ztdev.cal_ZTdev"><code class="docutils literal notranslate"><span class="pre">cal_ZTdev()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.ztdev.html#teflow.ztdev.optim_Yita"><code class="docutils literal notranslate"><span class="pre">optim_Yita()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.ztdev.html#teflow.ztdev.optim_u"><code class="docutils literal notranslate"><span class="pre">optim_u()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="teflow.ztdev.html#teflow.ztdev.valuate"><code class="docutils literal notranslate"><span class="pre">valuate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="module-teflow">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-teflow" title="此标题的永久链接">¶</a></h2>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">目录</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">API 参考</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-teflow">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>上一主题</h4>
+    <p class="topless"><a href="../usage/data_manipulation.html"
+                          title="上一章">数据处理</a></p>
+  </div>
+  <div>
+    <h4>下一主题</h4>
+    <p class="topless"><a href="teflow.bandlib.html"
+                          title="下一章">teflow.bandlib module</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api_doc/index.rst.txt"
+            rel="nofollow">显示源代码</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="提交" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="teflow.bandlib.html" title="teflow.bandlib module"
+             >下一页</a> |</li>
+        <li class="right" >
+          <a href="../usage/data_manipulation.html" title="数据处理"
+             >上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">TEflow  文档</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">API 参考</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; 版权所有 2023-2024 Jianbo ZHU.
+      由 <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2创建。
+    </div>
+  </body>
+</html>

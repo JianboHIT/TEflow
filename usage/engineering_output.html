@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>工程热电优值 &#8212; TEflow  文档</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css?v=0a676766" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=babeb00e"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/translations.js?v=beaddf03"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="热电器件优值" href="device_zt.html" />
+    <link rel="prev" title="载流子输运模型" href="modeling_transport.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="device_zt.html" title="热电器件优值"
+             accesskey="N">下一页</a> |</li>
+        <li class="right" >
+          <a href="modeling_transport.html" title="载流子输运模型"
+             accesskey="P">上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">TEflow  文档</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">使用指南</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">工程热电优值</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="id1">
+<h1>工程热电优值<a class="headerlink" href="#id1" title="此标题的永久链接">¶</a></h1>
+<p>热电器件的输出功率和转化效率是我们非常关注的两个指标。
+对于经典的 <span class="math notranslate nohighlight">\(\Pi\)</span> 型器件，
+如果考虑材料的性能不随温度变化，
+我们是可以导出其输出功率和转化效率与材料性质的解析关系的，
+还由此可以得到热电材料的两个性能指标: 功率因子和无量纲热电优值。
+当考虑到材料性能随温度的复杂变化关系后，
+我们无法再给出一个显式的解析解，只能考虑数值解法。
+其中一个代表性的工作就是 Snyder 等人在定义器件优值时，
+同时附带给出了一个可以进行差分求解器件效率的 Excel 工具。
+但是，对于成对器件，这种方式就比较乏力了，
+不但效率较低，而且不易处理器件尺寸的优化协调问题。
+在此背景之下，刘等人提出了工程热电的相关理论，
+在充分考虑材料性能温度依赖性的前提下，
+给出了器件性能的半解析公式，以及一个修正后的功率因子和热电优值。
+我们的程序包已经实现了单腿和双腿工程热电性能计算的功能，
+并且提供了命令行接口。</p>
+<section id="id2">
+<h2>基本原理<a class="headerlink" href="#id2" title="此标题的永久链接">¶</a></h2>
+<p>热电器件性能评估的本质是在求解一个电-热深耦合物理场的问题，
+其核心问题可以归结为求解下面一个二阶微分方程:</p>
+<div class="math notranslate nohighlight" id="equation-governing-eq">
+<span class="eqno">(1)<a class="headerlink" href="#equation-governing-eq" title="此公式的永久链接">¶</a></span>\[\frac{d}{dx}\left( \kappa \frac{dT}{dx} \right)
+    + J^2 \rho - J \tau \frac{dT}{dx} = 0\]</div>
+<p>这里 <span class="math notranslate nohighlight">\(\kappa\)</span> 、<span class="math notranslate nohighlight">\(\rho\)</span> 和 <span class="math notranslate nohighlight">\(\tau\)</span>
+分别是热导率、电阻率和汤姆孙系数，<span class="math notranslate nohighlight">\(J\)</span> 是电流密度，
+需要求解 <span class="math notranslate nohighlight">\(T(x)\)</span> 温度分布。
+显然地，当材料性能都为常数时，方程 <a class="reference internal" href="#equation-governing-eq">(1)</a>
+就是一个基本的二阶常微分方程，非常容易给出解析解。
+然而，当材料性质是随着温度变化时，上面的方程就变得非常复杂了。
+刘等人就是提出了一种办法可以处理这个复杂问题的办法，
+即所谓的工程热电性能的概念。该理论中，
+发电器件的能量转化效率和输出功率可以表达为:</p>
+<div class="math notranslate nohighlight" id="equation-eng-yita-gen">
+<span class="eqno">(2)<a class="headerlink" href="#equation-eng-yita-gen" title="此公式的永久链接">¶</a></span>\[\eta = \eta _c \frac{
+    \sqrt{1+ZT_{eng} \alpha_1 \eta _c^{-1}} -1
+}{
+    \alpha_0 \sqrt{1+ZT_{eng} \alpha_1 \eta _c^{-1}} + \alpha_2
+}\]</div>
+<div class="math notranslate nohighlight" id="equation-eng-pd-gen">
+<span class="eqno">(3)<a class="headerlink" href="#equation-eng-pd-gen" title="此公式的永久链接">¶</a></span>\[P_d = \frac{PF_{eng} \Delta T}{4L}\]</div>
+<p>这里 <span class="math notranslate nohighlight">\(\eta_c = (T_h-T_c)/T_h\)</span> 是卡诺效率，
+<span class="math notranslate nohighlight">\(T_h\)</span> 和 <span class="math notranslate nohighlight">\(T_c\)</span> 分别是高、低温端的温度，
+<span class="math notranslate nohighlight">\(ZT_{eng}\)</span> 和 <span class="math notranslate nohighlight">\(PF_{eng}\)</span>
+即为工程热电优值和工程功率因子，
+<span class="math notranslate nohighlight">\(\alpha_i(i=0,1,2)\)</span>
+是一些无量纲的与材料性质相关的系数，
+具体地可以参考原始的文献资料。
+结论性地，我们会知道当材料性质温度无关时，
+<a class="reference internal" href="#equation-eng-yita-gen">(2)</a> 和 <a class="reference internal" href="#equation-eng-pd-gen">(3)</a>
+会完全退化到经典的公式，与经典公式完全相容。</p>
+<p>实际上，该理论中还给出了任意电流和截面比条件下的功率输出和热流输入，
+比如对于热电单腿:</p>
+<div class="math notranslate nohighlight" id="equation-eng-pout-gen">
+<span class="eqno">(4)<a class="headerlink" href="#equation-eng-pout-gen" title="此公式的永久链接">¶</a></span>\[P_{out} = \frac{V_{oc}^2}{R} \frac{m}{(1+m)^2}\]</div>
+<div class="math notranslate nohighlight" id="equation-eng-qhot-gen">
+<span class="eqno">(5)<a class="headerlink" href="#equation-eng-qhot-gen" title="此公式的永久链接">¶</a></span>\[Q_{hot} = \frac{A}{L} \int_{T_c}^{T_h}\kappa(T)dT
+    + I T_h S(T_h) - W_J I^2 R
+    - W_T I \int_{T_c}^{T_h}\tau (T)dT\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(m = R_L / R\)</span> 为负载电阻 <span class="math notranslate nohighlight">\(R_L\)</span>
+材料内阻 <span class="math notranslate nohighlight">\(R\)</span> 的比值，<span class="math notranslate nohighlight">\(V_{oc}\)</span> 为开路电压，
+<span class="math notranslate nohighlight">\(I\)</span> 为工作电流，<span class="math notranslate nohighlight">\(A\)</span> 和 <span class="math notranslate nohighlight">\(L\)</span>
+分别为热电腿的截面积和高度，
+<span class="math notranslate nohighlight">\(W_J\)</span> 和 <span class="math notranslate nohighlight">\(W_T\)</span> 为焦耳热和汤姆孙热权重系数:</p>
+<div class="math notranslate nohighlight" id="equation-eng-props">
+<span class="eqno">(6)<a class="headerlink" href="#equation-eng-props" title="此公式的永久链接">¶</a></span>\[\begin{split}R &amp;= \frac{1}{\Delta T} \frac{L}{A} \int_{T_c}^{T_h}\rho (T)dT \\
+V_{oc} &amp;= \int_{T_c}^{T_h} S (T)dT \\
+W_J &amp;= \frac{
+    \int_{T_c}^{T_h} \int_{T}^{T_h} \rho (T)dTdT
+}{
+    \Delta T \int_{T_c}^{T_h}\rho (T)dT
+}\\
+W_T &amp;= \frac{
+    \int_{T_c}^{T_h} \int_{T}^{T_h} \tau (T)dTdT
+}{
+    \Delta T \int_{T_c}^{T_h}\tau (T)dT
+}\end{split}\]</div>
+<p>在这个基础上我们就可以实现任意电流和尺寸器件的性能预测。</p>
+</section>
+<section id="id3">
+<h2>程序实现<a class="headerlink" href="#id3" title="此标题的永久链接">¶</a></h2>
+<p>这部分的程序实现就是严格按照定义公式进行计算。
+通常情况下，可以调用命令 <code class="docutils literal notranslate"><span class="pre">tef-engout</span></code>
+进行工程热电性能的计算，
+它可以给出最优电流和截面比下的输出功率和转化效率。
+对于更加复杂的功能，比如完整的性能与电流关系曲线，
+就需要调用相关的模块。</p>
+<section id="id4">
+<h3>命令行指令<a class="headerlink" href="#id4" title="此标题的永久链接">¶</a></h3>
+<p>我们可以通过 <code class="docutils literal notranslate"><span class="pre">tef-engout</span> <span class="pre">-h</span></code> 选项来查看帮助，</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ tef-engout -h
+usage: tef-engout [-h] [-b] [-p] [-R] [-L LENGTH] [-s SUFFIX] INPUTFILE [OUTPUTFILE]
+
+Calculate engineering thermoelectric performance - TEflow(0.0.1a3)
+
+  &gt;&gt;&gt; Prepare a data file with columns in &#39;TCSK&#39; order for single-leg
+  devices, or &#39;TCSKCSK&#39; for paired-leg devices if the -p (--pair) option is
+  enabled. The conductivity column can accept resistivity values using the
+  -R (--resistivity) option. Currently, only evaluations for thermoelectric
+  generators are supported.
+
+positional arguments:
+  INPUTFILE             Input file name (must be provided)
+  OUTPUTFILE            Output file name (optional, auto-generated if omitted)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -b, --bare            Output data without header
+  -p, --pair            Enable the two-leg model, otherwise the single-leg model.
+  -R, --resistivity     Use resistivity instead of the default conductivity.
+  -L LENGTH, --length LENGTH
+                        The leg length (or height) in mm. Defaults to 1 mm.
+  -s SUFFIX, --suffix SUFFIX
+                        Suffix for generating the output file name (default: engout)
+</pre></div>
+</div>
+<p>对于热电单腿，输入文件需要依次包含 4 列数据：
+温度(T[K]), 电导率(C[S/cm]), 塞贝克系数(S[uV/K])
+和热导率(K[W/(m·K)])。
+对于热电单偶，我需要确保两种材料性能的温度取点一致，
+输入文件需要依次包含 7 列:
+第一列是 T, 然后是第一个材料的 C, S, 和 K,
+再后面是另外一个材料的 C, S, 和 K。
+假定数据文件名为 data.txt,
+计算单腿器件性能:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>tef-engout<span class="w"> </span>data.txt
+</pre></div>
+</div>
+<p>计算双腿器件性能:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>tef-engout<span class="w"> </span>--pair<span class="w"> </span>data.txt
+</pre></div>
+</div>
+</section>
+<section id="id5">
+<h3>相关的模块<a class="headerlink" href="#id5" title="此标题的永久链接">¶</a></h3>
+<p>我们提供了比较完整的函数和类文档，具体可以参考
+<a class="reference internal" href="../api_doc/teflow.engout.html"><span class="doc">engout</span></a>
+模块。</p>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">目录</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">工程热电优值</a><ul>
+<li><a class="reference internal" href="#id2">基本原理</a></li>
+<li><a class="reference internal" href="#id3">程序实现</a><ul>
+<li><a class="reference internal" href="#id4">命令行指令</a></li>
+<li><a class="reference internal" href="#id5">相关的模块</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>上一主题</h4>
+    <p class="topless"><a href="modeling_transport.html"
+                          title="上一章">载流子输运模型</a></p>
+  </div>
+  <div>
+    <h4>下一主题</h4>
+    <p class="topless"><a href="device_zt.html"
+                          title="下一章">热电器件优值</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/usage/engineering_output.rst.txt"
+            rel="nofollow">显示源代码</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="提交" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="device_zt.html" title="热电器件优值"
+             >下一页</a> |</li>
+        <li class="right" >
+          <a href="modeling_transport.html" title="载流子输运模型"
+             >上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">TEflow  文档</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >使用指南</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">工程热电优值</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; 版权所有 2023-2024 Jianbo ZHU.
+      由 <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2创建。
+    </div>
+  </body>
+</html>

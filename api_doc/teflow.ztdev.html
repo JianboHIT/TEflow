@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>teflow.ztdev module &#8212; TEflow  文档</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css?v=0a676766" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=babeb00e"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/translations.js?v=beaddf03"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="prev" title="teflow.utils module" href="teflow.utils.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="teflow.utils.html" title="teflow.utils module"
+             accesskey="P">上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">TEflow  文档</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">API 参考</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">teflow.ztdev module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-teflow.ztdev">
+<span id="teflow-ztdev-module"></span><h1>teflow.ztdev module<a class="headerlink" href="#module-teflow.ztdev" title="此标题的永久链接">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="teflow.ztdev.cal_Phi">
+<span class="sig-prename descclassname"><span class="pre">teflow.ztdev.</span></span><span class="sig-name descname"><span class="pre">cal_Phi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">S</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.ztdev.cal_Phi" title="永久链接至目标">¶</a></dt>
+<dd><p>Calculate thermoelectric potential Phi.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>u</strong> (<em>float</em><em> | </em><em>ndarray</em>) – The relative current density, in 1/V.</p></li>
+<li><p><strong>S</strong> (<em>float</em><em> | </em><em>ndarray</em>) – Seebeck coefficient, in uV/K.</p></li>
+<li><p><strong>T</strong> (<em>float</em><em> | </em><em>ndarray</em>) – Temperature, in K.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Thermoelectric potential (Phi) in V.</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float | ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="teflow.ztdev.cal_Yita">
+<span class="sig-prename descclassname"><span class="pre">teflow.ztdev.</span></span><span class="sig-name descname"><span class="pre">cal_Yita</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allTemp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.ztdev.cal_Yita" title="永久链接至目标">¶</a></dt>
+<dd><p>Calculate Yita under given TE datas and initial u.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>u</strong> (<em>float</em>) – The relative current density, in 1/V.</p></li>
+<li><p><strong>datas</strong> (<em>list</em><em> | </em><em>ndarray</em>) – TE datas like [T, C, S, K], which are in K, S/cm, uV/K, and W/(m.K), respectively.
+The temperature values must increase monotonically.</p></li>
+<li><p><strong>allTemp</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to return conversion efficiencies of other temperature points in addition
+to the highest temperature point. Default value is <cite>False</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Efficiency (Yita) in %.</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float | ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="teflow.ztdev.cal_ZTdev">
+<span class="sig-prename descclassname"><span class="pre">teflow.ztdev.</span></span><span class="sig-name descname"><span class="pre">cal_ZTdev</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Yita</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Tc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Th</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.ztdev.cal_ZTdev" title="永久链接至目标">¶</a></dt>
+<dd><p>Calculate ZTdev under a given Yita and corresponding temperatures at cold and hot sides.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Yita</strong> (<em>float</em><em> | </em><em>ndarray</em>) – Efficiency (Yita), in %.</p></li>
+<li><p><strong>Tc</strong> (<em>float</em><em> | </em><em>ndarray</em>) – Temperature at cold side, in K.</p></li>
+<li><p><strong>Th</strong> (<em>float</em><em> | </em><em>ndarray</em>) – Temperature at hot side, in K.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Device ZT.</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float | ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="teflow.ztdev.optim_Yita">
+<span class="sig-prename descclassname"><span class="pre">teflow.ztdev.</span></span><span class="sig-name descname"><span class="pre">optim_Yita</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allTemp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.ztdev.optim_Yita" title="永久链接至目标">¶</a></dt>
+<dd><p>Invoke <a class="reference internal" href="#teflow.ztdev.optim_u" title="teflow.ztdev.optim_u"><code class="xref py py-func docutils literal notranslate"><span class="pre">optim_u()</span></code></a> to optimize the value of <cite>u</cite> and calculate the corresponding
+conversion efficiency based on the given data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datas</strong> (<em>list</em><em> | </em><em>ndarray</em>) – TE datas like [T, C, S, K], which are in K, S/cm, uV/K, and W/(m.K), respectively.
+The temperature values must increase monotonically.</p></li>
+<li><p><strong>allTemp</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to return conversion efficiencies of other temperature points in addition
+to the highest temperature point. Default value is <cite>False</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Maximum efficiency (Yita) in %.</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float | ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="teflow.ztdev.optim_u">
+<span class="sig-prename descclassname"><span class="pre">teflow.ztdev.</span></span><span class="sig-name descname"><span class="pre">optim_u</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">details</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">returnYita</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.ztdev.optim_u" title="永久链接至目标">¶</a></dt>
+<dd><p>Optimize u to maximize the last Yita.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datas</strong> (<em>list</em><em> | </em><em>ndarray</em>) – TE datas like [T, C, S, K], which are in K, S/cm, uV/K, and W/(m.K), respectively.
+The temperature values must increase monotonically.</p></li>
+<li><p><strong>details</strong> (<em>bool</em><em>, </em><em>optional</em>) – Return the actual OptimizeResult object that contains detailed optimization results
+(<cite>details=True</cite>), or only the solution of the optimization and/or values of objective
+function (<cite>details=False</cite>, default).</p></li>
+<li><p><strong>returnYita</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to return the corresponding single-point Yita at optimal u, by default <cite>False</cite>.
+Note: This will only work if <cite>details=False</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Result depends on input parameters.</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float | tuple | OptimizeResult</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="teflow.ztdev.valuate">
+<span class="sig-prename descclassname"><span class="pre">teflow.ztdev.</span></span><span class="sig-name descname"><span class="pre">valuate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datas_TCSK</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allTemp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#teflow.ztdev.valuate" title="永久链接至目标">¶</a></dt>
+<dd><p>Calculate ZTdev of given TE datas.</p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datas_TCSK</strong> (<em>list</em><em> | </em><em>ndarray</em>) – TE datas like [T, C, S, K], which are in K, S/cm, uV/K, and W/(m.K), respectively.
+The temperature values must increase monotonically.</p></li>
+<li><p><strong>allTemp</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to return conversion efficiencies of other temperature points in addition
+to the highest temperature point. Default value is <cite>False</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl>
+<dt>A dict with below keys:</dt><dd><p><strong>Tc</strong>: (float | ndarray) Temperature at cold side, in K.</p>
+<p><strong>Th</strong>: (float | ndarray) Temperature at hot side, in K.</p>
+<p><strong>ZTdev</strong>: (float | ndarray) Device ZT.</p>
+<p><strong>Yita</strong>: (float | ndarray) Optimal Yita in %.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">返回类型<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="teflow.utils.html#teflow.utils.AttrDict" title="teflow.utils.AttrDict">AttrDict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">目录</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">teflow.ztdev module</a><ul>
+<li><a class="reference internal" href="#teflow.ztdev.cal_Phi"><code class="docutils literal notranslate"><span class="pre">cal_Phi()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.ztdev.cal_Yita"><code class="docutils literal notranslate"><span class="pre">cal_Yita()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.ztdev.cal_ZTdev"><code class="docutils literal notranslate"><span class="pre">cal_ZTdev()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.ztdev.optim_Yita"><code class="docutils literal notranslate"><span class="pre">optim_Yita()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.ztdev.optim_u"><code class="docutils literal notranslate"><span class="pre">optim_u()</span></code></a></li>
+<li><a class="reference internal" href="#teflow.ztdev.valuate"><code class="docutils literal notranslate"><span class="pre">valuate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>上一主题</h4>
+    <p class="topless"><a href="teflow.utils.html"
+                          title="上一章">teflow.utils module</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api_doc/teflow.ztdev.rst.txt"
+            rel="nofollow">显示源代码</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="提交" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="teflow.utils.html" title="teflow.utils module"
+             >上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">TEflow  文档</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >API 参考</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">teflow.ztdev module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; 版权所有 2023-2024 Jianbo ZHU.
+      由 <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2创建。
+    </div>
+  </body>
+</html>
