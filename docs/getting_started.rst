@@ -40,18 +40,18 @@
 .. code-block::
 
     $ tef -h
-
-          ________  ________
-         |        \|        \     ,...  ,,
-          \$$$$$$$$| $$$$$$$$   .d' ""`7MM
-            | $$   | $$__       dM`     MM
-            | $$   | $$  \     mMMmm    MM  ,pW"Wq.`7M'    ,A    `MF'
-            | $$   | $$$$$      MM      MM 6W'   `Wb VA   ,VAA   ,V
-            | $$   | $$_____    MM      MM 8M     M8  VA ,V  VA ,V
-            | $$   | $$     \   MM      MM YA.   ,A9   VVV    VVV
-             \$$    \$$$$$$$$ .JMML.  .JMML.`Ybmd9'     W      W
     
-                             (v0.0.1a3, Copyright 2023 Jianbo ZHU)
+          ________  ________
+         |\       \|\       \     ,...  ,,
+          \&&&&&&&&| &&&&&&&&   .d' ""`7MM
+            | &&   | &&__       dM`     MM
+            | &&   | &&  \     mMMmm    MM  ,pW"Wq.`7M'    ,A    `MF'
+            | &&   | &&&&&      MM      MM 6W'   `Wb VA   ,VAA   ,V
+            | &&   | &&_____    MM      MM 8M     M8  VA ,V  VA ,V
+            | &&   | &&     \   MM      MM YA.   ,A9   VVV    VVV
+             \&&    \&&&&&&&& .JMML.  .JMML.`Ybmd9'     W      W
+    
+                          (v0.2.0, Copyright 2023-2024 Jianbo ZHU)
     ______________________________________________________________________
     >>> Streamline your thermoelectric workflow from materials to devices
     
@@ -60,7 +60,9 @@
     Subcommands:
         format  Format thermoelectric properties data
           band  Insight carriar transport with band models
+         kappa  Simulate & fit thermal conductivity
          ztdev  Calculate ZTdev of thermoelectric generator
+        engout  Calculate engineering thermoelectric performance
         interp  Data interpolation and extrapolation
         mixing  Mixing the datafile with same array-shape
         refine  Remove redundant & extract the concerned data
