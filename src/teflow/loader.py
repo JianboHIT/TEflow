@@ -290,8 +290,11 @@ class TEdataset(Mapping):
         ====== ========================== ===============
 
     Additionally, a significant feature of this class is handling the
-    temperature dependency of material properties.
-    The class pairs each material property with a corresponding temperature,
+    temperature dependency of material properties, determined by the
+    `independent` parameter at initialization. By default, set to True,
+    material properties are considered entirely independent, and only
+    the property itself is returned when accessed. If set to False,
+    the class pairs each material property with a corresponding temperature,
     returning both temperature and property when accessed.
 
     Parameters
@@ -311,6 +314,11 @@ class TEdataset(Mapping):
         regular expression `r'[A-Z][a-z0-9_]?'` (i.e. :attr:`PATTERN` attribute)
         to match each identifier. This method can be overridden to change
         the parsing behavior.
+    independent : bool, optional
+        Controls the association of material properties with temperature.
+        By default, it is set to True, where all properties, including
+        temperature, are treated as distinct and independent. If set to False,
+        all properties are associated with temperature data.
 
     Notes
     -----
@@ -327,8 +335,14 @@ class TEdataset(Mapping):
     IGNORED = {'X',}
     CONDALIAS = ('C', 'R', 'N', 'U')
     PATTERN = r'[A-Z][a-z0-9_]?'
-    def __init__(self, data, group):
-        self._initialize_data(data, group)
+    def __init__(self, data, group, independent=True):
+        group = self.parse_group(group)
+        if independent:
+            self.INDEP = True
+            self._initialize_indep(data, group)
+        else:
+            self.INDEP = False
+            self._initialize_depend(data, group)
         self._calc_cond = {
             self.CONDALIAS[0]: self._getC,
             self.CONDALIAS[1]: self._getR,
@@ -336,8 +350,13 @@ class TEdataset(Mapping):
             self.CONDALIAS[3]: self._getU,
         }
 
-    def _initialize_data(self, data, group):
-        group = self.parse_group(group)
+    def _initialize_indep(self, data, group):
+        self._data = {k: np.asarray(v) \
+            for k,v in zip(group, data) if k not in self.IGNORED}
+        self._temp = {k: None for k in self._data.keys()}
+        self._tidx = {k: -1 for k in self._data.keys()}
+
+    def _initialize_depend(self, data, group):
         self._data = dict()
         self._temp = dict()
         self._tidx = dict()
@@ -355,9 +374,12 @@ class TEdataset(Mapping):
 
     def __str__(self):
         data = self._data
-        tidx = self._tidx
-        TSYM = self.TEMPSYMBOL
-        props = [f'{k}_{TSYM}{tidx[k]}#{len(v)}' for k, v in data.items()]
+        if self.INDEP:
+            props = [f'{k}#{len(v)}' for k, v in data.items()]
+        else:
+            TSYM = self.TEMPSYMBOL
+            tidx = self._tidx
+            props = [f'{k}_{TSYM}{tidx[k]}#{len(v)}' for k, v in data.items()]
         return '{}: {}'.format(self.__class__.__name__, ', '.join(props))
 
     def __iter__(self):
@@ -367,12 +389,16 @@ class TEdataset(Mapping):
         return len(self._data)
 
     def __getitem__(self, key):
-        return self._temp[key], self._data[key]
+        if self.INDEP:
+            return self._data[key]
+        else:
+            return self._temp[key], self._data[key]
 
     def get(self, key, default=_UNSET):
         '''
-        Fetches a paired (temperature, property). Raises ValueError for
-        any property that cannot be fetched if `default` is not set.
+        Fetches a material property, also including temperature
+        if not independent. Raises ValueError for any property
+        that cannot be fetched if `default` is not set.
         '''
         if key in self._data:
             temp, val = self._temp[key], self._data[key]
@@ -382,7 +408,7 @@ class TEdataset(Mapping):
             temp, val = default, default
         if val is _UNSET:
             raise ValueError(f'Failed to fetch {key}')
-        return temp, val
+        return val if self.INDEP else (temp, val)
 
     def gget(self, group, default=_UNSET):
         '''
@@ -462,22 +488,7 @@ class TEdataset(Mapping):
             raise ValueError(f"Expected a string or a sequence, got {gtype}")
 
     @classmethod
-    def _nan_filter(cls, data, group):
-        TSYM = cls.TEMPSYMBOL
-        group = cls.parse_group(group)
-        myfilter = lambda x: x[:, np.all(np.isfinite(x), axis=0)]
-        itemp = [i for i, s in enumerate(group) if s == TSYM]
-        if not itemp:
-            raise ValueError(f"Failed to find identifier '{TSYM}' in group")
-        if len(itemp) == 1:
-            data[itemp[0]:] = myfilter(np.vstack(data[itemp[0]:]))
-        else:
-            for p, q in zip(itemp[:-1], itemp[1:]):
-                data[p:q] = myfilter(np.vstack(data[p:q]))
-        return data
-
-    @classmethod
-    def from_file(cls, filename, group, delimiter=None):
+    def from_file(cls, filename, group, independent=True, delimiter=None):
         '''
         Construct the object or parse data directly from a file.
 
@@ -488,6 +499,9 @@ class TEdataset(Mapping):
         group : list or str
             Identifiers for each data item, passed directly to the initializer.
             Refer to initializer documentation for more details.
+        independent : bool, optional
+            Determines the treatment of material properties regarding temperature,
+            passed directly to the initializer. See initializer for details.
         delimiter : str, optional
             The delimiter used in the file. Default is None, any consecutive
             whitespaces act as delimiter.
@@ -503,7 +517,7 @@ class TEdataset(Mapping):
             pass
         else:
             # parse blocked data successfully
-            return cls(data=data, group=group)
+            return cls(data=data, group=group, independent=independent)
 
         # try to parse unblocked data
         data = []
@@ -524,41 +538,24 @@ class TEdataset(Mapping):
                         row.append(val)
                 data.append(row)
         data = list(zip_longest(*data, fillvalue=np.nan))
-        return cls(data=cls._nan_filter(data, group), group=group)
 
-
-class TEdatacol(TEdataset):
-    '''
-    Inherits from :class:`TEdataset`, disregarding the temperature dependence
-    of material properties. Instead, treats the temperature data column as a
-    regular material property, and returns the property itself when accessed.
-    '''
-    def _initialize_data(self, data, group):
-        group = self.parse_group(group)
-        self._data = {k: np.asarray(v) \
-            for k,v in zip(group, data) if k not in self.IGNORED}
-        self._temp = {k: None for k in self._data.keys()}
-        self._tidx = {k: -1 for k in self._data.keys()}
-
-    def __str__(self):
-        data = self._data
-        props = [f'{k}#{len(v)}' for k, v in data.items()]
-        return '{}: {}'.format(self.__class__.__name__, ', '.join(props))
-
-    def __getitem__(self, key):
-        return super().__getitem__(key)[-1]
-
-    def get(self, key, default=_UNSET):
-        '''
-        Fetches a material property. Raises ValueError for any property
-        that cannot be fetched if `default` is not set.
-        '''
-        return super().get(key, default)[-1]
-
-    @classmethod
-    def _nan_filter(cls, data, group):
-        myfilter = lambda x: x[np.isfinite(x)]
-        return [myfilter(np.array(line)) for line in data]
+        # filter NaNs
+        if independent:
+            nan_filter = lambda x: x[np.isfinite(x)]
+            data = [nan_filter(np.array(line)) for line in data]
+        else:
+            TSYM = cls.TEMPSYMBOL
+            groups = cls.parse_group(group)
+            nan_filter = lambda x: x[:, np.all(np.isfinite(x), axis=0)]
+            itemp = [i for i, s in enumerate(groups) if s == TSYM]
+            if not itemp:
+                raise ValueError(f"Failed to find identifier '{TSYM}' in group")
+            if len(itemp) == 1:
+                data[itemp[0]:] = nan_filter(np.vstack(data[itemp[0]:]))
+            else:
+                for p, q in zip(itemp[:-1], itemp[1:]):
+                    data[p:q] = nan_filter(np.vstack(data[p:q]))
+        return cls(data=data, group=group, independent=independent)
 
 
 INSTRMETA = AttrDict()
