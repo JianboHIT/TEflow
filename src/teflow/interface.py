@@ -675,9 +675,9 @@ def do_format(args=None):
             return
 
     # read normal TE data
-    group = TEdataset.parse_group(options.group)
-    logger.info(f"Column identifiers: {', '.join(group)}")
-    TEdatax = TEdataset.from_file(inputfile, group)
+    group = options.group
+    logger.info(f"Column identifiers: {', '.join(TEdataset.parse_group(group))}")
+    TEdatax = TEdataset.from_file(inputfile, group, independent=False)
     logger.info(f'Load input data from {inputfile} successfully')
     logger.debug(f'Details of {str(TEdatax)}')
 
@@ -904,7 +904,7 @@ def do_refine(args=None):
 
 def do_band(args=None):
     from .bandlib import EXECMETA
-    from .loader import TEdatacol
+    from .loader import TEdataset
     
     task = 'band'
     DESC = DESCRIPTION[task]
@@ -966,8 +966,8 @@ def do_band(args=None):
     
     # read TEdatax and group
     inputfile = options.inputfile
-    group = options.group.upper()
-    TEdatax = TEdatacol.from_file(inputfile, group=group)
+    group = options.group
+    TEdatax = TEdataset.from_file(inputfile, group, independent=True)
     logger.info(f'Loading data from {inputfile} with identifiers: {group}')
     
     # parse inp. and do exec.
