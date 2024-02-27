@@ -215,6 +215,27 @@ class Compound(AttrDict):
         wtot = sum(n*w for n, w in zip(self.values(), self.weights.values()))
         return wtot / self.natom
 
+    def replace(self, old_atom, new_atom, match_order=False):
+        '''
+        Replaces an existing atom with a new atom in the compound.
+        '''
+        if old_atom not in self:
+            raise KeyError(f"Old atom '{old_atom}' not found.")
+        if new_atom in self:
+            raise KeyError(f"New atom '{new_atom}' already exists.")
+        if match_order:
+            poped = []
+            while True:
+                key, val = self.popitem()
+                if key == old_atom:
+                    poped.append([new_atom, val])
+                    break
+                else:
+                    poped.append([key, val])
+            self.update(reversed(poped))
+        else:
+            self[new_atom] = self.pop(old_atom)
+
     def __str__(self):
         return self.to_string()
 
