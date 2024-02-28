@@ -1331,11 +1331,11 @@ def parse_KappaFit(filename, specify=None):
     logger.info(f"Parse model of kappa: {model_}")
 
     refpat = re.compile(r'^\s*@\s*(?P<tag>\S+)?\s*$')
-    def parse_submodel(subname):
-        subsect, mtype = config.pmatch(subname)
-        logger.debug('Build %s.%s with variables:', subname, mtype)
+    def parse_submodel(modelname):
+        subsect, mtype = config.pmatch(modelname)
+        logger.debug('Build %s.%s with variables:', modelname, mtype)
         if mtype not in EXECMETA:
-            raise TypeError(subname)
+            raise TypeError(modelname)
         kwargs = {}
         for key, val in subsect.items():
             if not val.strip():
@@ -1365,7 +1365,10 @@ def parse_KappaFit(filename, specify=None):
                     kwargs[key] = float(val)
                 except ValueError:
                     kwargs[key] = val
-        return EXECMETA[mtype].execute(**kwargs)
+        modelobj = EXECMETA[mtype].execute(**kwargs)
+        if modelobj.tag != modelname:
+            modelobj.tag = modelname
+        return modelobj
 
     model = parse_submodel(model_)
 
