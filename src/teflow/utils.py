@@ -14,6 +14,7 @@
 
 import re
 import logging
+import warnings
 from io import StringIO
 from collections import OrderedDict
 from collections.abc import Iterable, Sequence
@@ -274,7 +275,14 @@ class ListDict(AttrDict):
         rst = [(key, sum((obj[key] for obj in objs), start)) for key in keys]
         return cls(rst)
 
-class Metric():
+class _DeprecatedMetric(type):
+    def __getattribute__(self, item):
+        dsp = f"'{__name__}.Metric' has been relocated to '{__package__}.mathext.Metric', "\
+              "and will be removed in future releases."
+        warnings.warn(dsp, DeprecationWarning, stacklevel=2)
+        return type.__getattribute__(self, item)
+
+class Metric(metaclass=_DeprecatedMetric):
     '''
     Metric class provides functionalities for computing various error
     metrics. This class can be initialized with a specific kind of
@@ -300,6 +308,10 @@ class Metric():
         kind : str, optional
             Kind of metric to be used. Default is 'MSE'.
         '''
+        dsp = f"'{__name__}.Metric' has been relocated to '{__package__}.mathext.Metric', "\
+              "and will be removed in future releases."
+        warnings.warn(dsp, DeprecationWarning, stacklevel=2)
+
         kind = kind.upper()
         if kind in self.kinds:
             self._kind = kind
