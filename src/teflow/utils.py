@@ -14,7 +14,6 @@
 
 import re
 import logging
-import warnings
 from io import StringIO
 from collections import OrderedDict
 from collections.abc import Iterable, Sequence
@@ -274,123 +273,6 @@ class ListDict(AttrDict):
             keys = objs[0].keys()
         rst = [(key, sum((obj[key] for obj in objs), start)) for key in keys]
         return cls(rst)
-
-class _DeprecatedMetric(type):
-    def __getattribute__(self, item):
-        dsp = f"'{__name__}.Metric' has been relocated to '{__package__}.mathext.Metric', "\
-              "and will be removed in future releases."
-        warnings.warn(dsp, FutureWarning, stacklevel=2)
-        return type.__getattribute__(self, item)
-
-class Metric(metaclass=_DeprecatedMetric):
-    '''
-    Metric class provides functionalities for computing various error
-    metrics. This class can be initialized with a specific kind of
-    metric (such as 'MSE', 'RMSE') and later be called directly to
-    compute the error based on the initialized metric kind. Additionally,
-    each metric kind can also be used directly as a static method.
-
-    Examples
-    --------
-    >>> metric = Metric('MSE')
-    >>> y = [1, 2, 3]
-    >>> y2 = [2, 4, 5]
-    >>> metric(y, y2)
-    3.0
-    >>> Metric.MSE(y, y2)
-    3.0
-    '''
-    kinds = {'MSE', 'RMSE', 'MAE', 'MAPE', 'SMAPE'}  #: :meta private:
-    def __init__(self, kind='MSE'):
-        '''
-        Parameters
-        ----------
-        kind : str, optional
-            Kind of metric to be used. Default is 'MSE'.
-        '''
-        dsp = f"'{__name__}.Metric' has been relocated to '{__package__}.mathext.Metric', "\
-              "and will be removed in future releases."
-        warnings.warn(dsp, FutureWarning, stacklevel=2)
-
-        kind = kind.upper()
-        if kind in self.kinds:
-            self._kind = kind
-            self._func = getattr(self, kind)
-        else:
-            raise ValueError('Invaild kind of metric')
-    
-    def __call__(self, y, y2, axis=-1):
-        return self._func(y, y2, axis)
-    
-    @staticmethod
-    def MSE(y, y2, axis=-1):
-        '''
-        Mean-Square Error:
-        
-        .. math::
-        
-            \\frac{1}{n} \\sum_{i=1}^{n} (y_2[i] - y[i])^2
-        '''
-        diff = np.array(y2) - np.array(y)
-        v2 = np.mean(np.square(diff), axis=axis)
-        return v2
-    
-    @staticmethod
-    def RMSE(y, y2, axis=-1):
-        '''
-        Root-Mean-Square error:
-        
-        .. math:: 
-        
-            \\sqrt{\\frac{1}{n} \\sum_{i=1}^{n} (y_2[i] - y[i])^2}
-        '''
-        diff = np.array(y2) - np.array(y)
-        v2 = np.mean(np.square(diff), axis=axis)
-        return np.sqrt(v2)
-    
-    @staticmethod
-    def MAE(y, y2, axis=-1):
-        '''
-        Mean Absolute Error:
-        
-        .. math:: 
-            
-            \\frac{1}{n} \\sum_{i=1}^{n} |y_2[i] - y[i]|
-        '''
-        diff = np.array(y2) - np.array(y)
-        v = np.mean(np.absolute(diff), axis=axis)
-        return v
-    
-    @staticmethod
-    def MAPE(y, y2, axis=-1):
-        '''
-        Mean Absolute Percentage Error:
-        
-        .. math:: 
-        
-            \\frac{1}{n} \\sum_{i=1}^{n} 
-                \\left| \\frac{y_2[i] - y[i]}{y[i]} \\right|
-        '''
-        rdiff = np.array(y2)/np.array(y)-1
-        v = np.mean(np.absolute(rdiff), axis=axis)
-        return v
-    
-    @staticmethod
-    def SMAPE(y, y2, axis=-1):
-        '''
-        Symmetric Mean Absolute Percentage Error:
-        
-        .. math:: 
-        
-            \\frac{2}{n} \\sum_{i=1}^{n}
-                \\frac{|y_2[i] - y[i]|}{|y_2[i]| + |y[i]|}
-        '''
-        y = np.array(y)
-        y2 = np.array(y2)
-        diff = np.absolute(y2-y)
-        sum_ = np.absolute(y2)+np.absolute(y)
-        v = 2.0 * np.mean(diff/sum_, axis=axis)
-        return v
 
 
 class CfgParser(ConfigParser):
