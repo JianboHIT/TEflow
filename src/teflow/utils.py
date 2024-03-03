@@ -279,7 +279,7 @@ class _DeprecatedMetric(type):
     def __getattribute__(self, item):
         dsp = f"'{__name__}.Metric' has been relocated to '{__package__}.mathext.Metric', "\
               "and will be removed in future releases."
-        warnings.warn(dsp, DeprecationWarning, stacklevel=2)
+        warnings.warn(dsp, FutureWarning, stacklevel=2)
         return type.__getattribute__(self, item)
 
 class Metric(metaclass=_DeprecatedMetric):
@@ -310,7 +310,7 @@ class Metric(metaclass=_DeprecatedMetric):
         '''
         dsp = f"'{__name__}.Metric' has been relocated to '{__package__}.mathext.Metric', "\
               "and will be removed in future releases."
-        warnings.warn(dsp, DeprecationWarning, stacklevel=2)
+        warnings.warn(dsp, FutureWarning, stacklevel=2)
 
         kind = kind.upper()
         if kind in self.kinds:
