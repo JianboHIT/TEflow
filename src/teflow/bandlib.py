@@ -1394,8 +1394,8 @@ def parse_Bands(filename, specify=None):
     logger.info('Finish building MultiBand() instance')
 
     # parse EF, T, props
-    EF = entry.getlist_float('EF')
-    T = entry.getlist_float('T')
+    EF = entry.getseq('EF')
+    T = entry.getseq('T')
     props = entry.getlist('props')
 
     if (EF is None) or (T is None):
