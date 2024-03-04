@@ -926,6 +926,21 @@ def do_band(args=None):
     
     parser.add_argument('-b', '--bare', **OPTS['bare'])
     
+    parser.add_argument('-f', '--configfile', action='store_true',
+        help='Simulate multi-bands model based on a configuration file')
+
+    parser.add_argument('--T', metavar='T-seq',
+        help="Override 'T' value in entry section")
+
+    parser.add_argument('--EF', metavar='EF-seq',
+        help="Override 'EF' value in entry section")
+
+    parser.add_argument('--deltas', metavar='DELTAS',
+        help="Override 'deltas' value in entry section")
+
+    parser.add_argument('--btypes', metavar='BTYPES',
+        help="Override 'btypes' value in entry section")
+
     parser.add_argument('-g', '--group', default='STCN',
         help='Group identifiers for input data (default: STCN)')
     
@@ -950,6 +965,31 @@ def do_band(args=None):
     logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
     logger.info(f'{DESC} - {TIME}')
     
+    if options.configfile:
+        from .bandlib import parse_Bands
+        from .utils import AttrDict
+
+        logger.info('Simulating carrier transport via band models')
+        configfile = options.inputfile
+        overriden = {'props': options.properties or 'T EF N C S PF L Ke',}
+        for key in {'T', 'EF', 'deltas', 'deltas',}:
+            val = getattr(options, key)
+            if val is not None:
+                overriden[key] = val
+                logger.debug(f'Overriden: {key} = {val}')
+        model, props = parse_Bands(filename=configfile, specify=overriden)
+
+        if props is None:
+            raise RuntimeError('Calculation stopped; input file might be incomplete.')
+        logger.info(f'Calculate properties: {", ".join(props)}')
+        out = AttrDict((p, model[p]) for p in props)
+
+        # parse outputfile name
+        ouputf = _suffixed(options.outputfile, configfile, options.suffix, '.txt')
+        _to_file(options, out, fmt='%.6E', header='Simulating carrier transport', fp=ouputf)
+        logger.info(f'Save model data to {ouputf} (Done)')
+        return
+
     # read gap and determine model
     Egap = options.gap
     if Egap is None:
