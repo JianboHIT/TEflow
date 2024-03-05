@@ -947,6 +947,9 @@ def do_band(args=None):
     parser.add_argument('--btypes', action=_StoreDict, metavar='BTYPES',
         help="Override 'btypes' value in entry section")
 
+    parser.add_argument('--initial', action=_StoreDict,
+        help="Override 'initial' value in entry section")
+
     parser.add_argument('-g', '--group', default='STCN',
         help='Group identifiers for input data (default: STCN)')
     
@@ -954,10 +957,9 @@ def do_band(args=None):
         help='Bandgap in eV. Defaults to None, indicating the '\
              'use of a parabolic band model')
     
-    parser.add_argument('-p', '--properties', default=None,
+    parser.add_argument('-p', '--properties', action=_StoreDict,
         help='Specify the properties to be considered for calculation, '\
-             'separated by spaces. If not specified, '\
-             'all calculated properties will be output.')
+             'separated by spaces.')
     
     parser.add_argument('inputfile', **OPTS['inputf'])
     
@@ -978,7 +980,6 @@ def do_band(args=None):
         logger.info('Simulating carrier transport via band models')
         configfile = options.inputfile
         overriden = getattr(options, 'stored_params', {})
-        overriden['props'] = options.properties or 'T EF N C S PF L Ke'
         model, props = parse_Bands(filename=configfile, specify=overriden)
 
         if props is None:
