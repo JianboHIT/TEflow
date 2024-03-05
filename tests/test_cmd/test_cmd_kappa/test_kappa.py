@@ -11,7 +11,7 @@ class TestCmdKappa(BaseTestCmd):
         'SnTe_spec': ['SnTe_kappa_spec.txt', 'SnTe_kappa_spec-check.txt'],
     }
     def test_kappa_SnTe(self):
-        do_kappa(['SnTe.cfg'])
+        do_kappa(['-f', 'SnTe.cfg'])
         self.assertTrue(self.fcomp('SnTe_data', atol=0.01))
         self.assertTrue(self.fcomp('SnTe_cumu', atol=0.01))
         self.assertTrue(self.fcomp('SnTe_rate', rtol=0.001))
