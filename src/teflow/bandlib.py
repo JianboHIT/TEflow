@@ -1381,7 +1381,7 @@ def parse_Bands(filename, specify=None):
         logger.info(f'  {str(band)}')
 
     # parse deltas, btypes
-    deltas = entry.getlist_float('deltas')
+    deltas = entry.getlist_float('deltas', [0, ]*len(bands))
     if deltas is None:
         raise ValueError(dsp.format('deltas'))
     logger.info('deltas: [%s]' % ', '.join(f'{i:.3g}' for i in deltas))
