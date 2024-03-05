@@ -112,6 +112,12 @@ OPTS = {
     ),
 }
 
+class _StoreDict(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        stored_params = getattr(namespace, 'stored_params', {})
+        stored_params[self.dest] = values
+        setattr(namespace, 'stored_params', stored_params)
+        setattr(namespace, self.dest, values)
 
 def _do_main(args=None):
     # for test
@@ -929,16 +935,16 @@ def do_band(args=None):
     parser.add_argument('-f', '--configfile', action='store_true',
         help='Simulate multi-bands model based on a configuration file')
 
-    parser.add_argument('--T', metavar='T-seq',
+    parser.add_argument('--T', action=_StoreDict, metavar='VALUES',
         help="Override 'T' value in entry section")
 
-    parser.add_argument('--EF', metavar='EF-seq',
+    parser.add_argument('--EF', action=_StoreDict, metavar='VALUES',
         help="Override 'EF' value in entry section")
 
-    parser.add_argument('--deltas', metavar='DELTAS',
+    parser.add_argument('--deltas', action=_StoreDict, metavar='DELTAS',
         help="Override 'deltas' value in entry section")
 
-    parser.add_argument('--btypes', metavar='BTYPES',
+    parser.add_argument('--btypes', action=_StoreDict, metavar='BTYPES',
         help="Override 'btypes' value in entry section")
 
     parser.add_argument('-g', '--group', default='STCN',
@@ -971,12 +977,8 @@ def do_band(args=None):
 
         logger.info('Simulating carrier transport via band models')
         configfile = options.inputfile
-        overriden = {'props': options.properties or 'T EF N C S PF L Ke',}
-        for key in {'T', 'EF', 'deltas', 'deltas',}:
-            val = getattr(options, key)
-            if val is not None:
-                overriden[key] = val
-                logger.debug(f'Overriden: {key} = {val}')
+        overriden = getattr(options, 'stored_params', {})
+        overriden['props'] = options.properties or 'T EF N C S PF L Ke'
         model, props = parse_Bands(filename=configfile, specify=overriden)
 
         if props is None:
@@ -1046,22 +1048,22 @@ def do_kappa(args=None):
 
     parser.add_argument('-b', '--bare', **OPTS['bare'])
 
-    parser.add_argument('-n', '--npoints',
+    parser.add_argument('-n', '--npoints', action=_StoreDict,
         help='The number of predicted data points (default: 101)')
 
-    parser.add_argument('-M', '--margin',
+    parser.add_argument('-M', '--margin', action=_StoreDict,
         help='Relative margin for extending data boundaries (default: 0.05)')
 
-    parser.add_argument('-X', '--predict', metavar='VALUES',
+    parser.add_argument('-X', '--predict', action=_StoreDict, metavar='VALUES',
         help='Specify sampling points for the prediction (default: None).')
 
-    parser.add_argument('-T', '--temperature',
+    parser.add_argument('-T', '--temperature', action=_StoreDict,
         help='The temperature for insighting phonon transport (default: 300)')
 
-    parser.add_argument('-U', '--frequnit',
+    parser.add_argument('-U', '--frequnit', action=_StoreDict,
         help='Specify frequency unit of phonon (default: 2pi.THz)')
 
-    parser.add_argument('-S', '--substituted', action='store_const', const='true',
+    parser.add_argument('-S', '--substituted', action='store_true',
         help='Generate a new substituted configuration file')
 
     parser.add_argument('-Q', '--less-output', action='store_true',
@@ -1080,11 +1082,9 @@ def do_kappa(args=None):
     logger.info(f'{DESC} - {TIME}')
 
     # parse specity options
-    specify = dict()
-    for key in ('npoints', 'margin', 'predict', 'temperature', 'frequnit', 'substituted'):
-        val = getattr(options, key)
-        if val:
-            specify[key] = val
+    specify = getattr(options, 'stored_params', {})
+    if options.substituted:
+        specify['substituted'] = 'true'
     if options.less_output:
         for key in ('splitkappa', 'scattering', 'spectral', 'cumulate'):
             specify[key] = 'false'
