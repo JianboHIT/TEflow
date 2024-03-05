@@ -374,10 +374,10 @@ class BaseBand(ABC):
         T : ndarray
             The absolute temperature.
         near : float, optional
-            Initial guess for the Fermi energy value. Default is 0.
+            Initial guess for the reduced Fermi energy value. Default is 0.
         between : tuple like (float, float), optional
-            Guess range for the Fermi energy. Default is None.Recommended
-            for monotonic properties, use 'near'.
+            Guess range for the reduced Fermi energy. Default is None.
+            Recommended for monotonic properties, use 'near'.
         **kwargs : any, optional
             Additional parameters to pass to scipy.optimize.root_scalar.
 
@@ -1364,12 +1364,12 @@ def parse_Bands(filename, specify=None):
         entry.update(specify)
         logger.debug('Update specify setting to entry:\n  %s' % specify)
 
-    dsp = "Parameter '%s' is required in entry section!"
+    dsp = "Parameter '{}' is required in entry section!"
 
     # parse bands
     bands_ = entry.getlist('bands')
     if bands_ is None:
-        raise ValueError(dsp, 'bands')
+        raise ValueError(dsp.format('bands'))
     logger.info("Parse all bands:")
 
     bands = []
@@ -1383,38 +1383,65 @@ def parse_Bands(filename, specify=None):
     # parse deltas, btypes
     deltas = entry.getlist_float('deltas')
     if deltas is None:
-        raise ValueError(dsp, 'deltas')
+        raise ValueError(dsp.format('deltas'))
     logger.info('deltas: [%s]' % ', '.join(f'{i:.3g}' for i in deltas))
 
     btypes = entry.getlist('btypes')
-    logger.info(f'btypes: {btypes or "Unset"}')
+    logger.info(f'btypes: {btypes or f"<Guess: {MultiBand.guess_btypes(deltas)}>"}')
 
     # initialze MultiBand
     model = MultiBand(bands, deltas, btypes)
     logger.info('Finish building MultiBand() instance')
 
-    # parse EF, T, props
-    EF = entry.getseq('EF')
+    # parse T
     T = entry.getseq('T')
-    props = entry.getlist('props')
-
-    if (EF is None) or (T is None):
-        logger.info(dsp % 'EF & T')
-        logger.debug(f'EF: {EF}')
-        logger.debug(f'T:  {T}')
+    if T is None:
+        logger.info(dsp.format('T'))
         return model, None
+
+    # parse EF
+    if 'EF' not in entry:
+        logger.info(dsp.format('EF'))
+        return model, None
+
+    EF_ = entry.get('EF')
+    if '@' in EF_:
+        solver = EF_.split('@')[-1].strip()
+        refdata_ = EF_.split('@')[0].strip()
+        logger.debug(f"Extract EF value <{EF_}> to '{refdata_}' & '{solver}' ")
+        entry['EF'] = refdata_
+        refdata = entry.getseq('EF')
+
+        try:
+            refdata, T = np.broadcast_arrays(refdata, T)
+        except ValueError:
+            raise ValueError(f'Mismatch is between given data and T')
+
+        try:
+            initial = entry.getfloat('initial', 0)
+            EF = model.solve_EF(solver, refdata, T, near=initial)
+            logger.info(f'Solve Fermi energies from {solver}, '
+                        f'where the initial value is set to {initial:.3g}.')
+        except Exception as e:
+            raise RuntimeError(f'Failed to solve EF from {solver}: {e}')
+    else:
+        EF = entry.getseq('EF')
+
     try:
         EF, T = np.broadcast_arrays(EF, T)      # broadcasted (EF, T)
     except ValueError:
+        logger.debug(f'Current EF: {EF}')
+        logger.debug(f'Current T:  {T}')
         raise ValueError(f'Mismatch is between EF and T')
-    logger.info('Read Fermi energies (EF) & temperatures (T)')
-    logger.debug('EF: [%s]' % ', '.join(f'{i:.4g}' for i in EF))
-    logger.debug('T:  [%s]' % ', '.join(f'{i:.4g}' for i in T))
 
-    if props is None:
-        logger.debug(dsp % 'props')
-    else:
-        # model is compiled only when props is available
-        model.compile(EF, T)
-        logger.debug('Compile model (props: %s)' % ', '.join(props))
+    # display logging
+    logger.info('Get Fermi energies (EF) & temperatures (T) successfully')
+    logger.debug('EF: [%s]' % ', '.join(f'{i:.3g}' for i in EF))
+    logger.debug('T:  [%s]' % ', '.join(f'{i:.3g}' for i in T))
+
+    # compile model and parse props
+    model.compile(EF, T)
+    props_default = 'T EF N C S PF L Ke'.split()
+    props = entry.getlist('properties', props_default)
+    logger.debug('Compile model (props: %s)' % ', '.join(props))
     return model, props
