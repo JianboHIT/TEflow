@@ -1049,9 +1049,6 @@ def do_kappa(args=None):
 
     parser.add_argument('-b', '--bare', **OPTS['bare'])
 
-    parser.add_argument('-f', '--configfile', action='store_true',
-        help='Start a simulating/fitting task based on a configuration file')
-
     parser.add_argument('-n', '--npoints', action=_StoreDict,
         help='The number of predicted data points (default: 101)')
 
@@ -1084,14 +1081,6 @@ def do_kappa(args=None):
 
     logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
     logger.info(f'{DESC} - {TIME}')
-
-    # warning: -f/--configfile
-    if not options.configfile:
-        import warnings
-
-        msg = 'The -f/--configfile option will be required for '\
-              'simulating/fitting tasks in future releases.'
-        warnings.warn(msg, FutureWarning, stacklevel=2)
 
     # parse specity options
     specify = getattr(options, 'stored_params', {})
