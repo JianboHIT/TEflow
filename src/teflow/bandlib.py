@@ -132,7 +132,7 @@ class BaseBand(ABC):
     
     .. math ::
 
-        g(E) = 2 \\int_{\substack{\\text{BZ}}}
+        g(E) = 2 \\int_{\\substack{\\text{BZ}}}
                \\delta(E-E(k)) \\frac{d^3k}{8 \\pi ^3}
     
     2. `trs(E, T)`: Transport distribution function, or spectral conductivity,
@@ -1250,7 +1250,7 @@ def bandline(k, m_b=1, k0=0, E0=0, Eg=None):
     ----------
     k : ndarray
         Wave vector in rad/Ang (radians per angstrom), i.e.,
-        containing the :math:`2 \pi` factor.
+        containing the :math:`2 \\pi` factor.
     m_b : ndarray, optional
         Ratio of the band effective mass to the electron mass.
         Defaults to 1.
