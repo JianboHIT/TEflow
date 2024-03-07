@@ -397,7 +397,7 @@ class BaseBand(ABC):
         return np.vectorize(_solve)(value, T)
 
 
-class MultiBand(BaseBand):
+class MultiBands(BaseBand):
     '''
     A class for modeling multiple energy bands. Please note that its
     property calculations are now derived from sub-bands, rather than
@@ -407,7 +407,7 @@ class MultiBand(BaseBand):
 
     def __init__(self, bands, deltas, btypes=None):
         '''
-        Initialize an instance of MultiBand.
+        Initialize an instance of MultiBands.
 
         Parameters
         ----------
@@ -1391,11 +1391,11 @@ def parse_Bands(filename, specify=None):
     logger.info('deltas: [%s]' % ', '.join(f'{i:.3g}' for i in deltas))
 
     btypes = entry.getlist('btypes')
-    logger.info(f'btypes: {btypes or f"<Guess: {MultiBand.guess_btypes(deltas)}>"}')
+    logger.info(f'btypes: {btypes or f"<Guess: {MultiBands.guess_btypes(deltas)}>"}')
 
-    # initialze MultiBand
-    model = MultiBand(bands, deltas, btypes)
-    logger.info('Finish building MultiBand() instance')
+    # initialze MultiBands
+    model = MultiBands(bands, deltas, btypes)
+    logger.info('Finish building MultiBands() instance')
 
     # parse T
     T = entry.getseq('T')
