@@ -1324,7 +1324,7 @@ EXECMETA = {
     'APSSPB_DP': ExecWrapper(APSSPB.from_DP,
         opts=['m1', 'm2', 'Nv', 'Cii', 'Ed'],
     ),
-    'APSSKB': ExecWrapper(APSSPB,
+    'APSSKB': ExecWrapper(APSSKB,
         opts=['m_d', 'sigma0', 'Eg', 'Kmass'],
     ),
     'APSSKB_UWT': ExecWrapper(APSSKB.from_UWT,
