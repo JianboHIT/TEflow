@@ -30,6 +30,16 @@ class BaseTestExamples(unittest.TestCase):
         return super().setUp()
 
 
+class TestBandInsight(BaseTestExamples):
+    fdir = 'BandInsight'
+    def test_bands(self):
+        # tef-band BandsTemplate.cfg
+        cmd.do_band(['BandsTemplate.cfg',])
+        fcmp = arraycmp('BandsTemplate_band.txt',
+                        'BandsTemplate_band-check.txt',
+                        rtol=1E-3)
+        self.assertTrue(fcmp)
+
 class TestEngineeringPerf(BaseTestExamples):
     fdir = 'EngineeringPerf'
     def test_step_1_datas_n(self):
