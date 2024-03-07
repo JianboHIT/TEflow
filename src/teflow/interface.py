@@ -916,17 +916,21 @@ def do_band(args=None):
     DESC = DESCRIPTION[task]
     parser = argparse.ArgumentParser(
         prog=f'{CMD}-{task}',
-        formatter_class=argparse.RawTextHelpFormatter,
-        epilog=FOOTNOTE,
-        description=_wraptxt(f'{DESC} - {INFO}','''
-            Ensure your data file is formatted with columns for the Seebeck
-            coefficient, and optionally, temperature, conductivity, and
-            carrier concentration. Alter this arrangement with the -g(--group)
-            option. Anticipate outputs like the Lorenz number,
-            temperature-independent weighted mobility, effective mass, etc.,
-            based on your supplied data.
-            ''')
-        )
+        description=f'{DESC} - {INFO}',
+        epilog=FOOTNOTE)
+    # parser = argparse.ArgumentParser(
+    #     prog=f'{CMD}-{task}',
+    #     formatter_class=argparse.RawTextHelpFormatter,
+    #     epilog=FOOTNOTE,
+    #     description=_wraptxt(f'{DESC} - {INFO}','''
+    #         Ensure your data file is formatted with columns for the Seebeck
+    #         coefficient, and optionally, temperature, conductivity, and
+    #         carrier concentration. Alter this arrangement with the -g(--group)
+    #         option. Anticipate outputs like the Lorenz number,
+    #         temperature-independent weighted mobility, effective mass, etc.,
+    #         based on your supplied data.
+    #         ''')
+    #     )
 
     parser.add_argument('-H', '--headers', **OPTS['headers'])
     
