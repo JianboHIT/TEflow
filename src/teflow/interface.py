@@ -931,9 +931,6 @@ def do_band(args=None):
     parser.add_argument('-H', '--headers', **OPTS['headers'])
     
     parser.add_argument('-b', '--bare', **OPTS['bare'])
-    
-    parser.add_argument('-f', '--configfile', action='store_true',
-        help='Simulate multi-bands model based on a configuration file')
 
     parser.add_argument('--T', action=_StoreDict, metavar='VALUES',
         help="Override 'T' value in entry section")
@@ -950,13 +947,15 @@ def do_band(args=None):
     parser.add_argument('--initial', action=_StoreDict,
         help="Override 'initial' value in entry section")
 
+    parser.add_argument('-m', '--modelling', choices=('SPB', 'SKB'),
+        help="Insight experimental data with modelling carriar transport")
+
+    parser.add_argument('-G', '--gap', type=float, default=None,
+        help='Bandgap in eV, required by SKB model.')
+
     parser.add_argument('-g', '--group', default='STCN',
         help='Group identifiers for input data (default: STCN)')
-    
-    parser.add_argument('-G', '--gap', type=float, default=None,
-        help='Bandgap in eV. Defaults to None, indicating the '\
-             'use of a parabolic band model')
-    
+
     parser.add_argument('-p', '--properties', action=_StoreDict,
         help='Specify the properties to be considered for calculation, '\
              'separated by spaces.')
@@ -972,8 +971,10 @@ def do_band(args=None):
     
     logger = get_root_logger(level=LOG_LEVEL, fmt=LOG_FMT)
     logger.info(f'{DESC} - {TIME}')
-    
-    if options.configfile:
+
+    # determine model
+    modelling = options.modelling
+    if modelling is None:
         from .bandlib import parse_Bands
         from .utils import AttrDict
 
@@ -993,19 +994,20 @@ def do_band(args=None):
         logger.info(f'Save model data to {ouputf} (Done)')
         return
 
-    # read gap and determine model
-    Egap = options.gap
-    if Egap is None:
+    if modelling == 'SPB':
         model = EXECMETA['valuate.APSSPB']
         logger.info('Using single parabolic band (SPB) model.')
-    elif Egap <= 0:
-        model = EXECMETA['valuate.APSSPB']
-        logger.warning('Faced with a negative band gap value, we are '\
-            'compelled to adopt the single parabolic band (SPB) model.')
-    else:
+    elif modelling == 'SKB':
+        Egap = options.gap
+        if Egap is None:
+            raise RuntimeError("-G/--gap option is required by SKB model.")
+        if Egap <= 0:
+            raise ValueError("Bandgap value must be must be greater than 0.")
         model = EXECMETA['valuate.APSSKB']
         model.update(Eg=Egap)
         logger.info(f'Using single Kane band (SKB) model where Eg = {Egap} eV.')
+    else:
+        raise NotImplementedError(f'Unknown model: {modelling}')
     
     # read TEdatax and group
     inputfile = options.inputfile
