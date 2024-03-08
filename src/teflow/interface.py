@@ -121,14 +121,15 @@ class _StoreDict(argparse.Action):
 
 def _do_main(args=None):
     # for test
-    if args is None:
-        args = sys.argv[1:]
-    
-    if len(args) > 0:
-        global LOG_LEVEL, LOG_FMT
+    global LOG_LEVEL, LOG_FMT
+    if __debug__:
+        # disable by python -O option
         LOG_LEVEL = 10
         LOG_FMT = '[%(levelname)5s] %(message)s'
-        
+
+    args = args or sys.argv[1:]
+
+    if len(args) > 0:
         task = args[0].lower()
         if task.startswith('interp'):
             do_interp(args[1:])
