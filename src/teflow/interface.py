@@ -154,18 +154,18 @@ def _do_main(args=None):
         print(PLATFORM)
 
 
-def _wraptxt(desc, details='', indent=2, width=75):
-    if details:
+def _wraptxt(title, description='', indent=2, width=75):
+    if description:
         indentation = ' ' * indent
         contents = textwrap.fill(
-            textwrap.dedent(details).strip(),
+            textwrap.dedent(description).strip(),
             initial_indent=indentation+'>>> ',
             subsequent_indent=indentation,
             width=width,
         )
-        return desc + '\n\n' + contents
+        return title + '\n\n' + contents
     else:
-        desc
+        title
 
 
 def _suffixed(outputname, inputname, suffix, ext=None):
