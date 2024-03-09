@@ -1022,10 +1022,10 @@ def do_band(args=None):
     
     # parse inp. and do exec.
     dataSTCN = TEdatax.gget('STCN', default=None)
-    inp = {k:np.absolute(v) for k,v in zip('STCN', dataSTCN) if v is not None}
+    inp = {k:v for k,v in zip('STCN', dataSTCN) if v is not None}
     logger.info('Read %s successfully', ', '.join(f'data{k}' for k in inp))
     logger.debug('Parsed data:\n%s', str(inp))
-    out = model.execute(**{f'data{k}':v for k, v in inp.items()})
+    out = model.execute(**{f'data{k}':np.absolute(v) for k, v in inp.items()})
     
     # retain properties
     props = options.properties
