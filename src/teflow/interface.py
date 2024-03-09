@@ -917,21 +917,17 @@ def do_band(args=None):
     DESC = DESCRIPTION[task]
     parser = argparse.ArgumentParser(
         prog=f'{CMD}-{task}',
-        description=f'{DESC} - {INFO}',
-        epilog=FOOTNOTE)
-    # parser = argparse.ArgumentParser(
-    #     prog=f'{CMD}-{task}',
-    #     formatter_class=argparse.RawTextHelpFormatter,
-    #     epilog=FOOTNOTE,
-    #     description=_wraptxt(f'{DESC} - {INFO}','''
-    #         Ensure your data file is formatted with columns for the Seebeck
-    #         coefficient, and optionally, temperature, conductivity, and
-    #         carrier concentration. Alter this arrangement with the -g(--group)
-    #         option. Anticipate outputs like the Lorenz number,
-    #         temperature-independent weighted mobility, effective mass, etc.,
-    #         based on your supplied data.
-    #         ''')
-    #     )
+        formatter_class=argparse.RawTextHelpFormatter,
+        epilog=FOOTNOTE,
+        description=_wraptxt(f'{DESC} - {INFO}','''
+            Constructs a rigid multi-band model from band parameters (defined
+            in a configuration file) to simulate thermoelectric performance
+            of materials across any Fermi-level and temperatures. Additionally,
+            a popular feature, activated by the -m/--modelling option,
+            allows for the rapid evaluation of experimental data through either
+            the classical parabolic band or the Kane band model.
+            ''')
+        )
 
     parser.add_argument('-H', '--headers', **OPTS['headers'])
     
@@ -953,7 +949,7 @@ def do_band(args=None):
         help="Override 'initial' value in entry section")
 
     parser.add_argument('-m', '--modelling', choices=('SPB', 'SKB'),
-        help="Insight experimental data with modelling carriar transport")
+        help='Directly insight experimental data using the selected model.')
 
     parser.add_argument('-G', '--gap', type=float, default=None,
         help='Bandgap in eV, required by SKB model.')
