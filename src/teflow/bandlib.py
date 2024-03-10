@@ -1159,14 +1159,14 @@ class RSPB:
     @staticmethod
     def Lr(Nr, factor=1):
         Nr, factor = map(np.asarray, [Nr, factor])
-        scale = np.power(1+np.power(Nr/np.pi/2, -3/2), 3/2)
+        scale = np.power(1+np.power(Nr/np.pi/2, -3/2), 2/3)
         return factor * (2+(np.pi*np.pi/3-2)/scale)
     
     @staticmethod
     def iLr(Lr, factor=1):
         Lr, factor = map(np.asarray, [Lr, factor])
         scale = (np.pi*np.pi/3-2)/(Lr/factor-2)
-        return 2*np.pi*np.power(np.power(scale, 2/3)-1, -2/3)
+        return 2*np.pi*np.power(np.power(scale, 3/2)-1, -2/3)
     
     @classmethod
     def Cr(cls, Nr, factor=1, UWT=1):
@@ -1185,7 +1185,7 @@ class RSPB:
                * np.power(cls.Sr(Nr, delta=delta), 2)
     
     @classmethod
-    def valuate(cls, dataC, dataS, dataT=None, dataN=None, delta=0.075):
+    def valuate(cls, dataS, dataC=None, dataT=None, dataN=None, delta=0.075):
         '''
         A class method for quickly evaluating the carriar transport
         properties (such as Lorenz number `L` and the temperature-independent
@@ -1193,10 +1193,11 @@ class RSPB:
 
         Parameters
         ----------
-        dataC : ndarray
-            Experimental data for electrical conductivity in S/cm.
         dataS : ndarray
             Experimental data for Seebeck coefficient in uV/K.
+        dataC : ndarray, optional
+            Experimental data for electrical conductivity in S/cm.
+            Defaults to None.
         dataT : ndarray, optional
             Experimental data for temperature in Kelvin.
             Used in conjunction with `dataN` to calculate `m_eff`.
@@ -1223,15 +1224,18 @@ class RSPB:
             * `Nopt`: The optimal carrier concentration in 1E19 cm^(-3),
               only if both `dataT` and `dataN` are provided.
         '''
-        dataC = np.asarray(dataC)
         Nr = cls.iSr(dataS, factor=cls.S0, delta=delta)
         L = cls.Lr(Nr, factor=cls.L0)
-        UWT = dataC/cls.Cr(Nr, factor=cls.C0)
-        PFmax = UWT * cls._UWT_to_PFmax
-        sigma0 = UWT * cls._UWT_to_sigma0
-        out = AttrDict(L=L, UWT=UWT, PFmax=PFmax, sigma0=sigma0)
+        out = AttrDict(L=L)
 
-        if (dataT is not None) and (dataN is not None):
+        if dataC is not None:
+            dataC = np.asarray(dataC)
+            UWT = dataC/cls.Cr(Nr, factor=cls.C0)
+            out['UWT'] = UWT
+            out['PFmax'] = UWT * cls._UWT_to_PFmax
+            out['sigma0'] = UWT * cls._UWT_to_sigma0
+
+        if all(d is not None for d in (dataC, dataT, dataN)):
             dataT, dataN = np.asarray(dataT), np.asarray(dataN)
             out['Ke'] = 1E-6 * L*dataC*dataT
             out['m_eff'] = np.power(dataN/Nr, 2/3) * 300/dataT
@@ -1345,8 +1349,8 @@ EXECMETA = {
         opts=['dataC', 'dataN', 'Eg', 'hall', 'Kmass'],
     ),
     'valuate.RSPB': ExecWrapper(RSPB.valuate,
-        args=['dataC', 'dataS',],
-        opts=['dataT', 'dataN', 'delta',],
+        args=['dataS',],
+        opts=['dataC', 'dataT', 'dataN', 'delta',],
     ),
 }
 
