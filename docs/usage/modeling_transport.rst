@@ -300,16 +300,19 @@ Kane能带模型
 .. code-block::
 
     $ tef-band -h
-    usage: tef-band [-h] [-b] [-g GROUP] [--gap GAP] [-p PROPERTIES]
-                    [-s SUFFIX] INPUTFILE [OUTPUTFILE]
+    usage: tef-band [-h] [-H] [-b] [--T VALUES] [--EF VALUES] [--deltas DELTAS]
+                    [--btypes BTYPES] [--initial INITIAL] [-m {SPB,RSPB,SKB}]
+                    [-G GAP] [-g GROUP] [-p PROPERTIES] [-s SUFFIX]
+                    INPUTFILE [OUTPUTFILE]
     
-    Insight carriar transport with band models - TEflow(0.0.1a3)
+    Insight carriar transport with band models - TEflow(0.2.7a1)
     
-      >>> Ensure your data file is formatted with columns for the Seebeck
-      coefficient, and optionally, temperature, conductivity, and carrier
-      concentration. Alter this arrangement with the -g(--group) option.
-      Anticipate outputs like the Lorenz number, temperature-independent
-      weighted mobility, effective mass, etc., based on your supplied data.
+      >>> Constructs a rigid multi-band model from band parameters (defined in
+      a configuration file) to simulate thermoelectric performance of materials
+      across any Fermi-level and temperatures. Additionally, a popular feature,
+      activated by the -m/--modelling option, allows for the rapid evaluation
+      of experimental data through either the classical parabolic band or the
+      Kane band model.
     
     positional arguments:
       INPUTFILE             Input file name (must be provided)
@@ -317,30 +320,34 @@ Kane能带模型
     
     optional arguments:
       -h, --help            show this help message and exit
+      -H, --headers         Include headers without a hash character
       -b, --bare            Output data without header
+      --T VALUES            Override 'T' value in entry section
+      --EF VALUES           Override 'EF' value in entry section
+      --deltas DELTAS       Override 'deltas' value in entry section
+      --btypes BTYPES       Override 'btypes' value in entry section
+      --initial INITIAL     Override 'initial' value in entry section
+      -m {SPB,RSPB,SKB}, --modelling {SPB,RSPB,SKB}
+                            Directly insight experimental data using the selected model.
+      -G GAP, --gap GAP     Bandgap in eV, required by SKB model.
       -g GROUP, --group GROUP
-                            Group identifiers for paired data (default: STCN)
-      --gap GAP             Bandgap in eV. Defaults to None, indicating the use
-                            of a parabolic band model
+                            Group identifiers for input data (default: STCN)
       -p PROPERTIES, --properties PROPERTIES
-                            Specify theproperties to be considered for calculation,
-                            separated by spaces. If not specified, all calculated
-                            properties will be output.
+                            Specify the properties to be considered for calculation, separated by spaces.
       -s SUFFIX, --suffix SUFFIX
                             Suffix for generating the output file name (default: band)
 
-可以看到，输入文件需要包含塞贝克系数，可选地还可以包含温度，
+这里可以通过 ``-m/--modelling`` 选项来选择数据分析的模型，
+输入文件需要包含塞贝克系数，可选地还可以包含温度，
 电导率和载流子浓度。根据所给的输入数据，
 输出数据可以包括：洛伦兹常数，温度无关权重迁移率，有效质量等。
-默认情况下，我们使用 SPB 模型进行分析。
-我们可以通过 ``--gap <Egap>`` 选项来启用 SKB 模型，
-这里 Egap 即为 Kane 模型中的带隙参数。
+对于 Kane 模型，还需要通过 ``--gap <Egap>`` 选项来指定带隙。
 假设我们材料的带隙为 0.1 eV, 输入文件名为 data.txt,
 我们应该像下面这样操作:
 
 .. code-block:: bash
 
-    $ tef-band --gap 0.1 data.txt
+    $ tef-band -m SKB --gap 0.1 data.txt
 
 相关的模块
 ^^^^^^^^^^
