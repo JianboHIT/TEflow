@@ -948,7 +948,7 @@ def do_band(args=None):
     parser.add_argument('--initial', action=_StoreDict,
         help="Override 'initial' value in entry section")
 
-    parser.add_argument('-m', '--modelling', choices=('SPB', 'SKB'),
+    parser.add_argument('-m', '--modelling', choices=('SPB', 'RSPB', 'SKB'),
         help='Directly insight experimental data using the selected model.')
 
     parser.add_argument('-G', '--gap', type=float, default=None,
@@ -998,6 +998,9 @@ def do_band(args=None):
     if modelling == 'SPB':
         model = EXECMETA['valuate.APSSPB']
         logger.info('Using single parabolic band (SPB) model.')
+    elif modelling == 'RSPB':
+        model = EXECMETA['valuate.RSPB']
+        logger.info('Using restructured single parabolic band (SPB) model.')
     elif modelling == 'SKB':
         Egap = options.gap
         if Egap is None:
