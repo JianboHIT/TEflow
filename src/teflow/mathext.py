@@ -239,7 +239,7 @@ def smoothstep(x, inverse=False, shift=True):
             x = np.clip(x, 0, 1)
             return x*x*(3-2*x)
 
-def _interpx_extra(x, y, xp, left=None, right=None):
+def _interpx(x, y, xp, left=None, right=None):
     # this function does NOT check input, assuming numpy.ndarray inputs.
     yp = np.interp(xp, x, y, left=left, right=right)
     idx_left = (xp < x[0])
@@ -286,13 +286,13 @@ def interpx(x, y, xp, left=None, right=None):
         raise ValueError('Input x and y must both be 1-dimensional.')
     if x.size < 2:
         raise ValueError('Input x must contain at least two elements.')
-    return _interpx_extra(x, y, xp, left=left, right=right)
+    return _interpx(x, y, xp, left=left, right=right)
 
 def _interp_vect(vy, vx, xp, method='linear', **kwargs):
     '''
     Interpolate points from vx and vy vectors.
     '''
-    #   linear: _interpx_extra
+    #   linear: _interpx
     #     line: numpy.interp
     #  poly<N>: numpy.polynomial.polynomial.Polynomial.fit
     #    cubic: scipy.interpolate.CubicSpline
@@ -301,7 +301,7 @@ def _interp_vect(vy, vx, xp, method='linear', **kwargs):
     #   spline: scipy.interpolate.make_interp_spline
 
     if method == 'linear':
-        return _interpx_extra(vx, vy, xp, **kwargs)
+        return _interpx(vx, vy, xp, **kwargs)
     elif method == 'line':
         return np.interp(xp, vx, vy, **kwargs)
     elif method.lower().startswith('poly'):
