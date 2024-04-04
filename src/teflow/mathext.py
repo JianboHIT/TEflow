@@ -18,6 +18,7 @@ from scipy.special import expit, logit
 from scipy.interpolate import CubicSpline, PchipInterpolator
 from scipy.interpolate import Akima1DInterpolator, make_interp_spline
 from scipy.integrate import quad
+from scipy.linalg import solve as lsolve
 
 
 class Metric:
@@ -239,6 +240,72 @@ def smoothstep(x, inverse=False, shift=True):
             x = np.clip(x, 0, 1)
             return x*x*(3-2*x)
 
+def _kernel_rbf(u, v, scale, gradient: bool):
+    ug, vg = np.meshgrid(u, v)
+    conv = np.exp(-np.power(ug-vg, 2) / 2 / np.power(scale, 2))
+    if gradient:
+        return (vg-ug) / np.power(scale, 2) * conv
+    else:
+        return conv
+
+def _interp_gpr(x, y, xp, kernel, scale=1.0, regular=0.0, gradient=False):
+    # this function does NOT check input, assuming numpy.ndarray inputs.
+    if isinstance(kernel, str):
+        if kernel.lower() == 'rbf':
+            kernel = _kernel_rbf
+        else:
+            raise ValueError(f'Unsupported kernel: {kernel}')
+    A = kernel(x, x, scale, gradient=False) + regular
+    B = kernel(xp.ravel(), x, scale, gradient=gradient)
+    W = lsolve(A, B, assume_a='pos')
+    return np.reshape(y @ W, xp.shape)
+
+def interp_gpr(x, y, xp, kernel='rbf', scale=1.0, regular=0.0, gradient=False):
+    '''
+    Interpolates using Gaussian Process Regression (GPR).
+
+    Parameters
+    ----------
+    x : array_like
+        An one-dimensional array of x-coordinates of the data points. It must be
+        strictly monotonically increasing and contain at least two elements.
+    y : array_like
+        An one-dimensional array of y-coordinates corresponding to `x`. The arrays
+        `x` and `y` must have the same length.
+    xp : array_like
+        The x-coordinates at which to interpolate/extrapolate values.
+    kernel : str or callable, optional
+        The kernel function. Currently, only 'rbf' is supported, or a custom
+        callable function. Default is 'rbf'.
+    scale : float or array_like, optional
+        Shape parameter scaling the input for the kernel function.
+        It can be a scalar value or an one-dimensional array matching the
+        length of `x`. Default is 1.
+    regular : float or array_like, optional
+        Regularization parameter used to adjust smoothness.
+        It can be a scalar value or an one-dimensional array matching the
+        length of `x`. Default is 0.
+    gradient : bool, optional
+        Set to `True` to directly return the predicted gradients instead of
+        the default interpolated values.
+
+    Returns
+    -------
+    ndarray
+        Interpolated/extrapolated values at `xp`, with the output shape
+        matching that of `xp`.
+    '''
+    x = np.asarray(x).squeeze()
+    y = np.asarray(y).squeeze()
+    xp = np.asarray(xp)
+    scale = np.asarray(scale)
+    regular = np.diag(np.asarray(regular) * np.ones(x.size))
+    if (x.ndim != 1) or (y.ndim != 1):
+        raise ValueError('Input x and y must both be 1-dimensional.')
+    return _interp_gpr(x, y, xp,
+                       kernel=kernel, scale=scale,
+                       regular=regular, gradient=gradient)
+
 def _interpx(x, y, xp, left=None, right=None):
     # this function does NOT check input, assuming numpy.ndarray inputs.
     yp = np.interp(xp, x, y, left=left, right=right)
@@ -299,6 +366,7 @@ def _interp_vect(vy, vx, xp, method='linear', **kwargs):
     #    pchip: scipy.interpolate.PchipInterpolator
     #    Akima: scipy.interpolate.Akima1DInterpolator
     #   spline: scipy.interpolate.make_interp_spline
+    #      gpr: _interp_gpr
 
     if method == 'linear':
         return _interpx(vx, vy, xp, **kwargs)
@@ -314,6 +382,8 @@ def _interp_vect(vy, vx, xp, method='linear', **kwargs):
         return Akima1DInterpolator(vx, vy, **kwargs)(xp)
     elif method == 'spline':
         return make_interp_spline(vx, vy, **kwargs)(xp)
+    elif method.lower() == 'gpr':
+        return _interp_gpr(vx, vy, xp, **kwargs)
     else:
         raise ValueError(f"Unsupported interpolation method '{method}'")
 
@@ -346,6 +416,7 @@ def vinterp(x, y, xp, method='linear', reorder=True, **kwargs):
           Akima interpolation.
         - 'spline': Uses :func:`scipy.interpolate.make_interp_spline` to
           customize a B-spline representation of the data.
+        - 'gpr': User :func:`interp_gpr` for Gaussian Process Regression.
     reorder : bool, optional
         If True (default), automatically reorders `x` and `y` if `x` is not
         monotonically increasing. If False, an error is raised if `x` is not
