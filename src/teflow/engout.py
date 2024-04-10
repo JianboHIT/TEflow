@@ -339,7 +339,7 @@ class GenLeg(GenCore):
         Tc, Th = T[0], T[1:]
         
         # initialling
-        rst = AttrDict(Tc=Tc, Th=Th)
+        rst = AttrDict(Tc=Tc*np.ones_like(Th), Th=Th)
         logger.debug('Invoke valuate() method of %s', cls.__name__)
         gen = cls(TEdatas=datas_TCSK, Tc=Tc, Th=Th, L=L)
         
@@ -507,7 +507,7 @@ class GenPair(GenCore):
         Tc, Th = T[0], T[1:]
         
         # initialling
-        rst = AttrDict(Tc=Tc, Th=Th)
+        rst = AttrDict(Tc=Tc*np.ones_like(Th), Th=Th)
         logger.debug('Invoke valuate() method of %s', cls.__name__)
         gen = cls(TEdatas_p=datas_p_TCSK, 
                   TEdatas_n=datas_n_TCSK,
