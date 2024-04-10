@@ -277,9 +277,9 @@ def do_interp(args=None):
                 raise ValueError('Failed to parse --range option: '
                                  "'START:STEP:END' format is required.")
         else:
-            npoint = options.npoint
-            x2 = np.linspace(x[0], x[-1], num=npoint)
-            logger.debug(f'Using np.linspace({x[0]}, {x[-1]}, num={npoint}) ')
+            npoints = options.npoints
+            x2 = np.linspace(x[0], x[-1], num=npoints)
+            logger.debug(f'Using np.linspace({x[0]}, {x[-1]}, num={npoints}) ')
         
         logger.info('Generate sampling points automatically')
     else:
