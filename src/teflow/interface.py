@@ -572,8 +572,6 @@ def do_engout(args=None):
         out = GenLeg.valuate(datas, L=length)
 
     # deal with results
-    out['Tc'] = 300 * np.ones_like(out['deltaT'])
-    out['Th'] = 300 + out['deltaT']
     props = 'Tc     Th       PFeng  ZTeng  Pout   Yita'
     outdata = np.vstack([out[p] for p in props.split()]).T
 
