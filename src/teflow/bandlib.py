@@ -163,6 +163,7 @@ class BaseBand(ABC):
                  'L', 'CL', 'Ke',
                  'U', 'RH', 'UH', 'NH',
                  }
+    use_idos = False
     
     @abstractmethod
     def dos(self, E):
@@ -183,6 +184,8 @@ class BaseBand(ABC):
     def _N(self, EF, T):
         '''Carrier concentration, in 1E19 cm^(-3).'''
         # x = E/(kB_eV*T),  E = x*kB_eV*T
+        if self.use_idos and hasattr(self, 'idos'):
+            return romb_dfx(self.idos, EF, T)
         kernel = lambda E, _EF, _T: \
             self.dos(E) * fermidirac((E-_EF)/(kB_eV*_T))
         sep_point = np.maximum(0, EF)
@@ -655,6 +658,7 @@ class APSSPB(BaseBand):
     m_d = 1         #: :meta private: m_e
     sigma0 = 1      #: :meta private: S/cm
     Kmass = 1       #: :meta private: m1/m2
+    use_idos = True # Enable acceleration algorithms
     _Yita_opt = 0.66812
     _sigma0_to_PFmax = 0.03015137550508442  # [S/cm] --> [uW/(cm.K^2)]
     _UWT_to_PFmax = 0.12122425768565884     # [cm^2/(V.s)] --> [uW/(cm.K^2)]
@@ -677,6 +681,12 @@ class APSSPB(BaseBand):
         factor = 1E-25      # state/(eV.m^3) --> 1E19 state/(eV.cm^3)
         g0 = np.power(2*self.m_d*m_e*q, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
         return factor * g0 * np.sqrt(E)
+
+    def idos(self, E, T=None):
+        '''Integral of density-of-states, in 1E19 state/(cm^3).'''
+        factor = 1E-25      # state/(eV.m^3) --> 1E19 state/(eV.cm^3)
+        gE = np.power(2*self.m_d*m_e*q*E, 3/2)/(3*np.pi*np.pi* np.power(hbar, 3))
+        return factor * gE
     
     def trs(self, E, T):
         '''Transport distribution function, in S/cm.'''
@@ -875,6 +885,7 @@ class APSSKB(BaseBand):
     sigma0 = 1      #: :meta private: S/cm
     Eg = 1          #: :meta private: eV
     Kmass = 1       #: :meta private: m1/m2
+    use_idos = True # Enable acceleration algorithms
     _UWT_to_sigma0 = 4.020521639724753  # [S/cm] / [cm^2/(V.s)]
     def __init__(self, m_d=1, sigma0=1, Eg=1, Kmass=1):
         self.m_d = m_d
@@ -897,6 +908,14 @@ class APSSKB(BaseBand):
         g0 = np.power(2*self.m_d*m_e*q, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
         kane = np.sqrt(1+E/self.Eg) * (1+2*E/self.Eg)
         return factor * g0 * np.sqrt(E) * kane
+
+    def idos(self, E, T=None):
+        '''Integral of density-of-states, in 1E19 state/(cm^3).'''
+        E = np.asarray(E)
+        # factor = 1E-25      # state/(eV.m^3) --> 1E19 state/(eV.cm^3)
+        gE = 1E-25 * np.power(2*self.m_d*m_e*q*E*(1+E/self.Eg), 3/2)\
+             / (3*np.pi*np.pi* np.power(hbar, 3))
+        return gE
     
     def trs(self, E, T):
         '''Transport distribution function, in S/cm.'''
