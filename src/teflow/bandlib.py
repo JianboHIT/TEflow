@@ -155,6 +155,8 @@ class BaseBand(ABC):
     (`T`) are in Kelvin (K), unless otherwise specified.
     '''
     
+    _S0 = 86.17333262145179     # 1E6 * kB_eV
+    _L0 = 0.7425843255087367    # 1E8 * kB_eV * kB_eV
     _q_sign = 1
     _caching = None
     cacheable = {'EF', 'T',
@@ -306,7 +308,7 @@ class BaseBand(ABC):
         '''Seebeck coefficient, in uV/K.'''
         p0 = self.K_0(EF, T)
         p1 = self.K_1(EF, T)
-        return self._q_sign * 1E6 * kB_eV * p1/p0
+        return self._q_sign * self._S0 * p1/p0
     
     def PF(self, EF=None, T=None):
         '''Power factor, in uW/(cm.K^2).'''
@@ -331,7 +333,7 @@ class BaseBand(ABC):
         p1 = self.K_1(EF, T)
         p2 = self.K_2(EF, T)
         pr = p2/p0 - np.power(p1/p0, 2)
-        return 1E8 * kB_eV * kB_eV * pr
+        return self._L0 * pr
     
     def Ke(self, EF=None, T=None):
         '''Electronic thermal conductivity, in W/(m.K).'''
@@ -655,9 +657,6 @@ class APSSPB(BaseBand):
         should be a positive float, by default 1.
     '''
 
-    m_d = 1         #: :meta private: m_e
-    sigma0 = 1      #: :meta private: S/cm
-    Kmass = 1       #: :meta private: m1/m2
     use_idos = True # Enable acceleration algorithms
     _Yita_opt = 0.66812
     _sigma0_to_PFmax = 0.03015137550508442  # [S/cm] --> [uW/(cm.K^2)]
@@ -881,10 +880,7 @@ class APSSKB(BaseBand):
         affecting calculations related to Hall coefficients. It
         should be a positive float, by default 1.
     '''
-    m_d = 1         #: :meta private: m_e
-    sigma0 = 1      #: :meta private: S/cm
-    Eg = 1          #: :meta private: eV
-    Kmass = 1       #: :meta private: m1/m2
+
     use_idos = True # Enable acceleration algorithms
     _UWT_to_sigma0 = 4.020521639724753  # [S/cm] / [cm^2/(V.s)]
     def __init__(self, m_d=1, sigma0=1, Eg=1, Kmass=1):
