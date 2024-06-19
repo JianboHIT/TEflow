@@ -931,20 +931,20 @@ def do_band(args=None):
     
     parser.add_argument('-b', '--bare', **OPTS['bare'])
 
-    parser.add_argument('--T', action=_StoreDict, metavar='VALUES',
-        help="Override 'T' value in entry section")
+    parser.add_argument('--T', action=_StoreDict, metavar='VALUE',
+        help="Temperature points in Kelvin.")
 
-    parser.add_argument('--EF', action=_StoreDict, metavar='VALUES',
-        help="Override 'EF' value in entry section")
+    parser.add_argument('--EF', action=_StoreDict, metavar='VALUE',
+        help="Fermi levels in eV.")
 
-    parser.add_argument('--deltas', action=_StoreDict, metavar='DELTAS',
-        help="Override 'deltas' value in entry section")
+    parser.add_argument('--deltas', action=_StoreDict, metavar='VALUE',
+        help="Energy offsets for each band.")
 
-    parser.add_argument('--btypes', action=_StoreDict, metavar='BTYPES',
-        help="Override 'btypes' value in entry section")
+    parser.add_argument('--btypes', action=_StoreDict, metavar='VALUE',
+        help="Types of bands [C|V] for each entry.")
 
-    parser.add_argument('--initial', action=_StoreDict,
-        help="Override 'initial' value in entry section")
+    parser.add_argument('--initial', action=_StoreDict, metavar='VALUE',
+        help="The initial value for solving the Fermi levels.")
 
     parser.add_argument('-m', '--modelling', choices=('SPB', 'RSPB', 'SKB'),
         help='Directly insight experimental data using the selected model.')
