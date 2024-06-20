@@ -1287,8 +1287,9 @@ EXECMETA = {
 def parse_KappaFit(filename, specify=None):
     '''Parse kappa model from configuration file'''
     config = CfgParser()
-    config.read(filename)
-    logger.info(f'Read configuration from {filename}')
+    with open(filename, 'r') as f:
+        config.read_file(f)
+        logger.info(f'Read configuration from {filename}')
 
     entry = config['entry']
     logger.debug('Found entry section')
