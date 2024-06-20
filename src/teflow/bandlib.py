@@ -1373,8 +1373,9 @@ EXECMETA = {
 def parse_Bands(filename, specify=None):
     '''Parse bands model, and label list of props from a config file'''
     config = CfgParser()
-    config.read(filename)
-    logger.info(f'Read configuration from {filename}')
+    with open(filename, 'r') as f:
+        config.read_file(f)
+        logger.info(f'Read configuration from {filename}')
 
     entry = config['entry']
     logger.debug('Found entry section')
