@@ -1096,7 +1096,7 @@ class LinearBand(BaseBand):
         '''Density of states, in 1E19 state/(eV.cm^3).'''
         E = np.asarray(E)
         factor = 1E-25      # state/(eV.m^3) --> 1E19 state/(eV.cm^3)
-        g0 = np.power(1/np.pi, 2) * np.power(q/(self.vF*hbar), 3)
+        g0 = np.power(1/np.pi, 2) * np.power(q/(self.vF*1E5*hbar), 3)
         return factor * g0 * np.power(E, 2)
 
     def trs(self, E, T):
