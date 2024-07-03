@@ -1081,8 +1081,7 @@ class LinearBand(BaseBand):
         Fermi velocity in Angstrom/fs, i.e. 10^5 m/s. It should be
         a positive float, by default 1.
     '''
-    vF = 1      #: :meta private: A/fs, i.e. 10^5 m/s
-    sigma0 = 1  #: :meta private: S/cm
+    use_idos = True # Enable acceleration algorithms
     def __init__(self, vF=1, sigma0=1):
         self.vF = np.absolute(vF)
         self.sigma0 = sigma0
@@ -1098,6 +1097,14 @@ class LinearBand(BaseBand):
         factor = 1E-25      # state/(eV.m^3) --> 1E19 state/(eV.cm^3)
         g0 = np.power(1/np.pi, 2) * np.power(q/(self.vF*1E5*hbar), 3)
         return factor * g0 * np.power(E, 2)
+
+    def idos(self, E, T=None):
+        '''Integral of density-of-states, in 1E19 state/(cm^3).'''
+        E = np.asarray(E)
+        # factor = 1E-25        # state/(eV.m^3) --> 1E19 state/(eV.cm^3)
+        # factor2 = 1E-5 ** 3   # [A/fs]^(-3) --> 1E-15 [m/s]^(-3)
+        gE = np.power(q*E/(self.vF*hbar), 3) / (3E40 * np.power(np.pi, 2))
+        return gE
 
     def trs(self, E, T):
         '''Transport distribution function, in S/cm.'''
