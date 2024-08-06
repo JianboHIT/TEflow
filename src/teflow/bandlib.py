@@ -152,7 +152,7 @@ class BaseBand(ABC):
         \\sigma_H(E, T) = q \\frac{\\tau}{m_b^{\\ast}} \\cdot \\sigma_s(E, T)
     
     Notably, energy (`E`) and Fermi level (`EF`) are in (eV), and temperatures
-    (`T`) are in Kelvin (K), unless otherwise specified.
+    (`T`) are in Kelvin (K).
     '''
     
     _S0 = 86.17333262145179     # 1E6 * kB_eV
@@ -166,6 +166,28 @@ class BaseBand(ABC):
                  'U', 'RH', 'UH', 'NH',
                  }
     use_idos = False
+    '''bool: Determines whether to use the integrated density of states for
+    calculating carrier concentration or to use the direct density of states approach.
+
+    The carrier concentration :math:`n` of a semiconductor can be expressed as:
+
+    .. math::
+
+        n = \\int{g(E) f(E,T) dE} = \\int{G(E) \\left( - \\frac{\\partial f(E,T)}{\\partial E} \\right) dE}
+            \\text{, where } G(E) = \\int{g(E) dE}
+
+    Typically, :math:`n` is calculated using the density of states
+    :math:`g(E)` and the Fermi distribution :math:`f(E,T)`.
+    However, :math:`n` can be equivalently rewritten as
+    an integral involving the integrated density of states :math:`G(E)`
+    and :math:`-\\partial f(E,T) / \\partial E`, which acts as a
+    window function similar to a Gaussian. By leveraging advanced
+    acceleration algorithms, our program computes :math:`n`
+    more efficiently using :math:`G(E)`. When the `idos()` method
+    is implemented and `use_idos` is set to `True`,
+    it will be preferred to activate the accelerated algorithm,
+    bypassing the :meth:`dos` method.
+    '''
     
     @abstractmethod
     def dos(self, E):
@@ -635,10 +657,10 @@ class APSSPB(BaseBand):
     (b) The intrinsic electrical conductivity :math:`\\sigma_0`
     
     (c) The ratio of longitudinal to transverse effective masses
-        :math:`K^{\\ast}`
+        :math:`K_m`
     
-    These parameters correspond to class attributes m_d, sigma0, and
-    Kmass, respectively. The core of constructing the class is
+    These parameters correspond to class attributes `m_d`, `sigma0`, and
+    `Kmass`, respectively. The core of constructing the class is
     obtaining the values of these parameters.
 
     Attributes
@@ -655,6 +677,12 @@ class APSSPB(BaseBand):
         The ratio of longitudinal to transverse effective mass,
         affecting calculations related to Hall coefficients. It
         should be a positive float, by default 1.
+
+    Hint
+    ----
+    If you wish to include other scattering mechanisms, it might be more beneficial 
+    to inherit directly from :class:`BaseBand`, as some functions in this class 
+    are tailored for acoustic phonon scattering.
     '''
 
     use_idos = True # Enable acceleration algorithms
@@ -676,25 +704,57 @@ class APSSPB(BaseBand):
         return f'{self.__class__.__name__}({pstr})'
 
     def dos(self, E):
-        '''Density of states, in 1E19 state/(eV.cm^3).'''
+        '''
+        Density of states, in 1E19 state/(eV.cm^3).
+
+        .. math ::
+
+            g(E) = \\frac{\\left( 2 m^\\ast_d \\right) ^{3/2}}{2 \\pi^2 \\hbar^3} \\sqrt{E}
+
+        '''
         factor = 1E-25      # state/(eV.m^3) --> 1E19 state/(eV.cm^3)
         g0 = np.power(2*self.m_d*m_e*q, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
         return factor * g0 * np.sqrt(E)
 
     def idos(self, E, T=None):
-        '''Integral of density-of-states, in 1E19 state/(cm^3).'''
+        '''
+        Integral of density-of-states, in 1E19 state/(cm^3).
+
+        .. math ::
+
+            G(E) = \\frac{\\left( 2 m^\\ast_d \\right) ^{3/2}}{3 \\pi^2 \\hbar^3} E^{3/2}
+
+        '''
         factor = 1E-25      # state/(eV.m^3) --> 1E19 state/(eV.cm^3)
         gE = np.power(2*self.m_d*m_e*q*E, 3/2)/(3*np.pi*np.pi* np.power(hbar, 3))
         return factor * gE
     
     def trs(self, E, T):
-        '''Transport distribution function, in S/cm.'''
+        '''
+        Transport distribution function, in S/cm.
+
+        .. math ::
+
+            \\sigma_s(E, T) = \\sigma_0 \\cdot \\frac{E}{k_B T}
+        '''
         E, T = np.asarray(E), np.asarray(T)
         return self.sigma0 * E/(kB_eV*T)
     
     def hall(self, E, T):
-        '''Hall transport distribution function, in S.cm/(V.s), i.e.
-        [S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)].'''
+        '''
+        Hall transport distribution function, in S.cm/(V.s), i.e.
+        [S/cm]^2 * [cm^3/C] = [S/cm] * [cm^2/(V.s)].
+
+        .. math ::
+
+            q \\frac{\\tau}{m_b^{\\ast}} = \\cfrac{\\sigma_s(E, T)}{\\cfrac{2}{3} \\ q E g(E)}
+                = \\frac{3 \\sigma_0}{2 q k_B T g(E)}
+
+        .. math ::
+
+            \\sigma_H(E, T) = K^\\ast \\cdot q \\frac{\\tau}{m_b^{\\ast}} \\cdot \\sigma_s(E, T)
+                = \\frac{3 \\sigma_0 K^\\ast}{2 q k_B T} \\frac{\\sigma_s(E, T)}{g(E)}
+        '''
         E, T = np.asarray(E), np.asarray(T)
         N0 = np.power(2*self.m_d*m_e*kB_eV*q*T, 3/2)/(2*np.pi*np.pi* np.power(hbar, 3))
         facotr = np.power(self.sigma0, 2) / (2/3 * 1E-6*N0 * q)  # N0: m^-3 --> cm^-3
@@ -702,13 +762,35 @@ class APSSPB(BaseBand):
     
     @property
     def Kstar(self):
-        '''Anisotropy factor of effective mass for Hall effect.'''
+        '''
+        Anisotropy factor of effective mass for Hall effect.
+
+        .. math ::
+
+            K^\\ast = \\frac{3 K_m (K_m + 2)}{(2 K_m +1)^2}
+            \\text{, where } K_m = \\frac{m^\\ast_l}{m^\\ast_v}
+
+        '''
         K = self.Kmass
         return 3*K*(K+2)/np.power(2*K+1, 2)
     
     @property
     def UWT(self):
-        '''Temperature-independent weighted mobility, in cm^2/(V.s).'''
+        '''
+        Temperature-independent weighted mobility, in cm^2/(V.s).
+
+        .. math ::
+
+            \\mu_{WT}
+                = \\mu_0 \\left( \\frac{m^\\ast_d}{m_e} \\frac{T}{T_r}\\right) ^{3/2}
+                = \\frac{
+                    \\sqrt{8 \\pi} q \\hbar^4 N_v C_{ii}
+                }{
+                    3 m^\\ast_I (m_e k_B T_r)^{3/2} E_d^2
+                }
+            \\text{.    (}T_r = 300 \\text{ K)}
+
+        '''
         return self.sigma0 / self._UWT_to_sigma0
     
     @property
@@ -725,6 +807,11 @@ class APSSPB(BaseBand):
         '''
         Construct the class based on the Deformation Potential
         (DP) theory.
+
+        .. math ::
+
+            \\tau = \\frac{\\hbar N_v C_{ii}}{\\pi k_B T E_d^2} \\frac{1}{g(E)},
+            \\sigma_0 = \\frac{2 q^2 \\hbar N_v C_{ii}}{3 \\pi m^\\ast_I E_d^2}
 
         Parameters
         ----------
@@ -755,6 +842,11 @@ class APSSPB(BaseBand):
         '''
         Construct the class based on temperature-independent weighted
         mobility.
+
+        .. math ::
+
+            \\sigma_0 = 2 q \\left( \\frac{m_e k_B T_r}{2 \\pi \\hbar^2} \\right)^{3/2}
+                        \\cdot \\mu_{WT}
 
         Parameters
         ----------
@@ -856,7 +948,7 @@ class APSSPB(BaseBand):
 class APSSKB(BaseBand):
     '''
     A class for describing single Kane band (SKB) model when the acoustic
-    phonon scattering (APS) mechanism predominates. In contrast to the
+    phonon scattering (APS) mechanism predominates. Compared to the
     classical single parabolic band (SPB) model (see :class:`APSSPB`), an
     additional parameter describing the energy band shape, namely the bandgap
     (Eg), is introduced.
