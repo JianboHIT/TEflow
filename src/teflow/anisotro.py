@@ -15,6 +15,41 @@
 import numpy as np
 
 
+def project3d(theta_rad, phi_rad, C11, C22, C33, C23=0, C13=0, C12=0):
+    '''
+    Projects a symmetric tensor onto a specified direction in 3D space.
+
+    Parameters
+    ----------
+    theta_rad : float
+        The azimuthal angle in radians, measured from the positive x-axis in the x-y plane.
+    phi_rad : float
+        The polar angle in radians, measured from the positive z-axis.
+    C11 : array-like-
+        The tensor component C11.
+    C22 : array-like
+        The tensor component C22.
+    C33 : array-like
+        The tensor component C33.
+    C23 : array-like, optional
+        The tensor component C23 (= C32). Default is 0.
+    C13 : array-like, optional
+        The tensor component C13 (= C31). Default is 0.
+    C12 : array-like, optional
+        The tensor component C12 (= C21). Default is 0.
+
+    Returns
+    -------
+    array-like
+        The projected value(s) of the tensor in the specified direction.
+    '''
+    cx = np.sin(phi_rad) * np.cos(theta_rad)
+    cy = np.sin(phi_rad) * np.sin(theta_rad)
+    cz = np.cos(phi_rad)
+
+    return cx*cx * C11 + cy*cy * C22 + cz*cz * C33 \
+           + 2 * (cy*cz * C23 + cz*cx * C13 + cx*cy * C12)
+
 def anilay(C_list, S_list, K_list, widths=None):
     '''
     Calculate effective properties of anisotropic layered composite materials.
