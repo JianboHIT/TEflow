@@ -8,6 +8,7 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   teflow.anisotro
    teflow.bandlib
    teflow.engout
    teflow.interface
