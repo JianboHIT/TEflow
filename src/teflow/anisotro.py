@@ -108,7 +108,7 @@ def comb_rotations(theta_y, theta_z):
                     [       0       ,         0       , 1]])
     return R_z @ R_y
 
-def project3d(theta_rad, phi_rad, C11, C22, C33, C23=0, C13=0, C12=0):
+def project3d(theta_rad, phi_rad, /, C11, C22, C33, C23=0, C13=0, C12=0):
     '''
     Projects a symmetric tensor onto a specified direction in 3D space.
 
@@ -143,7 +143,7 @@ def project3d(theta_rad, phi_rad, C11, C22, C33, C23=0, C13=0, C12=0):
     return cx*cx * C11 + cy*cy * C22 + cz*cz * C33 \
            + 2 * (cy*cz * C23 + cz*cx * C13 + cx*cy * C12)
 
-def rotate3d(rotation, C11, C22, C33, C23=0, C13=0, C12=0, orient=None):
+def rotate3d(rotation, /, C11, C22, C33, C23=0, C13=0, C12=0, *, orient=None):
     '''
     Rotates a symmetric tensor according to the specified rotation.
 
