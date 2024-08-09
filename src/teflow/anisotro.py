@@ -81,6 +81,33 @@ def seq2tens(C11, C22, C33, C23=0, C13=0, C12=0):
                        [C12, C22, C23],
                        [C13, C23, C33]])
 
+def comb_rotations(theta_y, theta_z):
+    '''
+    Combines two rotations: one around the y-axis and one around the z-axis,
+    into a single rotation matrix.
+
+    Parameters
+    ----------
+    theta_y : float
+        The rotation angle around the y-axis (in radians).
+    theta_z : float
+        The rotation angle around the z-axis (in radians).
+
+    Returns
+    -------
+    (3,3) array
+        The combined rotation matrix obtained by first rotating around the
+        y-axis by `theta_y` and then around the z-axis by `theta_z`.
+    '''
+    R_y = np.array([[ np.cos(theta_y), 0, np.sin(theta_y)],
+                    [        0       , 1,         0       ],
+                    [-np.sin(theta_y), 0, np.cos(theta_y)]])
+
+    R_z = np.array([[np.cos(theta_z), -np.sin(theta_z), 0],
+                    [np.sin(theta_z),  np.cos(theta_z), 0],
+                    [       0       ,         0       , 1]])
+    return R_z @ R_y
+
 def project3d(theta_rad, phi_rad, C11, C22, C33, C23=0, C13=0, C12=0):
     '''
     Projects a symmetric tensor onto a specified direction in 3D space.
