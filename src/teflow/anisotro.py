@@ -15,6 +15,72 @@
 import numpy as np
 
 
+def tens2seq(matrix, use_upper=None):
+    '''
+    Converts a symmetric 3x3 tensor matrix to Voigt sequential form.
+
+    Parameters
+    ----------
+    matrix : (3,3) array-like
+        A 3x3 symmetric tensor matrix.
+    use_upper : bool or None, optional
+        Determines which part of the matrix to use for the off-diagonal elements:
+        - If True, uses the upper triangular part.
+        - If False, uses the lower triangular part.
+        - If None (default), averages the upper and lower triangular parts.
+
+    Returns
+    -------
+    tuple of array-like
+        The tensor in Voigt sequential form as (C11, C22, C33, C23, C13, C12).
+    '''
+    matrix = np.asarray(matrix)
+    C11 = matrix[0, 0]
+    C22 = matrix[1, 1]
+    C33 = matrix[2, 2]
+
+    if use_upper is None:
+        C23 = (matrix[1, 2] + matrix[2, 1]) / 2
+        C13 = (matrix[0, 2] + matrix[2, 0]) / 2
+        C12 = (matrix[0, 1] + matrix[1, 0]) / 2
+    elif use_upper:
+        C23 = matrix[1, 2]  # C23 from upper triangle
+        C13 = matrix[0, 2]  # C13 from upper triangle
+        C12 = matrix[0, 1]  # C12 from upper triangle
+    else:
+        C23 = matrix[2, 1]  # C23 from lower triangle
+        C13 = matrix[2, 0]  # C13 from lower triangle
+        C12 = matrix[1, 0]  # C12 from lower triangle
+    return C11, C22, C33, C23, C13, C12
+
+def seq2tens(C11, C22, C33, C23=0, C13=0, C12=0):
+    '''
+    Converts a tensor from Voigt sequential form to its 3x3 matrix form.
+
+    Parameters
+    ----------
+    C11 : array-like-
+        The tensor component C11.
+    C22 : array-like
+        The tensor component C22.
+    C33 : array-like
+        The tensor component C33.
+    C23 : array-like, optional
+        The tensor component C23 (= C32). Default is 0.
+    C13 : array-like, optional
+        The tensor component C13 (= C31). Default is 0.
+    C12 : array-like, optional
+        The tensor component C12 (= C21). Default is 0.
+
+    Returns
+    -------
+    (3,3) array
+        The tensor in 3x3 matrix form.
+    '''
+    return np.asarray([[C11, C12, C13],
+                       [C12, C22, C23],
+                       [C13, C23, C33]])
+
 def project3d(theta_rad, phi_rad, C11, C22, C33, C23=0, C13=0, C12=0):
     '''
     Projects a symmetric tensor onto a specified direction in 3D space.
@@ -25,7 +91,7 @@ def project3d(theta_rad, phi_rad, C11, C22, C33, C23=0, C13=0, C12=0):
         The azimuthal angle in radians, measured from the positive x-axis in the x-y plane.
     phi_rad : float
         The polar angle in radians, measured from the positive z-axis.
-    C11 : array-like-
+    C11 : array-like
         The tensor component C11.
     C22 : array-like
         The tensor component C22.
