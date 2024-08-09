@@ -31,7 +31,7 @@ def tens2seq(matrix, use_upper=None):
 
     Returns
     -------
-    tuple of array-like
+    array-like
         The tensor in Voigt sequential form as (C11, C22, C33, C23, C13, C12).
     '''
     matrix = np.asarray(matrix)
@@ -51,7 +51,7 @@ def tens2seq(matrix, use_upper=None):
         C23 = matrix[2, 1]  # C23 from lower triangle
         C13 = matrix[2, 0]  # C13 from lower triangle
         C12 = matrix[1, 0]  # C12 from lower triangle
-    return C11, C22, C33, C23, C13, C12
+    return np.asarray([C11, C22, C33, C23, C13, C12])
 
 def seq2tens(C11, C22, C33, C23=0, C13=0, C12=0):
     '''
@@ -185,7 +185,7 @@ def rotate3d(rotation, C11, C22, C33, C23=0, C13=0, C12=0, orient=None):
 
     Returns
     -------
-    tuple of array-like
+    array-like
         The rotated tensor in Voigt sequential form as (C11, C22, C33,
         C23, C13, C12).
 
@@ -284,7 +284,7 @@ def rotate3d(rotation, C11, C22, C33, C23=0, C13=0, C12=0, orient=None):
                (R21*R32 + R22*R31) * C12 +
                (R21*R33 + R23*R31) * C13 +
                (R22*R33 + R23*R32) * C23)
-    return rot_C11, rot_C22, rot_C33, rot_C23, rot_C13, rot_C12
+    return np.asarray([rot_C11, rot_C22, rot_C33, rot_C23, rot_C13, rot_C12])
 
 def anilay(C_list, S_list, K_list, widths=None):
     '''
