@@ -299,11 +299,21 @@ def smoothstep(x, inverse=False, shift=True):
             x = np.clip(x, 0, 1)
             return x*x*(3-2*x)
 
-def _kernel_rbf(u, v, scale, gradient: bool):
+def _kernel_rbf(u, v, scale, gradient: bool = False):
     ug, vg = np.meshgrid(u, v)
     conv = np.exp(-np.power(ug-vg, 2) / 2 / np.power(scale, 2))
     if gradient:
         return (vg-ug) / np.power(scale, 2) * conv
+    else:
+        return conv
+
+def _kernel_dfx(u, v, scale, gradient: bool = False):
+    # dfx = 4*exp(x)/(1+exp(x))^2, in (0, 1] range
+    ug, vg = np.meshgrid(u, v)
+    tg = np.tanh((ug-vg)/(2*scale))
+    conv = 1-np.power(tg, 2)
+    if gradient:
+        return -tg/scale * conv
     else:
         return conv
 
