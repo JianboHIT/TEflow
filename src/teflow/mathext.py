@@ -182,9 +182,8 @@ def mapping(dataXYZ, predXY, kernel='rbf', xscale=1.0, yscale=1.0, regular=0.0):
         A 2D array of predicted X and Y coordinates for which the corresponding
         Z values are to be estimated.
     kernel : str or callable, optional
-        The kernel function to be used for interpolation. Currently, only 'rbf'
-        is supported, but the function can accept a custom callable kernel.
-        Default is 'rbf'.
+        The kernel function to be used for interpolation. See :func:`interp_gpr`
+        for more details. Default is 'rbf'.
     xscale : float or (N,) array-like, optional
         Shape parameter scaling the input x-data for the kernel function.
         It can be a scalar or a vector of length matching the number of data
@@ -212,6 +211,8 @@ def mapping(dataXYZ, predXY, kernel='rbf', xscale=1.0, yscale=1.0, regular=0.0):
     if isinstance(kernel, str):
         if kernel.lower() == 'rbf':
             kernel = _kernel_rbf
+        elif kernel.lower() == 'dfx':
+            kernel = _kernel_dfx
         else:
             raise ValueError(f'Unsupported kernel: {kernel}')
     dataX, dataY, dataZ = np.asarray(dataXYZ)
@@ -322,6 +323,8 @@ def _interp_gpr(x, y, xp, kernel, scale=1.0, regular=0.0, gradient=False):
     if isinstance(kernel, str):
         if kernel.lower() == 'rbf':
             kernel = _kernel_rbf
+        elif kernel.lower() == 'dfx':
+            kernel = _kernel_dfx
         else:
             raise ValueError(f'Unsupported kernel: {kernel}')
     A = kernel(x, x, scale, gradient=False) + regular
@@ -344,8 +347,26 @@ def interp_gpr(x, y, xp, kernel='rbf', scale=1.0, regular=0.0, gradient=False):
     xp : array_like
         The x-coordinates at which to interpolate/extrapolate values.
     kernel : str or callable, optional
-        The kernel function. Currently, only 'rbf' is supported, or a custom
-        callable function. Default is 'rbf'.
+        The kernel function. Currently, the supported built-in kernels are:
+
+        - 'rbf'(default): Radial Basis Function kernel (Gaussian kernel):
+
+            .. math::
+
+                K(u, v) = \\exp \\left[ -\\frac{1}{2} \\left( \\frac{u-v}{s} \\right)^2 \\right]
+
+        - 'dfx': The derivative of the Fermi-Dirac distribution:
+
+            .. math::
+
+                K(u, v) = \\frac{4 \\exp \\left( \\frac{u-v}{s} \\right)}
+                    {\\left[ 1+\\exp \\left(\\frac{u-v}{s}\\right)\\right]^2}
+
+        The function can also accept a custom callable object with the following
+        signature: `kernel(u, v, scale, gradient: bool = False)`,
+        where `u` and `v` are arrays of input values, `scale` is the scale parameter,
+        and `gradient` specifies whether to return the kernel value (`False`) or
+        its derivative (`True`).
     scale : float or array_like, optional
         Shape parameter scaling the input for the kernel function.
         It can be a scalar value or an one-dimensional array matching the
