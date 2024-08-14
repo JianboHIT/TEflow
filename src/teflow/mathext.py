@@ -169,6 +169,65 @@ def mixing(datas, weight=None, scale=None):
         data += scale * w * d
     return data
 
+def mapping(dataXYZ, predXY, kernel='rbf', xscale=1.0, yscale=1.0, regular=0.0):
+    '''
+    Maps predicted XY coordinates to Z values using a kernel-based approach.
+
+    Parameters
+    ----------
+    dataXYZ : (3, N) array-like
+        A 2D array where the first dimension represents the X, Y, and Z coordinates,
+        respectively, and N is the number of data points.
+    predXY : (2, M) array-like
+        A 2D array of predicted X and Y coordinates for which the corresponding
+        Z values are to be estimated.
+    kernel : str or callable, optional
+        The kernel function to be used for interpolation. Currently, only 'rbf'
+        is supported, but the function can accept a custom callable kernel.
+        Default is 'rbf'.
+    xscale : float or (N,) array-like, optional
+        Shape parameter scaling the input x-data for the kernel function.
+        It can be a scalar or a vector of length matching the number of data
+        points in `dataXYZ`. Default is 1.
+    yscale : float or (N,) array-like, optional
+        Shape parameter scaling the input y-data for the kernel function.
+        It can be a scalar or a vector of length matching the number of data
+        points in `dataXYZ`. Default is 1.
+    regular : float or (N,) array-like, optional
+        Regularization parameter used to adjust the smoothness of the interpolation.
+        It can be a scalar or a vector of length matching the number of data
+        points in `dataXYZ`. Default is 0.
+
+    Returns
+    -------
+    predZ : (M,) ndarray
+        The predicted Z values corresponding to the input `predXY` coordinates.
+    log_p : float
+        The marginal log-likelihood of the input data:
+
+        .. math::
+
+            \\ln p_\\theta = -\\frac{1}{2} z K ^{-1} z^T -\\frac{1}{2} \\ln {|K|} - \\frac{N}{2} \\ln {2\\pi}
+    '''
+    if isinstance(kernel, str):
+        if kernel.lower() == 'rbf':
+            kernel = _kernel_rbf
+        else:
+            raise ValueError(f'Unsupported kernel: {kernel}')
+    dataX, dataY, dataZ = np.asarray(dataXYZ)
+    predX, predY = np.asarray(predXY)
+    regular = np.asarray(regular)
+    A = kernel(dataX, dataX, xscale, gradient=False)\
+        * kernel(dataY, dataY, yscale, gradient=False) + regular
+    B = kernel(predX, dataX, xscale, gradient=False)\
+        * kernel(predY, dataY, yscale, gradient=False)
+    W = lsolve(A, B, assume_a='pos')
+    predZ = dataZ @ W
+    log_p = -0.5 * np.dot(dataZ, lsolve(A, dataZ, assume_a='pos'))\
+            -0.5 * np.linalg.slogdet(A)[1]\
+            -0.5 * dataZ.size * np.log(2*np.pi)
+    return predZ, log_p
+
 def fermidirac(x, inverse=False):
     '''
     Fermi-Dirac function:
