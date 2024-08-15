@@ -332,6 +332,10 @@ def do_mixing(args=None):
     parser.add_argument('-E','--raw-extend', action='store_true',
         help='Similar to --extend, but without any filtering.')
 
+    parser.add_argument('-p', '--padding', type=str,
+        help='Works with the --extend option to assign the padding \
+              value for the shorter columns.')
+
     parser.add_argument('-w', '--weight', metavar='WEIGHTS',
         help="Weights of mixing, with the same number of datafiles \
               (default:'1 1 1 ...')")
@@ -370,26 +374,57 @@ def do_mixing(args=None):
                 logger.error(f'Failed to read {filename}')
                 raise
 
-        if options.raw_extend:
-            logger.info('Concatenate multiple files without filtering')
-            _fetch = lambda line: line.strip()
-            datas = [map(_fetch, data) for data in datas]
+        if options.padding is None:
+            sep = ' '
+            if options.raw_extend:
+                logger.info('Concatenate multiple files without filtering')
+                _fetch = lambda line: line.strip()
+                datas = [map(_fetch, data) for data in datas]
+            else:
+                logger.info('Concatenate multiple files horizontally')
+                _fetch = lambda line: line.split('#', 1)[0].strip()
+                datas = [filter(None, map(_fetch, data)) for data in datas]
         else:
-            logger.info('Concatenate multiple files horizontally')
-            _fetch = lambda line: line.split('#', 1)[0].strip()
-            datas = [filter(None, map(_fetch, data)) for data in datas]
+            sep = '\t'
+            pad = options.padding
+            logger.info(f"Concatenate multiple files with padding: '{pad}'")
+            row_nums = []
+            col_nums = []
+            datas_tmp = []
+            for data in datas:
+                lines = []
+                ncol = 0
+                for line in data:
+                    # forced filter
+                    items = line.split('#', 1)[0].strip().split()
+                    if items:
+                        ncol = len(items)   # record lastest column number
+                        lines.append(sep.join(items))
+                row_nums.append(len(lines))
+                col_nums.append(ncol)
+                datas_tmp.append(lines)
+            dsp_row_nums = ', '.join(map(str, row_nums))
+            dsp_col_nums = ', '.join(map(str, col_nums))
+            logger.debug(f'Number of lines per input file: {dsp_row_nums}')
+            logger.debug(f'Number of columns per input file: {dsp_col_nums}')
+
+            max_row_num = max(row_nums)
+            datas = []
+            for data, ncol in zip(datas_tmp, col_nums):
+                pad_data = [sep.join([pad,] * ncol)] * (max_row_num - len(data))
+                datas.append(data+pad_data)
 
         if outputfile:
             with open(outputfile, 'w') as f:
                 if not options.bare:
                     f.write(f'# Extend datafiles - {TIME} {INFO}\n')
                 for lines in zip(*datas):
-                    f.write(' '.join(lines) + '\n')
+                    f.write(sep.join(lines) + '\n')
             logger.info(f'Save extended file to {outputfile} (Done)')
         else:
             fout = 'Result:'
             for lines in zip(*datas):
-                fout += '\n  ' + ' '.join(lines)
+                fout += '\n  ' + sep.join(lines)
             logger.critical(fout)
         return None
 
