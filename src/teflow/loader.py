@@ -239,7 +239,7 @@ class Compound(AttrDict):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, fmt='%.9g', style='join', ignore=('1',)):
+    def to_string(self, fmt='%.9g', style='join', omit_one=True):
         '''
         Generates a string representation of the compound, with support for
         'join' (default), 'split', and 'originlab' styles at present.
@@ -249,7 +249,7 @@ class Compound(AttrDict):
         if style in {'origin', 'originlab', 'originpro',}:
             for name, num in self.items():
                 num_ = fmt % num
-                if num_ in ignore:
+                if omit_one and num_ == '1':
                     dsps.append(name)
                 else:
                     dsps.append(f'{name}\\-({num_})')
@@ -257,7 +257,7 @@ class Compound(AttrDict):
 
         for name, num in self.items():
             num_ = fmt % num
-            if num_ in ignore:
+            if omit_one and num_ == '1':
                 dsps.append(name)
             else:
                 dsps.append(f'{name}{num_}')
