@@ -205,7 +205,13 @@ class Compound(AttrDict):
         '''
         AttrDict: A dictionary mapping elements to atomic weights.
         '''
-        return AttrDict((key, getattr(AtomicWeight, key)) for key in self)
+        out = AttrDict()
+        vaild_keys = set(AtomicWeight._fields)
+        for key in self:
+            if key not in vaild_keys:
+                raise KeyError(f"Unknown element '{key}' in {str(self)}.")
+            out[key] = getattr(AtomicWeight, key)
+        return out
 
     @property
     def weight_ave(self):
