@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 class Variable:
     '''
     A singleton class based on the 'tag' attribute to represent
-    a variable that notifies subscribers upon value changes,
+    a variable that syncs subscribers upon value changes,
     used for synchronizing variables across models.
     '''
     __instances = {}
@@ -66,8 +66,7 @@ class Variable:
         ------
         ValueError
             If the initial value is not between the lower and upper bounds,
-            or if `constraint` is provided but is not a callable,
-            or if any element in `depends` is not an instance of Variable.
+            or if `constraint` is provided but is not a callable.
         '''
         if hasattr(self, '_value'):
             return
@@ -78,10 +77,10 @@ class Variable:
         else:
             raise ValueError('Initial value must be between the lower and upper bounds.')
         self.tag = tag
-        self.scale = scale
+        self._scale = scale
         self._subscribers = []
         if (constraint is not None) and (not isinstance(constraint, Callable)):
-            raise ValueError("'constraint' must be a Callable object if provide")
+            raise ValueError("'constraint' must be a Callable object if provided")
         self._compute = constraint
         self._depends = Parameters(**{f'__{tag}_{i}':v for i, v in enumerate(depends)})
 
@@ -98,15 +97,59 @@ class Variable:
         return bool(self._compute)
 
     @property
+    def scale(self):
+        '''
+        The scale factor (read-only).
+        '''
+        return self._scale
+
+    @property
     def value(self):
         '''
-        The current value of the variable. Manually setting a new value will
-        automatically trigger the :meth:`notify` method.
+        The current value of the variable.
+
+        For unconstrained variables, manually setting a new value will
+        automatically trigger the :meth:`sync` method, propagating the
+        changes to all registered subscribers.
+
+        For constrained variables, manual setting of the value is meaningless,
+        as the value is determined by the dependent variables and is computed
+        only when accessed.
+
+        Be cautious with chained constrained variables: when accessing the value
+        of a downstream constrained variable, it does not automatically trigger
+        the synchronization of all upstream constrained variables. Therefore,
+        in such cases, you may need to manually trigger the :meth:`sync`
+        method on all relevant upstream dependent constrained variables,
+        unless you are fully aware of the current state of the system.
 
         Raises
         ------
         ValueError
             If the new value is not between the lower and upper bounds.
+
+        Example
+        -------
+        >>> A = Variable(tag='A', initial=10)
+        >>> B = Variable(tag='B', constraint=lambda x: x*2, depends=(A,))
+        >>> C = Variable(tag='C', constraint=lambda x,y: x+y, depends=(A, B))
+        >>> print('A:', A.value, ', B:', B.value, ', C:', C.value)
+        A: 10 , B: 20 , C: 30
+        >>>
+        >>> # Update the value of A
+        >>> A.value = 20
+        >>> print('A:', A.value, ', B:', B.value, ', C:', C.value)
+        A: 20 , B: 40 , C: 40
+        >>>
+        >>> # When accessing the value of C, the updated value of the upstream
+        >>> # unconstrained variable A is correctly obtained, but the updated
+        >>> # value of upstream constrained variable B is not obtained.
+        >>>
+        >>> # Manually trigger the sync() method of the constrained variable B
+        >>> # to ensure the downstream variable C is correctly computed.
+        >>> B.sync()
+        >>> print('A:', A.value, ', B:', B.value, ', C:', C.value)
+        A: 20 , B: 40 , C: 60
         '''
         if self.constrained:
             # return self._compute(*(v.value for v in self._depends))
@@ -121,27 +164,27 @@ class Variable:
         else:
             raise ValueError('The value should be between '
                              f'{self.lower} and {self.upper}.')
-        self.notify()
+        self.sync()
 
-    def register(self, subscriber, name: str):
+    def register(self, subscriber, key: str):
         '''
-        Registers a subscriber that will be notified of value changes.
+        Registers a subscriber that will be synced when the value changes.
 
         Parameters
         ----------
-        instance : object
-            The instance to notify when the variable changes.
-        name : str
-            The name of parameter that will be updated.
+        subscriber : dict
+            A dictionary-like subscriber to sync when the variable changes.
+        key : str
+            The key of subscriber that will be synced.
         '''
-        self._subscribers.append((subscriber, name))
+        self._subscribers.append((subscriber, key))
 
-    def notify(self):
+    def sync(self):
         '''
-        Notifies all registered subscribers about the updated value.
+        Syncs all registered subscribers.
         '''
-        for sub, name in self._subscribers:
-            sub[name] = self.value * self.scale
+        for sub, key in self._subscribers:
+            sub[key] = self.value * self.scale
 
 
 class Parameters(OrderedDict):
@@ -154,10 +197,10 @@ class Parameters(OrderedDict):
     but direct modifications to Parameters only affect itself.
     '''
     def __init__(self, **parameters):
-        for name, val in parameters.items():
+        for key, val in parameters.items():
             if isinstance(val, Variable):
-                val.register(self, name)
-                parameters[name] = val.value * val.scale
+                val.register(self, key)
+                parameters[key] = val.value * val.scale
         super().__init__(**parameters)
 
 
@@ -218,7 +261,7 @@ class BaseKappaModel(ABC):
         for arg, var in zip(args, self.__vars):
             var.value = arg
         for der in self.__ders:
-            der.notify()
+            der.sync()
         return self(T)
     
     def fit(self, dataT, dataK, *, variables=(), **kwargs):
