@@ -449,6 +449,8 @@ class MultiBands(BaseBand):
             valence bands. If not specified (`None`), band types will be
             inferred using the :meth:`guess_btypes()` method based on `deltas`.
         '''
+        self.bands = []
+        self.deltas = []
 
         dsp = 'Length of {} is not the same as the number of {}'
         if len(bands) != len(deltas):
@@ -459,21 +461,61 @@ class MultiBands(BaseBand):
         elif len(btypes) == 1:
             btypes = [btypes[0],] * len(bands)
 
-        for band, btype in zip(bands, btypes):
-            if not isinstance(band, BaseBand):
-                raise ValueError('Only subclasses of bandlib.BaseBand '
-                                 'are supported.')
-            if btype.lower()[0] == 'v':
-                # Valence Band
-                band._q_sign = +1
-            elif btype.lower()[0] == 'c':
-                # Conduction Band
-                band._q_sign = -1
-            else:
-                raise ValueError(f'Failed to identify band type: {btype}')
+        for band, delta, btype in zip(bands, deltas, btypes):
+            self.append(band, delta, btype)
 
-        self.bands = bands
-        self.deltas = np.asarray(deltas)
+    def append(self, band, delta: float, btype=None):
+        '''
+        Append a new band instance to the current instance.
+
+        Parameters
+        ----------
+        band : BaseBand
+            A band instance of :class:`BaseBand`.
+        delta : float
+            Energy offset for the new band.
+        btype : str, optional
+            Type of the new band. 'C' signifies conduction bands, while
+            'V' signifies valence bands. If not specified (`None`), band
+            types will be inferred using the :meth:`guess_btypes()` method.
+        '''
+        if not isinstance(band, BaseBand):
+            raise ValueError('Only subclass of bandlib.BaseBand is supported.')
+
+        try:
+            delta = float(delta)
+        except (ValueError, TypeError) as e:
+            raise ValueError(f'Delta must be a float number: {e}.')
+
+        if btype is None:
+            btype = self.guess_btypes([delta,])[0]
+
+        if btype.lower()[0] == 'v':
+            # Valence Band
+            band._q_sign = +1
+        elif btype.lower()[0] == 'c':
+            # Conduction Band
+            band._q_sign = -1
+        else:
+            raise ValueError(f'Failed to identify band type: {btype}')
+
+        self.bands.append(band)
+        self.deltas.append(delta)
+
+    def extend(self, other):
+        '''
+        Extend the current instance with bands from another MultiBands instance.
+
+        Parameters
+        ----------
+        other : MultiBands
+            An instance of :class:`MultiBands`.
+        '''
+        if not isinstance(other, self.__class__):
+            raise ValueError('Only subclass of bandlib.MultiBands is supported.')
+
+        for band, delta in zip(other.bands, other.deltas):
+            self.append(band, delta, 'V' if band._q_sign > 0 else 'C')
 
     def __str__(self):
         pstr = f'{self.__class__.__name__}:'
