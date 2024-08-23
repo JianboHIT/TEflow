@@ -678,13 +678,14 @@ class MultiBands(BaseBand):
                 btypes.append('C')
             else:
                 btypes.append('V')
-        if 'X' not in btypes:
-            return btypes
-        if 'V' not in btypes:
+        all_btypes = set(btypes)
+        if (all_btypes == {'X'}) or (all_btypes == {'C', 'V', 'X'}):
+            raise ValueError(f'Failed to guess btypes (deltas={deltas})')
+        if all_btypes == {'C', 'X'}:
             return ['C',] * len(deltas)
-        if 'C' not in btypes:
+        if all_btypes == {'V', 'X'}:
             return ['V',] * len(deltas)
-        raise ValueError(f'Failed to guess btypes (deltas={deltas})')
+        return btypes
 
 
 class APSSPB(BaseBand):
