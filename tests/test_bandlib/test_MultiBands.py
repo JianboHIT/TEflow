@@ -52,3 +52,18 @@ class TestMultiBands(unittest.TestCase):
     def test_extend_invalid_instance(self):
         with self.assertRaises(ValueError):
             self.mb1.extend('NotAMultiBandsInstance')
+
+    def test_guess_band_types(self):
+        self.assertEqual(MultiBands.guess_btypes([]), [])
+        self.assertEqual(MultiBands.guess_btypes([0.1]), ['C'])
+        self.assertEqual(MultiBands.guess_btypes([-0.1]), ['V'])
+        with self.assertRaises(ValueError):
+            MultiBands.guess_btypes([0,])
+
+        self.assertEqual(MultiBands.guess_btypes([0, 0.1, 0.2]), ['C', 'C', 'C'])
+        self.assertEqual(MultiBands.guess_btypes([0.1, 0.1, -0.2]), ['C', 'C', 'V'])
+        self.assertEqual(MultiBands.guess_btypes([0, -0.1, -0.2]), ['V', 'V', 'V'])
+        with self.assertRaises(ValueError):
+            MultiBands.guess_btypes([0, 0.1, -0.2])
+        with self.assertRaises(ValueError):
+            MultiBands.guess_btypes([0, 0, 0])
