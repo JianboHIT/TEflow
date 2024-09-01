@@ -16,10 +16,10 @@ import logging
 import numpy as np
 from pprint import pformat
 from abc import ABC, abstractmethod
-from scipy.integrate import cumtrapz
-from numpy.polynomial import Polynomial
 
+from .mathext import Polynomial, cumtrapz
 from .utils import AttrDict
+
 
 logger = logging.getLogger(__name__)
 
