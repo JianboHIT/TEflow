@@ -42,6 +42,18 @@ class TestVinterp(unittest.TestCase):
         yref = [-404, 2, 4, 6, 8, 10, 12, 14, 16, 16, 16]
         self.assertTrue(np.allclose(yp, yref))
 
+    def test_poly2(self):
+        xp = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        yp = vinterp(
+            [-1, 0, 1],
+            [1, 0, 1],
+            xp,
+            method='poly2',
+        )
+        yp = [round(yi) for yi in yp]
+        yref = [xi*xi for xi in xp]
+        self.assertEqual(yp, yref)
+
 
 class TestInterpGPR(unittest.TestCase):
     def model(self, x):
