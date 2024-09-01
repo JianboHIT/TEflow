@@ -19,10 +19,9 @@ from collections import OrderedDict
 from collections.abc import Callable
 
 from scipy.optimize import curve_fit
-from scipy.integrate import cumtrapz
 import numpy as np
 
-from .mathext import vquad
+from .mathext import cumtrapz, vquad
 from .utils import AttrDict, ExecWrapper, CfgParser
 
 logger = logging.getLogger(__name__)
