@@ -769,7 +769,7 @@ def do_format(args=None):
 
     # calculate PF, ZT and PF
     if options.calculate:
-        from scipy.integrate import cumtrapz
+        from .mathext import cumtrapz
 
         out['PF'] = 1E-6 * out['C']*out['S']*out['S']
         out['ZT'] = 1E-4 * out['PF']/out['K']*out['T']
