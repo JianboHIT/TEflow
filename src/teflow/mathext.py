@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 import numpy as np
-from numpy.polynomial import Polynomial as Poly
+from numpy.polynomial import Polynomial
 from scipy.special import expit, logit
 from scipy.interpolate import CubicSpline, PchipInterpolator
 from scipy.interpolate import Akima1DInterpolator, make_interp_spline
@@ -463,7 +463,7 @@ def _interp_vect(vy, vx, xp, method='linear', **kwargs):
     elif method == 'line':
         return np.interp(xp, vx, vy, **kwargs)
     elif method.lower().startswith('poly'):
-        return Poly.fit(vx, vy, deg=int(method[-1]), **kwargs)(xp)
+        return Polynomial.fit(vx, vy, deg=int(method[-1]), **kwargs)(xp)
     elif method == 'cubic':
         return CubicSpline(vx, vy, **kwargs)(xp)
     elif method == 'pchip':
