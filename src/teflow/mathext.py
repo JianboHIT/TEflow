@@ -20,6 +20,12 @@ from scipy.interpolate import Akima1DInterpolator, make_interp_spline
 from scipy.integrate import quad
 from scipy.linalg import solve as lsolve
 
+# Ensure compatibility with different scipy versions
+try:
+    from scipy.integrate import cumulative_trapezoid as cumtrapz
+except ImportError:
+    from scipy.integrate import cumtrapz
+
 
 class Metric:
     '''
