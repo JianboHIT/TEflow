@@ -864,7 +864,7 @@ class APSSPB(BaseBand):
         return cls(m_d=m_d, sigma0=sigma0, Kmass=Kmass)
 
     @classmethod
-    def valuate(cls, dataS, dataT=None, dataC=None, dataN=None,
+    def valuate(cls, dataS, dataT=None, dataC=None, dataN=None, dataK=None,
                 hall=False, Kmass=1):
         '''
         A class method for quickly evaluating the carriar transport
@@ -884,6 +884,9 @@ class APSSPB(BaseBand):
         dataN : ndarray, optional
             Experimental data for carrier concentration in 1E19 cm^-3.
             Defaults to None.
+        dataK : ndarray, optional
+            Experimental data for total thermal conductivity in W/(m.K).
+            Defaults to None.
         hall : boolean, optional
             Whether to consider the Hall effect. Defaults to False.
         Kmass : float, optional
@@ -898,6 +901,8 @@ class APSSPB(BaseBand):
             * `L`: Lorenz number in 1E-8 W.Ohm/K^2`.
             * `Ke`: Electronic thermal conductivity in W/(m.K),
               only if both `dataT` and `dataC` are provided.
+            * `Kp`: Phonon thermal conductivity in W/(m.K),
+              only if `dataT`, `dataC`, and `dataK` are provided.
             * `sigma0`: Intrinsic electrical conductivity in S/cm,
               only if both `dataT` and `dataC` are provided.
             * `UWT`: Temperature-independent weighted mobility in cm^2/(V.s),
@@ -921,6 +926,8 @@ class APSSPB(BaseBand):
 
         if dataC is not None:
             out['Ke'] = 1E-6 * out['L']*np.multiply(dataC, dataT)
+            if dataK is not None:
+                out['Kp'] = np.asarray(dataK) - out['Ke']
 
             sigma0 = out['sigma0'] = np.divide(dataC, spb.C(dataEF, dataT))
             out['UWT'] = sigma0/cls._UWT_to_sigma0
@@ -1087,7 +1094,7 @@ class APSSKB(BaseBand):
         return cls(m_d=m_d, sigma0=sigma0, Eg=Eg, Kmass=Kmass)
 
     @classmethod
-    def valuate(cls, dataS, dataT, dataC=None, dataN=None,
+    def valuate(cls, dataS, dataT, dataC=None, dataN=None, dataK=None,
                 Eg=1, hall=False, Kmass=1):
         '''
         A class method for quickly evaluating the carriar transport
@@ -1106,6 +1113,9 @@ class APSSKB(BaseBand):
         dataN : ndarray, optional
             Experimental data for carrier concentration in 1E19 cm^-3.
             Defaults to None.
+        dataK : ndarray, optional
+            Experimental data for total thermal conductivity in W/(m.K).
+            Defaults to None.
         Eg : float, optional
             Bandgap in eV, by default 1.
         hall : boolean, optional
@@ -1122,6 +1132,8 @@ class APSSKB(BaseBand):
             * `L`: Lorenz number in 1E-8 W.Ohm/K^2`.
             * `Ke`: Electronic thermal conductivity in W/(m.K),
               only if `dataC` is provided.
+            * `Kp`: Phonon thermal conductivity in W/(m.K),
+              only if `dataC` and `dataK` are provided.
             * `sigma0`: Intrinsic electrical conductivity in S/cm,
               only if `dataC` is provided.
             * `UWT`: Temperature-independent weighted mobility in cm^2/(V.s),
@@ -1135,6 +1147,8 @@ class APSSKB(BaseBand):
 
         if dataC is not None:
             out['Ke'] = 1E-6 * out['L']*np.multiply(dataC, dataT)
+            if dataK is not None:
+                out['Kp'] = np.asarray(dataK) - out['Ke']
 
             sigma0 = out['sigma0'] = np.divide(dataC, skb.C(dataEF, dataT))
             out['UWT'] = sigma0/cls._UWT_to_sigma0
@@ -1299,7 +1313,7 @@ class RSPB:
                * np.power(cls.Sr(Nr, delta=delta), 2)
     
     @classmethod
-    def valuate(cls, dataS, dataC=None, dataT=None, dataN=None, delta=0.075):
+    def valuate(cls, dataS, dataC=None, dataT=None, dataN=None, dataK=None, delta=0.075):
         '''
         A class method for quickly evaluating the carriar transport
         properties (such as Lorenz number `L` and the temperature-independent
@@ -1320,6 +1334,10 @@ class RSPB:
             Experimental data for carrier concentration in 1E19 cm^-3.
             Used in conjunction with `dataT` to calculate `m_eff`.
             Defaults to None.
+        dataK : ndarray, optional
+            Experimental data for total thermal conductivity in W/(m.K).
+            Used in conjunction with `dataC` and `dataT` to calculate `Kp`.
+            Defaults to None.
         delta : float, optional
             A parameter related to the Seebeck coefficient, defaults to 0.075.
 
@@ -1331,8 +1349,11 @@ class RSPB:
             * `L`: Lorenz number in 1E-8 W.Ohm/K^2`.
             * `UWT`: Temperature-independent weighted mobility in cm^2/(V.s).
             * `PFmax`: The maximum power factor in uW/(cm.K^2).
+            * `sigma0`: Intrinsic electrical conductivity in S/cm.
             * `Ke`: Electronic thermal conductivity in W/(m.K),
               only if both `dataT` and `dataN` are provided.
+            * `Kp`: Phonon thermal conductivity in W/(m.K),
+              only if both `dataC` and `dataK` are provided.
             * `m_eff`: The ratio of effective mass to the electron mass,
               only if both `dataT` and `dataN` are provided.
             * `Nopt`: The optimal carrier concentration in 1E19 cm^(-3),
@@ -1352,6 +1373,8 @@ class RSPB:
         if all(d is not None for d in (dataC, dataT, dataN)):
             dataT, dataN = np.asarray(dataT), np.asarray(dataN)
             out['Ke'] = 1E-6 * L*dataC*dataT
+            if dataK is not None:
+                out['Kp'] = np.asarray(dataK) - out['Ke']
             out['m_eff'] = np.power(dataN/Nr, 2/3) * 300/dataT
             out['Nopt'] = cls._Nr_opt * cls.N0 * dataN/Nr
 
@@ -1456,15 +1479,15 @@ EXECMETA = {
     ),
     'valuate.APSSPB': ExecWrapper(APSSPB.valuate,
         args=['dataS',],
-        opts=['dataT', 'dataC', 'dataN', 'hall', 'Kmass'],
+        opts=['dataT', 'dataC', 'dataN', 'dataK', 'hall', 'Kmass'],
     ),
     'valuate.APSSKB': ExecWrapper(APSSKB.valuate,
         args=['dataS', 'dataT',],
-        opts=['dataC', 'dataN', 'Eg', 'hall', 'Kmass'],
+        opts=['dataC', 'dataN', 'dataK', 'Eg', 'hall', 'Kmass'],
     ),
     'valuate.RSPB': ExecWrapper(RSPB.valuate,
         args=['dataS',],
-        opts=['dataC', 'dataT', 'dataN', 'delta',],
+        opts=['dataC', 'dataT', 'dataN', 'dataK', 'delta',],
     ),
 }
 

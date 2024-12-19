@@ -1053,8 +1053,8 @@ def do_band(args=None):
     logger.info(f'Loading data from {inputfile} with identifiers: {group}')
     
     # parse inp. and do exec.
-    dataSTCN = TEdatax.gget('STCN', default=None)
-    inp = {k:v for k,v in zip('STCN', dataSTCN) if v is not None}
+    dataSTCN = TEdatax.gget('STCNK', default=None)
+    inp = {k:v for k,v in zip('STCNK', dataSTCN) if v is not None}
     logger.info('Read %s successfully', ', '.join(f'data{k}' for k in inp))
     logger.debug('Parsed data:\n%s', str(inp))
     out = model.execute(**{f'data{k}':np.absolute(v) for k, v in inp.items()})
@@ -1067,7 +1067,7 @@ def do_band(args=None):
 
     if not options.bare:
         out.update(inp)
-        for prop in reversed('STCN'):
+        for prop in reversed('STCNK'):
             if prop in inp:
                 out.move_to_end(prop, last=False)
     outputfile = _to_file(options, out, header='Modeling carrier transport')
