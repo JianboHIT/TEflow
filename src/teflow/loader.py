@@ -575,12 +575,13 @@ class TEdataset(Mapping):
             groups = cls.parse_group(group)
             nan_filter = lambda x: x[:, np.all(np.isfinite(x), axis=0)]
             itemp = [i for i, s in enumerate(groups) if s == TSYM]
+            iprop = itemp[1:] + [len(groups),]
             if not itemp:
                 raise ValueError(f"Failed to find identifier '{TSYM}' in group")
             if len(itemp) == 1:
                 data[itemp[0]:] = nan_filter(np.vstack(data[itemp[0]:]))
             else:
-                for p, q in zip(itemp[:-1], itemp[1:]):
+                for p, q in zip(itemp, iprop):
                     data[p:q] = nan_filter(np.vstack(data[p:q]))
         return cls(data=data, group=group, independent=independent)
 
