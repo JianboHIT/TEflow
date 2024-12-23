@@ -12,6 +12,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import re
+
 import numpy as np
 from numpy.polynomial import Polynomial
 from scipy.special import expit, logit
@@ -133,6 +135,97 @@ class Metric:
         v = 2.0 * np.mean(diff/sum_, axis=axis)
         return v
 
+
+def split_monotonic(x, trend='both', ends='both', eps=1e-8):
+    '''
+    Split an array into monotonic intervals.
+
+    Parameters
+    ----------
+    x : array-like
+        Input array with at least two elements. It will be flattened if
+        high-dimensional.
+    trend : str, optional
+        Specifies the trend of segments to return:
+
+        - 'both' (default): both ascending and descending intervals
+        - 'ascending': only ascending intervals
+        - 'descending': only descending intervals
+        - '#<regular_expression>': use a regular expression to customize the
+          selection of intervals (experimental)
+    ends : str, optional
+        Defines how the endpoints are treated:
+
+        - 'both' (default): includes both endpoints
+        - 'left': includes the left endpoint only
+        - 'right': includes the right endpoint only
+        - 'none': excludes both endpoints
+    eps : float, optional
+        Threshold to define flat segments. Defaults to 1e-8.
+
+    Returns
+    -------
+    intervals : list of ndarray
+        List of monotonic segments.
+    signs : ndarray
+        Array indicating trends: +1 for ascending intervals, -1 for descending.
+    indices : list of tuple
+        List of start and end indices of each segment.
+
+    Notes
+    -----
+    1. The `trend` and `ends` parameters are case-insensitive and only the first
+    letter is considered.
+
+    2. The feature to filter intervals with regular expressions is currently
+    experimental. Be aware that it may yield unintended results. This approach
+    maps numerical differences to a string format (one element shorter
+    than the original array) using `A` for ascending, `D` for descending,
+    and `S` for steady or equal values. Then, the regular expressions can be
+    used to split monotonic sub-intervals. For instance, setting `trend` to
+    'ascending' is equivalent to using the regex `r'(A(?:[AS]*A)?)'`, i.e.,
+    `trend = r'#(A(?:[AS]*A)?)'` (with the additional # symbol).
+    Obviously, the default configuration allows non-strict monotonicity,
+    meaning flat sections may be present. To ensure strict monotonicity,
+    use `trend = r'#A+'`.
+    '''
+    end_type = ends.upper()[0]
+    if end_type == 'L':
+        left, right = 0, 0
+    elif end_type == 'R':
+        left, right = 1, 1
+    elif end_type == 'B':
+        left, right = 0, 1
+    elif end_type == 'N':
+        left, right = 1, 0
+    else:
+        raise ValueError("Invalid 'ends' value. Use 'left', 'right', 'both', or 'none'.")
+
+    trend_type = trend.upper()[0]
+    if trend_type == 'B':
+        pattern = r'(A(?:[AS]*A)?|D(?:[DS]*D)?)'
+    elif trend_type == 'A':
+        pattern = r'(A(?:[AS]*A)?)'
+    elif trend_type == 'D':
+        pattern = r'(D(?:[DS]*D)?)'
+    elif trend_type == '#':
+        pattern = trend[1:]
+    else:
+        raise ValueError("Anvalid 'trend' value. Use 'both', 'ascending', 'descending', or a regex pattern.")
+
+    xval = np.ravel(x)
+    sign_ASD = ''.join('A' if s > eps else 'D' if s < -eps else 'S' for s in np.diff(xval))
+
+    intervals = []
+    signs = []
+    indices = []
+    for m in re.finditer(pattern, sign_ASD):
+        idx_start = m.start()+left
+        idx_end = m.end()+right
+        intervals.append(xval[idx_start:idx_end])
+        signs.append(1 if m.group()[0] == 'A' else -1 if m.group()[0] == 'D' else 0)
+        indices.append((idx_start, idx_end))
+    return intervals, signs, indices
 
 def mixing(datas, weight=None, scale=None):
     '''
