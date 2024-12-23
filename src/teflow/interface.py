@@ -620,7 +620,7 @@ def do_engout(args=None):
 
 
 def do_format(args=None):
-    from .loader import TEdataset, INSTRMETA
+    from .loader import TEdataset2, INSTRMETA
     from .mathext import vinterp
     from .utils import AttrDict
     
@@ -716,8 +716,8 @@ def do_format(args=None):
 
     # read normal TE data
     group = options.group
-    logger.info(f"Column identifiers: {', '.join(TEdataset.parse_group(group))}")
-    TEdatax = TEdataset.from_file(inputfile, group, independent=False)
+    logger.info(f"Column identifiers: {', '.join(TEdataset2.parse_group(group))}")
+    TEdatax = TEdataset2.from_file(inputfile, group)
     logger.info(f'Load input data from {inputfile} successfully')
     logger.debug(f'Details of {str(TEdatax)}')
 
@@ -1084,7 +1084,7 @@ def do_band(args=None):
     # read TEdatax and group
     inputfile = options.inputfile
     group = options.group
-    TEdatax = TEdataset.from_file(inputfile, group, independent=True)
+    TEdatax = TEdataset.from_file(inputfile, group)
     logger.info(f'Loading data from {inputfile} with identifiers: {group}')
     
     # parse inp. and do exec.
