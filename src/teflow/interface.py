@@ -659,8 +659,8 @@ def do_format(args=None):
     parser.add_argument('outputfile', **OPTS['outputf'])
     
     parser.add_argument('-m', '--method', default='cubic', 
-        help="Interpolation method, only 'linear' and 'cubic' allowed "\
-             '(default: cubic)')
+        help="Interpolation method, linear, cubic, pchip, Akima, "\
+             'and 1~9 polynomials are allowed (default: cubic)')
 
     parser.add_argument('--tstep', type=float, default=25,
         help='Specify the increment (in Kelvin) for the auto temperature '\
@@ -752,23 +752,58 @@ def do_format(args=None):
         logger.info(f'Read temperatures from {outputfile}')
 
     # check method and interp
-    _METHODS = {'linear', 'cubic',}
-    method = options.method.lower()
-    if method not in _METHODS:
-        logger.error('Failed to recognize the method of interpolation')
-        logger.error(f'Now is {method}, '
-                     f'but methods shown below are allowed: \n{_METHODS}\n')
+    METHOD_DICT = {
+        'L': 'linear',
+        'C': 'cubic',
+        'P': 'pchip',
+        'A': 'Akima',
+        **{f'{i}': f'poly{i}' for i in range(1, 10)},
+    }
+    method_ = options.method.split()
+    num = len(method_)
+    if num == 0:
         raise ValueError("Value of 'method' is invalid.")
+    elif num == 1:
+        methods = method_ * 3
+        logger.info(f'Interpolation methods: {method_} for all properties')
+    elif num == 2:
+        logger.error(f"Parsed 'method' arguments: {method_}")
+        raise ValueError("Number of 'method' should be 1 or 3.")
+    elif num == 3:
+        methods = method_
+        logger.info(f'Interpolation methods for C, S, K: {", ".join(methods)}')
+    else:
+        methods = method_[:3]
+        logger.info(f'Only first 3 methods are used for C, S, K: {", ".join(methods)}')
+
+    methods_refined = []
+    for method in methods:
+        method = method.upper()
+        if method.startswith('POLY'):
+            methods_refined.append(f'poly{method[-1]}')
+        elif method[0] in METHOD_DICT:
+            methods_refined.append(METHOD_DICT[method[0]])
+        else:
+            logger.error('Failed to recognize the method of interpolation')
+            logger.error(f'Now is {method}, '
+                        f'but methods shown below are allowed: \n{sorted(METHOD_DICT.values())}\n')
+            raise ValueError("Value of 'method' is invalid.")
 
     out = AttrDict(T=T)
-    for prop in ('C', 'S', 'K'):
+    prop_miss = []
+    for prop, meth in zip(('C', 'S', 'K'), methods_refined):
         tx, px = TEdatax.get(prop, None)
-        if px is not None:
-            out[prop] = vinterp(tx, px, T, method=method)
-    logger.info('Fetch and interpolate: %s', ', '.join(out.keys()))
+        if px is None:
+            prop_miss.append(prop)
+        else:
+            out[prop] = vinterp(tx, px, T, method=meth)
 
     # calculate PF, ZT and PF
     if options.calculate:
+        if prop_miss:
+            logger.error(f'Missing properties: {", ".join(prop_miss)}')
+            raise ValueError('Stop to calculate PF, ZT, etc when missing C, S or K.')
+
         from .mathext import cumtrapz
 
         out['PF'] = 1E-6 * out['C']*out['S']*out['S']
