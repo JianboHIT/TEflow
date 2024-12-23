@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 
-from teflow.loader import TEdataset
+from teflow.loader import TEdataset, TEdataset2
 
 
 class TestTEdataset(unittest.TestCase):
@@ -25,12 +25,16 @@ class TestTEdataset(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Failed .* R'):
             d.gget('KR')
 
+
+class TestTEdataset2(unittest.TestCase):
+    seq = list(range(10))
+
     def test_not_KR_2(self):
-        d = TEdataset(data=self.seq, group='TNSK', independent=False)
+        d = TEdataset2(data=self.seq, group='TNSK')
         with self.assertRaisesRegex(ValueError, 'Failed .* R'):
             d.gget('KR')
 
     def test_mismatch(self):
-        d = TEdataset(data=self.seq, group='TNTUSK', independent=False)
+        d = TEdataset2(data=self.seq, group='TNTUSK')
         with self.assertRaisesRegex(ValueError, 'Failed .* R'):
             d.gget('KR')
