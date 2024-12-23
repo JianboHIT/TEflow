@@ -284,7 +284,191 @@ class Compound(AttrDict):
         return comp
 
 
-class TEdataset(Mapping):
+class TEdatasetBase(Mapping):
+    Q_CHARGE = 1.602176634
+    TEMP_SYMBOL = 'T'
+    IGNORED = {'X',}
+    CONDALIAS = ('C', 'R', 'N', 'U')
+    PROP_PATTERN = r'[A-Z][a-z0-9_]?'
+    def __init__(self, data, group):
+        '''
+        Parameters
+        ----------
+        data : list
+            A list of thermoelectric data, where each item represents a property and
+            is converted to a numpy.ndarray object during initialization.
+            It can also be a numpy.ndarray, which will be treated as a regular iterable.
+            For instance, in the case of a two-dimensional array, each row represents
+            a distinct property.
+        group : list or str
+            Specifies the identifiers for each item in `data`. This can be a list or
+            a string (strings are automatically parsed using the :meth:`parse_group`
+            method). The pairing of `group` and `data` behaves similarly to the
+            built-in `zip` function, ceasing iteration when the shorter of the two
+            is fully iterated. The default :meth:`parse_group` method utilizes the
+            regular expression `r'[A-Z][a-z0-9_]?'` (i.e. :attr:`PROP_PATTERN` attribute)
+            to match each identifier. This method can be overridden to change
+            the parsing behavior.
+        '''
+        group = self.parse_group(group)
+        self._initialize_data(data, group)
+        self._calc_cond = {
+            self.CONDALIAS[0]: self._getC,
+            self.CONDALIAS[1]: self._getR,
+            self.CONDALIAS[2]: self._getN,
+            self.CONDALIAS[3]: self._getU,
+        }
+
+    def _initialize_data(self, data, group):
+        self._data = ...
+        self._temp = ...
+        self._tidx = ...
+        raise NotImplementedError
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def __len__(self):
+        return len(self._data)
+
+    def __getitem__(self, key):
+        raise NotImplementedError
+
+    def get(self, key, default=_UNSET):
+        '''
+        Fetches a material property, also including temperature
+        if not independent. Raises ValueError for missing properties
+        if `default` is not specified.
+        '''
+        raise NotImplementedError
+
+    def gget(self, group, default=_UNSET):
+        '''
+        Batch fetch specified properties from `group` using :meth:`get`,
+        and return a list.
+        '''
+        group = self.parse_group(group)
+        return [self.get(g, default=default) for g in group]
+
+    def _getC(self, default=None):
+        data = self._data
+        temp = self._temp
+        tidx = self._tidx
+        C, R, N, U = self.CONDALIAS
+        if C in data:
+            return temp[C], data[C]
+        elif R in data:
+            return temp[R], 1E4 / data[R]
+        elif (N in data) and (U in data) and (tidx[N] == tidx[U]):
+            return temp[N], self.Q_CHARGE * data[N] * data[U]
+        else:
+            return default, default
+
+    def _getR(self, default=None):
+        data = self._data
+        temp = self._temp
+        tidx = self._tidx
+        C, R, N, U = self.CONDALIAS
+        if R in data:
+            return temp[R], data[R]
+        elif C in data:
+            return temp[C], 1E4 / data[C]
+        elif (N in data) and (U in data) and (tidx[N] == tidx[U]):
+            return temp[N], 1E4 /(self.Q_CHARGE * data[N] * data[U])
+        else:
+            return default, default
+
+    def _getN(self, default=None):
+        data = self._data
+        temp = self._temp
+        tidx = self._tidx
+        C, R, N, U = self.CONDALIAS
+        if N in data:
+            return temp[N], data[N]
+        elif (U in data) and (C in data) and (tidx[U] == tidx[C]):
+            return temp[U], data[C] / (self.Q_CHARGE * data[U])
+        elif (U in data) and (R in data) and (tidx[U] == tidx[R]):
+            return temp[U], 1E4 / data[R] / (self.Q_CHARGE * data[U])
+        else:
+            return default, default
+
+    def _getU(self, default=None):
+        data = self._data
+        temp = self._temp
+        tidx = self._tidx
+        C, R, N, U = self.CONDALIAS
+        if U in data:
+            return temp[U], data[U]
+        elif (N in data) and (C in data) and (tidx[N] == tidx[C]):
+            return temp[N], data[C] / (self.Q_CHARGE * data[N])
+        elif (N in data) and (R in data) and (tidx[N] == tidx[R]):
+            return temp[N], 1E4 / data[R] / (self.Q_CHARGE * data[N])
+        else:
+            return default, default
+
+    @classmethod
+    def parse_group(cls, group):
+        '''
+        Parse `group` into identifiers based on :attr:`PROP_PATTERN` attribute.
+        '''
+        if isinstance(group, str):
+            return re.findall(cls.PROP_PATTERN, group)
+        elif isinstance(group, Sequence):
+            return list(group)
+        else:
+            gtype = type(group).__name__
+            raise ValueError(f"Expected a string or a sequence, got {gtype}")
+
+    @staticmethod
+    def parse_datafile(filename, delimiter=None):
+        '''
+        Parse a block-structured data file. By default, any consecutive
+        whitespaces act as delimiter.
+        '''
+        data = []
+        dcp = re.compile(r'^ *(?P<rowline>[^#]+?) *(?=#|$)')
+        dcv = re.compile(delimiter or r'[,;\t]')
+        with open(filename, 'r') as f:
+            for line in f:
+                m = dcp.match(line.rstrip())
+                if not m:
+                    continue
+                row = []
+                for item in dcv.split(m.group('rowline')):
+                    try:
+                        val = float(item)
+                    except ValueError:
+                        val = np.nan
+                    finally:
+                        row.append(val)
+                data.append(row)
+        return list(zip_longest(*data, fillvalue=np.nan))
+
+    @classmethod
+    def from_file(cls, filename, group, delimiter=None):
+        '''
+        Construct the object or parse data directly from a file.
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file containing the data.
+        group : list or str
+            Identifiers for each data item, passed directly to the initializer.
+            Refer to initializer documentation for more details.
+        delimiter : str, optional
+            The delimiter used in the file. Default is None, any consecutive
+            whitespaces act as delimiter.
+
+        Returns
+        -------
+        object
+            An instance of this class.
+        '''
+        raise NotImplementedError
+
+
+class TEdataset(TEdatasetBase):
     '''
     A read-only, dict-like interface class for managing thermoelectric data
     (in fact, it is inherited from `collections.abc.Mapping`).
@@ -316,37 +500,6 @@ class TEdataset(Mapping):
         X      <Placeholder>              --
         ====== ========================== ===============
 
-    Additionally, a significant feature of this class is handling the
-    temperature dependency of material properties, determined by the
-    `independent` parameter at initialization. By default, set to True,
-    material properties are considered entirely independent, and only
-    the property itself is returned when accessed. If set to False,
-    the class pairs each material property with a corresponding temperature,
-    returning both temperature and property when accessed.
-
-    Parameters
-    ----------
-    data : list
-        A list of thermoelectric data, where each item represents a property and
-        is converted to a numpy.ndarray object during initialization.
-        It can also be a numpy.ndarray, which will be treated as a regular iterable.
-        For instance, in the case of a two-dimensional array, each row represents
-        a distinct property.
-    group : list or str
-        Specifies the identifiers for each item in `data`. This can be a list or
-        a string (strings are automatically parsed using the :meth:`parse_group`
-        method). The pairing of `group` and `data` behaves similarly to the
-        built-in `zip` function, ceasing iteration when the shorter of the two
-        is fully iterated. The default :meth:`parse_group` method utilizes the
-        regular expression `r'[A-Z][a-z0-9_]?'` (i.e. :attr:`PATTERN` attribute)
-        to match each identifier. This method can be overridden to change
-        the parsing behavior.
-    independent : bool, optional
-        Controls the association of material properties with temperature.
-        By default, it is set to True, where all properties, including
-        temperature, are treated as distinct and independent. If set to False,
-        all properties are associated with temperature data.
-
     Notes
     -----
     The default identifiers for electrical conductivity, resistivity, carrier
@@ -358,38 +511,53 @@ class TEdataset(Mapping):
     modify the specific conversion strategies, you can override these methods
     according to your requirements.
     '''
-    TEMPSYMBOL = 'T'
-    IGNORED = {'X',}
-    CONDALIAS = ('C', 'R', 'N', 'U')
-    PATTERN = r'[A-Z][a-z0-9_]?'
-    def __init__(self, data, group, independent=True):
-        group = self.parse_group(group)
-        if independent:
-            self.INDEP = True
-            self._initialize_indep(data, group)
-        else:
-            self.INDEP = False
-            self._initialize_depend(data, group)
-        self._calc_cond = {
-            self.CONDALIAS[0]: self._getC,
-            self.CONDALIAS[1]: self._getR,
-            self.CONDALIAS[2]: self._getN,
-            self.CONDALIAS[3]: self._getU,
-        }
-
-    def _initialize_indep(self, data, group):
+    def _initialize_data(self, data, group):
         self._data = {k: np.asarray(v) \
             for k,v in zip(group, data) if k not in self.IGNORED}
         self._temp = {k: None for k in self._data.keys()}
         self._tidx = {k: -1 for k in self._data.keys()}
 
-    def _initialize_depend(self, data, group):
+    def __str__(self):
+        data = self._data
+        props = [f'{k}#{len(v)}' for k, v in data.items()]
+        return '{}: {}'.format(self.__class__.__name__, ', '.join(props))
+
+    def __getitem__(self, key):
+        return self._data[key]
+
+    def get(self, key, default=_UNSET):
+        if key in self._data:
+            val = self._data[key]
+        elif key in self._calc_cond:
+            _, val = self._calc_cond[key](default=default)
+        else:
+            val = default
+        if val is _UNSET:
+            raise ValueError(f'Failed to fetch {key}')
+        return val
+
+    @classmethod
+    def from_file(cls, filename, group, delimiter=None):
+        data = cls.parse_datafile(filename, delimiter)
+        nan_filter = lambda x: x[np.isfinite(x)]
+        data = [nan_filter(np.array(line)) for line in data]
+        return cls(data=data, group=group)
+
+
+class TEdataset2(TEdatasetBase):
+    '''
+    Similar to :class:`TEdataset`, this class incorporates temperature
+    dependencies. It automatically links material properties to their
+    respective temperature data, allowing users to access both the property
+    value and its associated temperature seamlessly.
+    '''
+    def _initialize_data(self, data, group):
         self._data = dict()
         self._temp = dict()
         self._tidx = dict()
         idx = 0
         for i, (g, d) in enumerate(zip(group, data)):
-            if g == self.TEMPSYMBOL:
+            if g == self.TEMP_SYMBOL:
                 idx = i
             elif i > idx:
                 if g not in self.IGNORED:
@@ -401,32 +569,15 @@ class TEdataset(Mapping):
 
     def __str__(self):
         data = self._data
-        if self.INDEP:
-            props = [f'{k}#{len(v)}' for k, v in data.items()]
-        else:
-            TSYM = self.TEMPSYMBOL
-            tidx = self._tidx
-            props = [f'{k}_{TSYM}{tidx[k]}#{len(v)}' for k, v in data.items()]
+        TSYM = self.TEMP_SYMBOL
+        tidx = self._tidx
+        props = [f'{k}_{TSYM}{tidx[k]}#{len(v)}' for k, v in data.items()]
         return '{}: {}'.format(self.__class__.__name__, ', '.join(props))
 
-    def __iter__(self):
-        return iter(self._data)
-
-    def __len__(self):
-        return len(self._data)
-
     def __getitem__(self, key):
-        if self.INDEP:
-            return self._data[key]
-        else:
-            return self._temp[key], self._data[key]
+        return self._temp[key], self._data[key]
 
     def get(self, key, default=_UNSET):
-        '''
-        Fetches a material property, also including temperature
-        if not independent. Raises ValueError for any property
-        that cannot be fetched if `default` is not set.
-        '''
         if key in self._data:
             temp, val = self._temp[key], self._data[key]
         elif key in self._calc_cond:
@@ -435,155 +586,24 @@ class TEdataset(Mapping):
             temp, val = default, default
         if val is _UNSET:
             raise ValueError(f'Failed to fetch {key}')
-        return val if self.INDEP else (temp, val)
-
-    def gget(self, group, default=_UNSET):
-        '''
-        Batch fetch specified properties from `group` using :meth:`get`,
-        and return a list.
-        '''
-        group = self.parse_group(group)
-        return [self.get(g, default=default) for g in group]
-
-    def _getC(self, default=None):
-        data = self._data
-        temp = self._temp
-        tidx = self._tidx
-        C, R, N, U = self.CONDALIAS
-        if C in data:
-            return temp[C], data[C]
-        elif R in data:
-            return temp[R], 1E4 / data[R]
-        elif (N in data) and (U in data) and (tidx[N] == tidx[U]):
-            return temp[N], 1.602176634 * data[N] * data[U]
-        else:
-            return default, default
-
-    def _getR(self, default=None):
-        data = self._data
-        temp = self._temp
-        tidx = self._tidx
-        C, R, N, U = self.CONDALIAS
-        if R in data:
-            return temp[R], data[R]
-        elif C in data:
-            return temp[C], 1E4 / data[C]
-        elif (N in data) and (U in data) and (tidx[N] == tidx[U]):
-            return temp[N], 1E4 /(1.602176634 * data[N] * data[U])
-        else:
-            return default, default
-
-    def _getN(self, default=None):
-        data = self._data
-        temp = self._temp
-        tidx = self._tidx
-        C, R, N, U = self.CONDALIAS
-        if N in data:
-            return temp[N], data[N]
-        elif (U in data) and (C in data) and (tidx[U] == tidx[C]):
-            return temp[U], data[C] / (1.602176634 * data[U])
-        elif (U in data) and (R in data) and (tidx[U] == tidx[R]):
-            return temp[U], 1E4 / data[R] / (1.602176634 * data[U])
-        else:
-            return default, default
-
-    def _getU(self, default=None):
-        data = self._data
-        temp = self._temp
-        tidx = self._tidx
-        C, R, N, U = self.CONDALIAS
-        if U in data:
-            return temp[U], data[U]
-        elif (N in data) and (C in data) and (tidx[N] == tidx[C]):
-            return temp[N], data[C] / (1.602176634 * data[N])
-        elif (N in data) and (R in data) and (tidx[N] == tidx[R]):
-            return temp[N], 1E4 / data[R] / (1.602176634 * data[N])
-        else:
-            return default, default
+        return temp, val
 
     @classmethod
-    def parse_group(cls, group):
-        '''
-        Parse `group` into identifiers based on :attr:`PATTERN` attribute.
-        '''
-        if isinstance(group, str):
-            return re.findall(cls.PATTERN, group)
-        elif isinstance(group, Sequence):
-            return list(group)
+    def from_file(cls, filename, group, delimiter=None):
+        data = cls.parse_datafile(filename, delimiter)
+        TSYM = cls.TEMP_SYMBOL
+        groups = cls.parse_group(group)
+        nan_filter = lambda x: x[:, np.all(np.isfinite(x), axis=0)]
+        itemp = [i for i, s in enumerate(groups) if s == TSYM]
+        iprop = itemp[1:] + [len(groups),]
+        if not itemp:
+            raise ValueError(f"Failed to find identifier '{TSYM}' in group")
+        if len(itemp) == 1:
+            data[itemp[0]:] = nan_filter(np.vstack(data[itemp[0]:]))
         else:
-            gtype = type(group).__name__
-            raise ValueError(f"Expected a string or a sequence, got {gtype}")
-
-    @classmethod
-    def from_file(cls, filename, group, independent=True, delimiter=None):
-        '''
-        Construct the object or parse data directly from a file.
-
-        Parameters
-        ----------
-        filename : str
-            The name of the file containing the data.
-        group : list or str
-            Identifiers for each data item, passed directly to the initializer.
-            Refer to initializer documentation for more details.
-        independent : bool, optional
-            Determines the treatment of material properties regarding temperature,
-            passed directly to the initializer. See initializer for details.
-        delimiter : str, optional
-            The delimiter used in the file. Default is None, any consecutive
-            whitespaces act as delimiter.
-
-        Returns
-        -------
-        object
-            An instance of this class.
-        '''
-        try:
-            data = np.loadtxt(filename, delimiter=delimiter, unpack=True, ndmin=2)
-        except ValueError:
-            pass
-        else:
-            # parse blocked data successfully
-            return cls(data=data, group=group, independent=independent)
-
-        # try to parse unblocked data
-        data = []
-        dcp = re.compile(r'^ *(?P<rowline>[^#]+?) *(?=#|$)')
-        dcv = re.compile(delimiter or r'[,;\t]')
-        with open(filename, 'r') as f:
-            for line in f:
-                m = dcp.match(line.rstrip())
-                if not m:
-                    continue
-                row = []
-                for item in dcv.split(m.group('rowline')):
-                    try:
-                        val = float(item)
-                    except ValueError:
-                        val = np.nan
-                    finally:
-                        row.append(val)
-                data.append(row)
-        data = list(zip_longest(*data, fillvalue=np.nan))
-
-        # filter NaNs
-        if independent:
-            nan_filter = lambda x: x[np.isfinite(x)]
-            data = [nan_filter(np.array(line)) for line in data]
-        else:
-            TSYM = cls.TEMPSYMBOL
-            groups = cls.parse_group(group)
-            nan_filter = lambda x: x[:, np.all(np.isfinite(x), axis=0)]
-            itemp = [i for i, s in enumerate(groups) if s == TSYM]
-            iprop = itemp[1:] + [len(groups),]
-            if not itemp:
-                raise ValueError(f"Failed to find identifier '{TSYM}' in group")
-            if len(itemp) == 1:
-                data[itemp[0]:] = nan_filter(np.vstack(data[itemp[0]:]))
-            else:
-                for p, q in zip(itemp, iprop):
-                    data[p:q] = nan_filter(np.vstack(data[p:q]))
-        return cls(data=data, group=group, independent=independent)
+            for p, q in zip(itemp, iprop):
+                data[p:q] = nan_filter(np.vstack(data[p:q]))
+        return cls(data=data, group=group)
 
 
 INSTRMETA = AttrDict()
