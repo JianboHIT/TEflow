@@ -670,6 +670,9 @@ def do_format(args=None):
         help='Specify the maximum (in Kelvin) for the auto temperature '\
              'series. (default: Tmax in inputfile)')
 
+    parser.add_argument('--no-rt', '--no-room-temperature', action='store_true',
+        help='Do not include room temperature (300K) in the auto temperature series.')
+
     parser.add_argument('-g', '--group', default='TCTSTK', 
         help='Group identifiers for paired data (e.g. TCTSTK, TCSK, '\
              'TKXXTSC, default: TCTSTK)')
@@ -736,8 +739,12 @@ def do_format(args=None):
         t_max = options.tmax or max(T.max() for T, *_ in TEdatax.values())
         if t_step > 23:
             t_num = round((t_max-323)/t_step)+1
-            T = np.array([300, ] + [323+i*t_step for i in range(t_num)])
-            logger.debug(f'Temperatures: 300, 323, {323+t_step}, ..., {T[-1]}')
+            T = 323 + np.arange(t_num)*t_step
+            if options.no_rt:
+                logger.debug(f'Temperatures: 323, {323+t_step}, ..., {T[-1]}')
+            else:
+                T = np.insert(T, 0, 300)
+                logger.debug(f'Temperatures: 300, 323, {323+t_step}, ..., {T[-1]}')
         else:
             t_sum = round((t_max-300)/t_step)+1
             T = np.array([300+i*t_step for i in range(t_sum)])
