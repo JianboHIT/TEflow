@@ -620,7 +620,7 @@ def do_engout(args=None):
 
 
 def do_format(args=None):
-    from .loader import TEdataset2
+    from .loader import TEdataset2, parse_TEfile
     from .mathext import vinterp
     from .utils import AttrDict
     
@@ -675,6 +675,9 @@ def do_format(args=None):
         help='Group identifiers for paired data (e.g. TCTSTK, TCSK, '\
              'TKXXTSC, default: TCTSTK)')
     
+    parser.add_argument('-f', '--configfile', action='store_true',
+        help='Directly parse raw instruments files through a configuration file')
+
     parser.add_argument('-s', '--suffix', **OPTS['suffix'](task))
     
     options = parser.parse_args(args)
@@ -687,15 +690,21 @@ def do_format(args=None):
     # get input filename
     inputfile = options.inputfile
 
-    # read origin data
-    group = TEdataset2.parse_group(options.group)
-    logger.info(f"Column identifiers: {', '.join(group)}")
-    TEdatax = TEdataset2.from_file(inputfile, group)
-    logger.info(f'Load input data from {inputfile} successfully')
-    logger.debug(f'Details of {str(TEdatax)}')
+    if options.configfile:
+        # read data from raw instruments files
+        overriden = getattr(options, 'stored_params', {})
+        TEdatax = parse_TEfile(inputfile, specify=overriden)
+        logger.info('Parse raw instruments files successfully')
+    else:
+        # read data from a single file
+        group = TEdataset2.parse_group(options.group)
+        logger.info(f"Column identifiers: {', '.join(group)}")
+        TEdatax = TEdataset2.from_file(inputfile, group)
+        logger.info(f'Load input data from {inputfile} successfully')
+        logger.debug(f'Details of {str(TEdatax)}')
 
     # parse outputfile name
-    outputfile = _suffixed(options.outputfile, inputfile, options.suffix)
+    outputfile = _suffixed(options.outputfile, inputfile, options.suffix, '.txt')
     logger.debug(f'Parse output filename: {outputfile}')
 
     # read temperatures
@@ -804,8 +813,8 @@ def do_format(args=None):
         logger.info('Calculate thermoelectric PF, ZT, etc')
 
     # save result
-    _to_file(options, out, header='Formated TE data', fp=outputfile)
-    logger.info(f'Save model data to {outputfile} (Done)')
+    _to_file(options, out, header='Formated thermoelectric data', fp=outputfile)
+    logger.info(f'Save thermoelectric data to {outputfile} (Done)')
 
 
 def do_cutoff(args=None):
