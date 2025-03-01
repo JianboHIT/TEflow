@@ -273,12 +273,18 @@ class Compound(AttrDict):
             return ' '.join(dsps)
 
     @classmethod
-    def from_string(cls, formula:str):
+    def from_string(cls, formula:str, skip_unknown=False, raise_unknown=False):
         '''Instance construction from a chemical formula.'''
         comp = cls()
+        vaild_keys = set(AtomicWeight._fields)
         dcp = re.compile(r'(?P<name>[A-Z][a-z]?)[ _\-\(\\]*(?P<num>\d*\.?\d*)')
         for m in dcp.finditer(formula):
             name = m.group('name')
+            if name not in vaild_keys:
+                if raise_unknown:
+                    raise ValueError(f'Unknown element {name} in {formula}.')
+                elif skip_unknown:
+                    continue
             num_ = m.group('num') or '1'
             comp[name] = float(num_) if '.' in num_ else int(num_)
         return comp
