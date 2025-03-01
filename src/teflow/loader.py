@@ -705,3 +705,105 @@ def parseLFA(text:str):
         raise IOError(f'Failed to parse LFA file: {e}')
     else:
         return AttrDict(T=np.array(dataT), A=np.array(dataA))
+
+def parse_CpT(weight, *args, model='Dulong-Petit'):
+    '''Produce a temperature-dependent heat capacity function Cp(T)'''
+    DP = 3 * 8.31446261815324   # 3R
+    if model in ('Dulong-Petit', 'DP', '3R'):
+        return lambda T: DP / weight * np.ones_like(T)
+    elif model in ('Mg3Sb2',):
+        raise NotImplementedError
+        # weight, *_ = args
+        # return lambda T: DP / weight * np.ones_like(T)
+    else:
+        raise ValueError(f"Invalid model: {model}")
+
+def parse_TEfile(filename, specify=None):
+    '''Parse thermoelectric data from a config file'''
+    config = CfgParser()
+    with open(filename, 'r') as f:
+        config.read_file(f)
+        logger.info(f'Read configuration from {filename}')
+
+    entry = config['entry']
+    logger.debug('Found entry section')
+
+    if specify is not None:
+        entry.update(specify)
+        logger.debug('Update specify setting to entry:\n  %s' % specify)
+
+    dsp = "Parameter '{}' is required in entry section!"
+    data = []
+    group = []
+
+    # parse composition (comp)
+    if 'sample' in entry:
+        comp = Compound.from_string(entry.get('sample'), skip_unknown=True)
+        logger.info(f'Compostion: {comp.to_string(style="split")}')
+        weight = comp.weight_ave
+        logger.info(f'Average Atomic Weight: {weight:.7g} au')
+    else:
+        raise ValueError("Parameter 'sample' is required for evaluating "
+                         "atomic weight in entry section!")
+
+    # parse electrical transport properties
+    Found = []
+    if 'ZEM' in entry:
+        Found.append('ZEM')
+    if 'CTA' in entry:
+        Found.append('CTA')
+
+    NumFound = len(Found)
+    if NumFound == 0:
+        raise ValueError(dsp.format("CTA' or 'ZEM"))
+    elif NumFound > 1:
+        raise ValueError(f"Overlapped parameters: {', '.join(Found)}")
+
+    instr = Found[0]
+    instr_file = entry.get(instr)
+    logger.debug(f'{instr} file: {instr_file}')
+    datax = INSTRMETA[instr][0](instr_file)
+    logger.info(f'> Parsing {instr} data: {",".join(datax.keys())}')
+
+    for key, val in datax.items():
+        data.append(val)
+        group.append(key)
+
+    # parse thermal transport properties
+    if 'LFA' in entry:
+        lfa_file = entry.get('LFA')
+        logger.debug(f'LFA file: {lfa_file}')
+        datax = parseLFA(lfa_file)
+        logger.info(f'> Parsing LFA data: {",".join(datax.keys())}')
+    else:
+        raise ValueError(dsp.format('LFA'))
+
+    # parse density
+    if 'density' in entry:
+        density = eval(entry.get('density'), {"__builtins__": None}, {})
+        logger.info(f'Density: {density:.4g} g/cm^3')
+    else:
+        raise ValueError(dsp.format('density'))
+
+    # parse heat capacity (Cp)
+    cpx = entry.get('Cp', '@Dulong-Petit').strip()
+    if '@' in cpx:
+        argx, model = cpx.rsplit('@', maxsplit=1)
+        model = model.strip()
+        args = [float(x) for x in re.split(r'[\s,]+', argx) if x]
+        Cp_T = parse_CpT(weight, *args, model=model)
+        logger.info(f'Cp: {model} model')
+        Cp = Cp_T(datax['T'])
+        logger.debug(f'{Cp}')
+    else:
+        Cp = np.asarray(entry.getlist_float('Cp'))
+        if len(Cp) != len(datax['T']):
+            raise ValueError(f"Cp values should have the same length as T")
+        logger.info(f'Cp: {Cp}')
+
+    # calculate thermal conductivity (kappa)
+    kappa = datax['A'] * density * Cp
+    logger.debug(f'Kappa: {kappa}')
+    data.extend([datax['T'], datax['A'], kappa])
+    group.extend(['T', 'A', 'K'])
+    return TEdataset2(data=data, group=group)
