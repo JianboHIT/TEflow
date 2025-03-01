@@ -675,12 +675,12 @@ def parseLFA(text:str):
     for line in rawlines[idx+1:]:
         line =line.strip()
         if line.startswith('#Mean'):
-            values = line.split(',')
-            if len(values) < 4:
+            values = [x for x in line.split(',') if x]
+            if len(values) < 3:
                 continue
-            logger.debug('  %s', '  '.join(values[i] for i in [1, 3]))
+            logger.debug(f'  {values[1]}, {values[2]}')
             dataT.append(float(values[1])+273)  # degC  --> Kelvin
-            dataA.append(float(values[3]))      # Diffusivity, in mm^2/s
+            dataA.append(float(values[2]))      # Diffusivity, in mm^2/s
     if dataT and dataA:
         return AttrDict(T=np.array(dataT), A=np.array(dataA))
     else:
@@ -692,7 +692,7 @@ def parseLFA(text:str):
             values = line.split(',')
             if len(values) < 3:
                 continue
-            logger.debug('  %s', '  '.join(values[i] for i in [1, 2]))
+            logger.debug(f'  {values[1]}, {values[2]}')
             dataT.append(float(values[1])+273)  # degC  --> Kelvin
             dataA.append(float(values[2]))      # Diffusivity, in mm^2/s
     except Exception as e:
