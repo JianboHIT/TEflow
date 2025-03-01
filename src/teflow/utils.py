@@ -323,11 +323,11 @@ class CfgParser(ConfigParser):
             'interpolation': ExtendedInterpolation(),
             **kwargs,
             'converters': {
-                'array': self._parse_array,
-                'list': self._parse_list,
-                'list_float': self._parse_list_float,
-                'list_int': self._parse_list_int,
-                'seq': self._parse_seq,
+                'array': self.parse_array,
+                'list': self.parse_list,
+                'list_float': self.parse_list_float,
+                'list_int': self.parse_list_int,
+                'seq': self.parse_seq,
                 **kwargs.get('converters', {}),
             },
         }
@@ -352,7 +352,7 @@ class CfgParser(ConfigParser):
             raise NoSectionError(f'{section}.<SectionType>')
 
     @staticmethod
-    def _parse_array(text:str):
+    def parse_array(text:str):
         text = text.strip()
         if text.startswith('file:'):
             sdata = text[5:].strip()            # path like
@@ -363,19 +363,19 @@ class CfgParser(ConfigParser):
         return np.loadtxt(sdata, unpack=True, ndmin=2)
 
     @staticmethod
-    def _parse_list(text:str):
+    def parse_list(text:str):
         return [item for item in re.split(r'[\s,]+', text) if item]
 
     @staticmethod
-    def _parse_list_float(text:str):
+    def parse_list_float(text:str):
         return [float(item) for item in re.split(r'[\s,]+', text) if item]
 
     @staticmethod
-    def _parse_list_int(text:str):
+    def parse_list_int(text:str):
         return [int(item) for item in re.split(r'[\s,]+', text) if item]
 
     @staticmethod
-    def _parse_seq(text:str):
+    def parse_seq(text:str):
         result = []
         for part in filter(None, re.split(r'(?<!:)[\s,]+(?!:)', text)):
             seq_parts = list(filter(None, re.split(r'[:\s]+', part)))
