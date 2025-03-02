@@ -60,9 +60,12 @@ class TestEngineeringPerf(BaseTestExamples):
 
 class TestInstrumentRawFiles(BaseTestExamples):
     fdir = 'InstrumentRawFiles'
-    def test_autoparse(self):
-        for fn in os.listdir():
-            cmd.do_format(['--auto-type', fn])
+    def test_Instru_file(self):
+        cmd.do_format(['InstruTemplate.cfg',])
+        fcmp = arraycmp('InstruTemplate_format.txt',
+                        'InstruTemplate_format-check.txt',
+                        atol=1E-3)
+        self.assertTrue(fcmp)
 
 class TestKappaFitting(BaseTestExamples):
     fdir = 'KappaFitting'
