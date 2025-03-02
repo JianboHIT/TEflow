@@ -620,7 +620,7 @@ def do_engout(args=None):
 
 
 def do_format(args=None):
-    from .loader import TEdataset2, parse_TEfile
+    from .loader import TEdataset2, parse_TEfile, INSTRMETA
     from .mathext import vinterp
     from .utils import AttrDict
     
@@ -648,6 +648,9 @@ def do_format(args=None):
     parser.add_argument('-H', '--headers', **OPTS['headers'])
     
     parser.add_argument('-b', '--bare', **OPTS['bare'])
+
+    parser.add_argument('-d', '--data', action='store_true',
+        help='Directly format provided data instead of instrument output data')
     
     parser.add_argument('-c', '--calculate', action='store_true', 
         help='Calculate thermoelectric power factor and figure-of-merit')
@@ -674,9 +677,19 @@ def do_format(args=None):
     parser.add_argument('-g', '--group', default='TCTSTK', 
         help='Group identifiers for paired data (e.g. TCTSTK, TCSK, '\
              'TKXXTSC, default: TCTSTK)')
-    
-    parser.add_argument('-f', '--configfile', action='store_true',
-        help='Directly parse raw instruments files through a configuration file')
+
+    parser.add_argument('-S', '--sample', action=_StoreDict, metavar='VALUE',
+        help="Override the parameter 'sample' in the configuration file")
+
+    parser.add_argument('-D', '--density', action=_StoreDict, metavar='VALUE',
+        help="Override the parameter 'density' in the configuration file")
+
+    parser.add_argument('--Cp', action=_StoreDict, metavar='VALUE',
+        help="Override the parameter 'Cp' in the configuration file")
+
+    for name in INSTRMETA:
+        parser.add_argument(f'--{name}', action=_StoreDict, metavar='VALUE',
+            help=f"Override the parameter '{name}' in the configuration file")
 
     parser.add_argument('-s', '--suffix', **OPTS['suffix'](task))
     
@@ -690,18 +703,25 @@ def do_format(args=None):
     # get input filename
     inputfile = options.inputfile
 
-    if options.configfile:
-        # read data from raw instruments files
-        overriden = getattr(options, 'stored_params', {})
-        TEdatax = parse_TEfile(inputfile, specify=overriden)
-        logger.info('Parse raw instruments files successfully')
-    else:
-        # read data from a single file
+    if options.data:
+        # directly format provided data
         group = TEdataset2.parse_group(options.group)
         logger.info(f"Column identifiers: {', '.join(group)}")
         TEdatax = TEdataset2.from_file(inputfile, group)
         logger.info(f'Load input data from {inputfile} successfully')
         logger.debug(f'Details of {str(TEdatax)}')
+    else:
+        # read data from raw instruments files
+        overriden = getattr(options, 'stored_params', {})
+        for name in INSTRMETA:
+            if name in overriden:
+                value = overriden[name].strip()
+                if value.startswith('file:'):
+                    overriden[name] = value
+                else:
+                    overriden[name] = f'file: {value}'
+        TEdatax = parse_TEfile(inputfile, specify=overriden)
+        logger.info('Parse raw instruments files successfully')
 
     # parse outputfile name
     outputfile = _suffixed(options.outputfile, inputfile, options.suffix, '.txt')
