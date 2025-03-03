@@ -759,17 +759,16 @@ class Nanoparticles(BaseScattering):
     paper, is typically assumed to be 1 in subsequent comprehensive works.
     '''
     tag = 'NP'
-    def __init__(self, vs, R, phi, D0, D1, Y0=1, Y1=1, alpha=1):
+    def __init__(self, N1=None, vs=None, R=None, D0=None, D1=None, Y0=1, Y1=1, alpha=1, *, phi=None):
         '''
         Parameters
         ----------
+        N1 : float
+            The number density of nanoparticles (:math:`N_1`), in 1E15 cm^(-3).
         vs : float
             Average sound velocity (:math:`v_s`), in km/s.
         R : float
             Average radius of the nanoparticles (:math:`R`), in nm.
-        phi : float
-            Volume fraction of the nanoparticles (:math:`\\phi`),
-            in the range (0, 1) theoretically.
         D0 : float
             Mass density of the host material (:math:`D_0`), in g/cm^3.
         D1 : float
@@ -780,13 +779,24 @@ class Nanoparticles(BaseScattering):
             Young modulus of the nanoparticles (:math:`Y_1`) in GPa, by default 1.
         alpha : float, optional
             The trigonometric ratio (:math:`\\alpha`), by default 1.
+        phi : float, optional
+            Volume fraction of the nanoparticles (:math:`\\phi`), in the range
+            (0, 1) theoretically.
         '''
-        super().__init__(vs=vs, R=R, phi=phi, D0=D0, D1=D1, Y0=Y0, Y1=Y1, alpha=alpha)
+        if phi is None:
+            super().__init__(N1=N1, vs=vs, R=R, D0=D0, D1=D1, Y0=Y0, Y1=Y1, alpha=alpha)
+            self._direct_phi = False
+        else:
+            super().__init__(phi=phi, vs=vs, R=R, D0=D0, D1=D1, Y0=Y0, Y1=Y1, alpha=alpha)
+            self._direct_phi = True
+        for k, v in self.paras.items():
+            if v is None:
+                raise ValueError(f"Parameter '{k}' is required for {self.tag}")
 
     def __call__(self, w, T):
         w, _ = np.broadcast_arrays(w, T)
         # geom = vs * 2*pi*R^2 * phi/(4/3*pi*R^3) = 3/2 * vs * phi / R
-        geom = 3/2 * self.paras['vs'] * self.paras['phi'] / self.paras['R']
+        geom = 3/2 * self.paras['vs'] * self.phi / self.paras['R']
         Gm = 1/4 * np.power(self.paras['alpha'], 2)\
              * np.power(1-self.paras['D1']/self.paras['D0'], 2)
         Gy = 3 * np.power(self.paras['alpha'], 8)\
@@ -798,6 +808,15 @@ class Nanoparticles(BaseScattering):
         ratio = 8/9 * (Gm+Gy) * w4 # sigma_L/sigma_S = [16/9*pi*R^2*Gm*w4] / [2*pi*R^2]
         return geom * ratio/(1+ratio)
 
+    @property
+    def phi(self):
+        '''Value of :math:`\\phi`'''
+        if self._direct_phi:
+            return self.paras['phi']
+        else:
+            # phi = N1 * 4/3 * pi * R^3
+            #       15              -7*3    --> -6
+            return 1E-6 * self.paras['N1'] * 4/3 * np.pi * np.power(self.paras['R'], 3)
 
 class Dislocations(BaseScattering):
     '''
@@ -1282,6 +1301,10 @@ EXECMETA = {
         opts=['alpha',],
     ),
     'NP': ExecWrapper(Nanoparticles,
+        args=['vs', 'R', 'N1', 'D0', 'D1',],
+        opts=['Y0', 'Y1', 'alpha',],
+    ),
+    'NPX': ExecWrapper(Nanoparticles,
         args=['vs', 'R', 'phi', 'D0', 'D1',],
         opts=['Y0', 'Y1', 'alpha',],
     ),
