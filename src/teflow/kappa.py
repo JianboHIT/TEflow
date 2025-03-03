@@ -740,7 +740,7 @@ class Nanoparticles(BaseScattering):
     .. math ::
 
         \\sigma_{Rayleigh} = \\frac{16}{9} \\pi R^2 \\left[
-                \\alpha^2 \\left(\\frac{D_1-D_0}{4D_0}\\right)^2
+                \\frac{\\alpha^2}{4} \\left(\\frac{D_1-D_0}{D_0}\\right)^2
                 + 3 \\alpha^8 \\left(\\frac{Y_1-Y_0}{Y_0}\\right)^2
             \\right] \\left(\\frac{\\omega R}{v_s}\\right)^4
 
@@ -1283,7 +1283,7 @@ EXECMETA = {
     ),
     'NP': ExecWrapper(Nanoparticles,
         args=['vs', 'R', 'phi', 'D0', 'D1',],
-        opts=['Y0', 'Y1', 'zeta',],
+        opts=['Y0', 'Y1', 'alpha',],
     ),
     'DL': ExecWrapper(Dislocations,
         args=['Nd', 'vs', 'Va', 'Bd', 'gm',],
