@@ -1260,6 +1260,129 @@ class KappaKlemens(BaseKappaModel):
             * self.paras['Kpure'] * self.paras['G0']
         return factor * X * (1-X)
 
+    @staticmethod
+    def fluctuation(occupy, masses, radii=None, alpha=0, renorm=True):
+        '''
+        Calculate the disorder scattering parameter (:math:`\\Gamma`) under mass
+        (:math:`\\Gamma_M`) and strain field (:math:`\\Gamma_S`) fluctuations.
+
+        .. math::
+        
+            \\Gamma = \\cfrac{
+                    \\sum_{i=1}^N {
+                        c_i \\left( \\frac{\\overline{M_i}}{\\overline{M}} \\right)^2 \\Gamma_i
+                    }
+                }{
+                    \\sum_{i=1}^N {c_i}
+                }
+
+        .. math::
+
+            \\Gamma_i = \\Gamma_{M,i} + \\Gamma_{S,i}
+
+        .. math::
+
+            \\Gamma_{M,i} = \\sum_{k=1}^{N_i} {c_i^k \\left(
+                    \\frac{M_i^k - \\overline{M_i}}{\\overline{M_i}}
+                \\right)^2} \\text{, } \\quad
+            \\Gamma_{S,i} = \\alpha \\sum_{k=1}^{N_i} {c_i^k \\left(
+                    \\frac{r_i^k - \\overline{r_i}}{\\overline{r_i}}
+                \\right)^2}
+
+        .. math::
+
+            \\overline{M} = \\frac{
+                    \\sum_{i=1}^N {c_i \\overline{M_i}}
+                }{
+                    \\sum_{i=1}^N {c_i}
+                }
+            \\text{; } \\quad
+            \\overline{M_i} = \\sum_{k=1}^{N_i} {c_i^k M_i^k}
+            \\text{ , } \\ 
+            \\overline{r_i} = \\sum_{k=1}^{N_i} {c_i^k r_i^k}
+             \\quad \\text{ s.t. } \\sum_{k=1}^{N_i} {c_i^k} = 1
+
+        .. math::
+
+            \\Delta S_{conf} / k_B = \\sum_{i=1}^N {
+                    \\sum_{k=1}^{N_i} {c_i^k \\ln c_i^k}
+                }
+
+
+        Parameters
+        ----------
+        occupy : list of array-like
+            Occupation fractions for each sublattice. Each sublist represents
+            a sublattice and should sum to 1. For example, `occupy` can be
+            `[[0.5, 0.5], [0.3, 0.3, 0.4], [1.0]]` for a ternary compound
+            :math:`(A^1_{0.5}A^2_{0.5})(B^1_{0.3}B^2_{0.3}B^3_{0.4})C`.
+            Optionally, if a sublattice is occupied by a single atom,
+            the sublist can be simplified to a single float,
+            like `[[0.5, 0.5], [0.3, 0.3, 0.4], 1.0]`.
+        masses : list of array-like
+            Atomic masses corresponding to each occupation. Must have the same
+            structure as `occupy`. If mismatched, unexpected behavior or errors
+            may occur.
+        radii : list of array-like, optional
+            Atomic radii corresponding to each occupation, with the same
+            structure as `occupy`. If not provided, stress field fluctuations
+            are assumed to be zero.
+        alpha : float, optional
+            The adjustable parameter related to the strain field (:math:`\\alpha`),
+            default is 0.
+        renorm : bool, optional
+            Whether to automatically normalize each sublattice's occupations to 1
+            if `occupy` is not normalized. By default, it is True. If set to False
+            and any sublattice is not normalized, a `ValueError` will be raised.
+
+        Returns
+        -------
+        Gamma : float
+            The total disorder scattering parameter.
+        Gamma_M : float
+            The mass fluctuation scattering parameter.
+        Gamma_S : float
+            The strain field fluctuation scattering parameter without the
+            adjustable coefficient :math:`\\alpha`.
+        S_conf : float
+            The configuration entropy in :math:`k_B` units.
+        '''
+        occupy = [np.ravel(o) for o in occupy]
+        nsubs = max(np.size(o) for o in occupy)
+        oc = np.array([np.pad(o, (0, nsubs-np.size(o)), constant_values=0) for o in occupy])
+        op = np.sum(oc, axis=1, keepdims=True)
+        if not np.allclose(op, np.ones_like(op)):
+            if renorm:
+                oc = oc/op
+                op = np.ones_like(op)
+            else:
+                raise ValueError("The occupation of each sublattice must sum to 1")
+
+        # mass fluctuation
+        masses = [np.ravel(m) for m in masses]
+        ms = np.array([np.pad(m, (0, nsubs-np.size(m)), constant_values=1) for m in masses])
+        mp = np.sum(oc*ms, axis=1, keepdims=True)
+        mave = np.sum(op*mp)/np.sum(op)
+        gm = np.sum(oc*np.power(1-ms/mp, 2), axis=1, keepdims=True)
+        gmass = np.sum(op*np.power(mp/mave, 2)*gm)/np.sum(op)
+
+        # strain field fluctuation
+        if radii:
+            radii = [np.ravel(r) for r in radii]
+            ra = np.array([np.pad(r, (0, nsubs-np.size(r)), constant_values=1) for r in radii])
+            rp = np.sum(oc*ra, axis=1, keepdims=True)
+            gr = np.sum(oc*np.power(1-ra/rp, 2), axis=1, keepdims=True)
+            gradius = np.sum(op*np.power(mp/mave, 2)*gr)/np.sum(op)
+        else:
+            gradius = 0
+
+        # configuration entropy
+        Sconf = (-1)*np.sum(oc*np.log(np.maximum(oc, 1E-12)))
+
+        # the total
+        gtot = gmass + alpha*gradius
+        return gtot, gmass, gradius, Sconf
+
     def __call__(self, X):
         u = np.sqrt(np.maximum(self.u2(X), 1E-12))
         return self.paras['Kpure'] * np.arctan(u)/u
