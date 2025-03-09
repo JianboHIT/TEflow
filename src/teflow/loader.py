@@ -183,6 +183,143 @@ Examples
 20.1797
 '''
 
+AtomicRadius = PeriodicTable(
+    _UNSET,         # 0     XX  PlaceHolder
+    0.53,           # 1     H_  Hydrogen
+    0.31,           # 2     He  Helium
+    1.67,           # 3     Li  Lithium
+    1.12,           # 4     Be  Beryllium
+    0.87,           # 5     B_  Boron
+    0.67,           # 6     C_  Carbon
+    0.56,           # 7     N_  Nitrogen
+    0.48,           # 8     O_  Oxygen
+    0.42,           # 9     F_  Fluorine
+    0.38,           # 10    Ne  Neon
+    1.90,           # 11    Na  Sodium
+    1.45,           # 12    Mg  Magnesium
+    1.18,           # 13    Al  Aluminum
+    1.11,           # 14    Si  Silicon
+    0.98,           # 15    P_  Phosphorus
+    0.88,           # 16    S_  Sulfur
+    0.79,           # 17    Cl  Chlorine
+    0.71,           # 18    Ar  Argon
+    2.43,           # 19    K_  Potassium
+    1.94,           # 20    Ca  Calcium
+    1.84,           # 21    Sc  Scandium
+    1.76,           # 22    Ti  Titanium
+    1.71,           # 23    V_  Vanadium
+    1.66,           # 24    Cr  Chromium
+    1.61,           # 25    Mn  Manganese
+    1.56,           # 26    Fe  Iron
+    1.52,           # 27    Co  Cobalt
+    1.49,           # 28    Ni  Nickel
+    1.45,           # 29    Cu  Copper
+    1.42,           # 30    Zn  Zinc
+    1.36,           # 31    Ga  Gallium
+    1.25,           # 32    Ge  Germanium
+    1.14,           # 33    As  Arsenic
+    1.03,           # 34    Se  Selenium
+    0.94,           # 35    Br  Bromine
+    0.88,           # 36    Kr  Krypton
+    2.65,           # 37    Rb  Rubidium
+    2.19,           # 38    Sr  Strontium
+    2.12,           # 39    Y_  Yttrium
+    2.06,           # 40    Zr  Zirconium
+    1.98,           # 41    Nb  Niobium
+    1.90,           # 42    Mo  Molybdenum
+    1.83,           # 43    Tc  Technetium
+    1.78,           # 44    Ru  Ruthenium
+    1.73,           # 45    Rh  Rhodium
+    1.69,           # 46    Pd  Palladium
+    1.65,           # 47    Ag  Silver
+    1.61,           # 48    Cd  Cadmium
+    1.56,           # 49    In  Indium
+    1.45,           # 50    Sn  Tin
+    1.33,           # 51    Sb  Antimony
+    1.23,           # 52    Te  Tellurium
+    1.15,           # 53    I_  Iodine
+    1.08,           # 54    Xe  Xenon
+    2.98,           # 55    Cs  Cesium
+    2.53,           # 56    Ba  Barium
+    2.26,           # 57    La  Lanthanum
+    2.10,           # 58    Ce  Cerium
+    2.47,           # 59    Pr  Praseodymium
+    2.06,           # 60    Nd  Neodymium
+    2.05,           # 61    Pm  Promethium
+    2.38,           # 62    Sm  Samarium
+    2.31,           # 63    Eu  Europium
+    2.33,           # 64    Gd  Gadolinium
+    2.25,           # 65    Tb  Terbium
+    2.28,           # 66    Dy  Dysprosium
+    2.26,           # 67    Ho  Holmium
+    2.26,           # 68    Er  Erbium
+    2.22,           # 69    Tm  Thulium
+    2.22,           # 70    Yb  Ytterbium
+    2.17,           # 71    Lu  Lutetium
+    2.08,           # 72    Hf  Hafnium
+    2.00,           # 73    Ta  Tantalum
+    1.93,           # 74    W_  Tungsten
+    1.88,           # 75    Re  Rhenium
+    1.85,           # 76    Os  Osmium
+    1.80,           # 77    Ir  Iridium
+    1.77,           # 78    Pt  Platinum
+    1.74,           # 79    Au  Gold
+    1.71,           # 80    Hg  Mercury
+    1.56,           # 81    Tl  Thallium
+    1.54,           # 82    Pb  Lead
+    1.43,           # 83    Bi  Bismuth
+    1.35,           # 84    Po  Polonium
+    1.27,           # 85    At  Astatine
+    1.2,            # 86    Rn  Radon
+    _UNSET,         # 87    Fr  Francium
+    _UNSET,         # 88    Ra  Radium
+    _UNSET,         # 89    Ac  Actinium
+    _UNSET,         # 90    Th  Thorium
+    _UNSET,         # 91    Pa  Protactinium
+    _UNSET,         # 92    U_  Uranium
+    _UNSET,         # 93    Np  Neptunium
+    _UNSET,         # 94    Pu  Plutonium
+    _UNSET,         # 95    Am  Americium
+    _UNSET,         # 96    Cm  Curium
+    _UNSET,         # 97    Bk  Berkelium
+    _UNSET,         # 98    Cf  Californium
+    _UNSET,         # 99    Es  Einsteinium
+    _UNSET,         # 100   Fm  Fermium
+    _UNSET,         # 101   Md  Mendelevium
+    _UNSET,         # 102   No  Nobelium
+    _UNSET,         # 103   Lr  Lawrencium
+    _UNSET,         # 104   Rf  Rutherfordium
+    _UNSET,         # 105   Db  Dubnium
+    _UNSET,         # 106   Sg  Seaborgium
+    _UNSET,         # 107   Bh  Bohrium
+    _UNSET,         # 108   Hs  Hassium
+    _UNSET,         # 109   Mt  Meitnerium
+    _UNSET,         # 110   Ds  Darmstadtium
+    _UNSET,         # 111   Rg  Roentgenium
+    _UNSET,         # 112   Cn  Copernicium
+    _UNSET,         # 113   Nh  Nihonium
+    _UNSET,         # 114   Fl  Flerovium
+    _UNSET,         # 115   Mc  Moscovium
+    _UNSET,         # 116   Lv  Livermorium
+    _UNSET,         # 117   Ts  Tennessine
+    _UNSET,         # 118   Og  Oganesson
+)
+'''
+A constant namedtuple storing atomic radii in Angstroms for elements No.1-86.
+Refer to :attr:`AtomicWeight` for usage.
+
+References:
+
+[1] Clementi, E., & Raimondi, D. L. (1963). Atomic screening constants
+from SCF functions. The Journal of Chemical Physics, 38(11), 2686-2689.
+
+[2] Clementi, E., Raimondi, D. L., & Reinhardt, W. P. (1967). Atomic
+screening constants from SCF functions. II. Atoms with 37 to 86 electrons.
+Journal of Chemical Physics, 47(4), 1300-1307.
+
+:meta hide-value:
+'''
+
 
 class Compound(AttrDict):
     '''
