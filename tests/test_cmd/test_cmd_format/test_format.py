@@ -8,6 +8,6 @@ class TestCmdFormat(BaseTestCmd):
         'TCSTK': ('TCSTK_format.txt', 'TCSTK_format-check.txt',),
     }
     def test_format_TCSTK(self):
-        do_format(['-cg', 'TCSTK', 'TCSTK.txt'])
+        do_format(['-dcg', 'TCSTK', 'TCSTK.txt'])
         self.assertTrue(self.fcomp('TCSTK', rtol=1E-3))
 
