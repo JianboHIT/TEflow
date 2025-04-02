@@ -570,7 +570,7 @@ class TEdatasetBase(Mapping):
         '''
         data = []
         dcp = re.compile(r'^ *(?P<rowline>[^#]+?) *(?=#|$)')
-        dcv = re.compile(delimiter or r'[,;\t]')
+        dcv = re.compile(delimiter or r'\s+')
         with open(filename, 'r') as f:
             for line in f:
                 m = dcp.match(line.rstrip())
@@ -733,6 +733,8 @@ class TEdataset2(TEdatasetBase):
 
     @classmethod
     def from_file(cls, filename, group, delimiter=None):
+        if delimiter is None:
+            delimiter = r'[\t;,]'
         data = cls.parse_datafile(filename, delimiter)
         TSYM = cls.TEMP_SYMBOL
         groups = cls.parse_group(group)
