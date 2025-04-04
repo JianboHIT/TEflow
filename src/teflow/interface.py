@@ -655,6 +655,9 @@ def do_format(args=None):
     parser.add_argument('-c', '--calculate', action='store_true', 
         help='Calculate thermoelectric power factor and figure-of-merit')
     
+    parser.add_argument('-G', '--gap', type=float, default=None,
+        help='Calculate the Lorenz number using Kane model with gap (in eV)')
+
     parser.add_argument('inputfile', **OPTS['inputf'])
     
     parser.add_argument('outputfile', **OPTS['outputf'])
@@ -810,6 +813,28 @@ def do_format(args=None):
             logger.error(f'Missing properties: {", ".join(prop_miss)}')
             raise ValueError('Stop to calculate PF, ZT, etc when missing C, S or K.')
 
+        # calculate L, Ke, Kp
+        if 'L' in TEdatax:
+            out['L'] = vinterp(*TEdatax.get(prop), T, method=methods_refined[1])
+            out['Ke'] = 1E-6 * out['L'] * out['C'] * out['T']
+            out['Kp'] = out['K'] - out['Ke']
+            logger.debug('Read parsed L from input configuration file.')
+        else:
+            inp = {f'data{k}':np.absolute(v) for k, v in out.items()}
+            if options.gap is None:
+                from .bandlib import APSSPB as Model
+                logger.info('Calculating L using APS-SPB model ...')
+            else:
+                from .bandlib import APSSKB as Model
+                inp['Eg'] = options.gap
+                logger.info('Calculating L using APS-SKB model '
+                            f'with gap of {options.gap:.2f} eV ...')
+            outx = Model.valuate(**inp)
+            out['L'] = outx['L']
+            out['Ke'] = outx['Ke']
+            out['Kp'] = outx['Kp']
+
+        # calculate PF, ZT, etc
         from .mathext import cumtrapz
 
         out['PF'] = 1E-6 * out['C']*out['S']*out['S']
