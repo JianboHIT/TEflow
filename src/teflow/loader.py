@@ -414,10 +414,10 @@ class Compound(AttrDict):
         '''Instance construction from a chemical formula.'''
         comp = cls()
         vaild_keys = set(AtomicWeight._fields)
-        dcp = re.compile(r'(?P<name>[A-Z][a-z]?)[ _\-\(\\]*(?P<num>\d*\.?\d*)')
+        dcp = re.compile(r'(?P<name>[A-Z][a-z]*)[ _\-\(\\]*(?P<num>\d*\.?\d*)')
         for m in dcp.finditer(formula):
             name = m.group('name')
-            if name not in vaild_keys:
+            if name[:2] not in vaild_keys:
                 if raise_unknown:
                     raise ValueError(f'Unknown element {name} in {formula}.')
                 elif skip_unknown:
@@ -425,6 +425,90 @@ class Compound(AttrDict):
             num_ = m.group('num') or '1'
             comp[name] = float(num_) if '.' in num_ else int(num_)
         return comp
+
+
+class Alloy(AttrDict):
+    def all_sites(self, regular=True):
+        '''
+        Yields a tuple of (site, Compound, natom) for each site in the alloy.
+        '''
+        for site in self:
+            if isinstance(self[site], Compound):
+                pass
+            elif isinstance(self[site], (dict, AttrDict)):
+                self[site] = Compound(comp)
+            else:
+                raise TypeError(f"Site {site} is not a Compound object.")
+
+            comp = self[site]
+            natom = comp.natom
+            if regular and (natom != 1):
+                comp = Compound((key, val/natom) for key, val in comp.items())
+            yield site, comp, natom
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, fmt='%.9g', style='join', omit_one=True):
+        pesudo_comp = Compound()
+        for _, comp, natom in self.all_sites(regular=True):
+            key = comp.to_string(fmt=fmt, style=style, omit_one=omit_one)
+            if len(comp) != 1:
+                key = f'({key})'    # wrap in parentheses for alloyed sites
+            pesudo_comp[key] = natom
+        return pesudo_comp.to_string(fmt=fmt, style=style, omit_one=omit_one)
+
+    @classmethod
+    def from_string(cls, formula:str, names=None, skip_unknown=False, raise_unknown=False):
+        ALLOYSITE = 'Jalloyed'  # the identifier for alloyed sites
+        sf = re.sub(r'\-(\(.+?\))', r'_\1', formula)    # modify OriginLab style
+        alleyed_idx = 0
+        alloyed_sites = []
+        while m := re.search(r'\((.+?)\)', sf):
+            sf = sf.replace(m.group(0), ALLOYSITE + 'x'*alleyed_idx)
+            alloyed_sites.append(m.group(1))
+            alleyed_idx += 1
+        pesudo_comp = Compound.from_string(sf, skip_unknown=False, raise_unknown=False)
+
+        comps = []
+        natoms = []
+        for key, val in pesudo_comp.items():
+            if m := re.match(rf'{ALLOYSITE}(x*)', key):
+                idx = len(m.group(1))
+                key = alloyed_sites[idx]
+
+            comp = Compound.from_string(key, skip_unknown=skip_unknown, raise_unknown=raise_unknown)
+            if len(comp) > 1 and all(abs(vsub-1) < 1E-8 for vsub in comp.values()):
+                # Experimetal: detect components like "Sb, Bi", "FeCoNi"
+                raise ValueError(f'Undetermined stoichiometry for "{key}" in "{formula}".')
+            comps.append(comp)
+            natoms.append(val * comp.natom)
+        return cls.from_compounds(comps, names=names, natoms=natoms)
+
+    @classmethod
+    def from_compounds(cls, compounds, names=None, natoms=None):
+        ncomp = len(compounds)
+        if names is None:
+            if ncomp <= 26:
+                names = [chr(i+65) for i in range(ncomp)]   # A, B, C, ...
+            else:
+                raise ValueError("Too many (>26) compounds to assign names automatically.")
+
+        if natoms is None:
+            natoms = [None, ] * ncomp
+
+        alloy = cls()
+        for comp, site, natom in zip(compounds, names, natoms):
+            if isinstance(comp, (dict, Compound, AttrDict)):
+                comp = Compound(comp)
+                if natom is not None:
+                    scale = natom / comp.natom
+                    for key in comp:
+                        comp[key] *= scale
+                alloy[site] = comp
+            else:
+                raise TypeError(f"Site {site} is not a Compound object.")
+        return alloy
 
 
 class TEdatasetBase(Mapping):
