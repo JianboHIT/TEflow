@@ -1340,6 +1340,26 @@ class RSPB:
         return 2*np.pi*np.power(np.power(scale, 3/2)-1, -2/3)
     
     @classmethod
+    def LxS(cls, Sr, S_factor=1, L_factor=1, dt=None, delta: float = 0.075):
+        '''
+        If `dt` is not provided, the Lorenz number is calculated
+        based on the restrucured parablic band (RSPB) model, otherwise
+        the Kane model is used. The `dt` is defined as
+        :math:`\\Delta = \\frac{E _{\\Delta}}{k _B T}`.
+        '''
+        Sr = np.divide(Sr, S_factor)
+        if dt is None:
+            Nr = cls.iSr(Sr, factor=1, delta=delta)
+            Lr = cls.Lr(Nr, factor=1)
+        else:
+            ksi = 1/(2/3 * np.asarray(dt)+1)
+            p = -0.33 + 6.90 * ksi - 7.78 * ksi**2 + 2.75 * ksi**3
+            q = -0.14 + 4.08 * ksi - 2.13 * ksi**2
+            L0 = 2 - 2 * ksi + ksi**2
+            Lr = (np.pi*np.pi/3 + p*Sr + L0*Sr**2)/(1+q*Sr+Sr**2)
+        return np.multiply(Lr, L_factor)
+
+    @classmethod
     def Cr(cls, Nr, factor=1, UWT=1):
         # N0 * mt32 * Nr * q * U0 * Ur
         #    = N0 * q * (mt32*U0) * Nr*Ur
