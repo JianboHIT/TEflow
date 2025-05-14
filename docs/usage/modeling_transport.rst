@@ -26,7 +26,7 @@
     \sigma_s(E,T) = q^2 \tau v_{xx}^2 g(E)
 
 材料的电导率可以认为是费米能级附近载流子的谱电导率的平均值。准确地说，
-是谱电导率和费米窗口函数的卷积，
+是谱电导率 :math:`\sigma_s(E, T)` 和费米窗口函数 :math:`w_F(E; E_F, T)` 的卷积，
 
 .. math::
     :label: sigma
@@ -34,22 +34,36 @@
     \sigma(E_F, T) = \int_{-\infty}^{+\infty} \sigma_s(E, T)
         w_F(E; E_F, T) dE
 
-其中，费米窗口函数定义为：
+其中，费米窗口函数 :math:`w_F(E; E_F, T)` 以及费米狄拉克分布函数
+:math:`f(E; E_F, T)` 定义为：
 
 .. math::
     :label: wfermi
 
     w_F(E; E_F, T) 
-        &= -\frac{\partial f(E; E_F, T)}{\partial E} \\
-        &= -\frac{\partial}{\partial E} \left[
-                \frac{1}{1+\exp \left( \cfrac{E-E_F}{k_B T} \right)}
-            \right] \\
-        &= \frac{1}{k_B T}
-           \frac{\exp \left( \cfrac{E-E_F}{k_B T} \right)}{
-                \left[1+\exp \left( \cfrac{E-E_F}{k_B T} \right)
-                \right] ^2
-           }
-        
+        = -\frac{\partial f(E; E_F, T)}{\partial E}
+        \equiv \frac{1}{k_B T} \cdot f(E; E_F, T) \cdot [1-f(E; E_F, T)]
+
+.. math::
+    :label: fermidirac
+
+    f(E; E_F, T) = \cfrac{1}{1+\exp \left[ (E-E_F)/(k_B T) \right]}
+
+费米窗口函数 :math:`w_F(E; E_F, T)` 是一个类似高斯分布的单峰值函数，如下图所示：
+
+.. plot::
+    :align: center
+    :height: 300px
+
+    xdata = np.linspace(-10, 10, 201)
+    ydata = 1/4 * (1-np.power(np.tanh(xdata/2), 2))
+    plt.plot(xdata, ydata, label='Scaled $w_F(E; E_F, T)$')
+    plt.xlabel('$(E-E_F)/(k_B T)$')
+    plt.ylabel('$w_F(E; E_F, T) \\times k_B T$')
+    plt.xlim(xdata.min(), xdata.max())
+    plt.ylim(0, 0.3)
+    plt.legend()
+
 基于玻尔兹曼输运理论，我们可以进一步给出塞贝克系数和电子热导率：
 
 .. math:: 
@@ -210,7 +224,30 @@ APS 通常会完全占据主导地位。
 这里，我们只需要将费米积分简单地理解成一簇特殊数学函数即可。
 为了更加直观地它，我们在下面给出了它在线性刻度和对数刻度下的图像。
 
-【图: 上下两张，横轴刻度对齐，为了兼容pdf和web，左右适当留白】
+.. plot::
+    :align: center
+    :height: 300px
+
+    from teflow.mathext import vquad, fermidirac
+
+    Fn = lambda x, eta, n: np.power(x, n) * fermidirac(x-eta)
+    x_eta = np.arange(-5, 20, 0.1)
+    n = np.arange(3)
+    y_Fn = vquad(Fn, 0, np.inf, args=(x_eta[..., None], n))[0]
+    width = plt.rcParams['figure.figsize'][0] * 1.75
+    height = plt.rcParams['figure.figsize'][1]
+    plt.figure(figsize=(width, height))
+    plt.subplot(121)
+    plt.plot(x_eta, y_Fn, label=[f'n = {i}' for i in n])
+    plt.xlabel('$\eta$ = $E_F/(k_B T)$')
+    plt.ylabel('$F_n(\eta)$')
+    plt.legend()
+    plt.subplot(122)
+    plt.plot(x_eta, y_Fn, label=[f'n = {i}' for i in n])
+    plt.xlabel('$\eta$ = $E_F/(k_B T)$')
+    plt.ylabel('$F_n(\eta)$')
+    plt.yscale('log')
+
 
 在经典的相关讨论中，通常会进一步引入简并近似(适用 :math:`\eta \ll 0`)
 和非简并近似(适用 :math:`\eta \ll 0`)来简化费米积分 :eq:`df_fn`,
@@ -219,11 +256,11 @@ APS 通常会完全占据主导地位。
 :math:`\eta \approx 0` 时，因此我们这里不再讨论相关内容，
 而是放在讨论这些表达式的特征分析上。
 
-首先，我们注意到所有的热电输运系数都直接依赖于约化费米能级:math:`\eta`,
-而且塞贝克系数和洛伦兹常数仅依赖:math:`\eta`。
-基于这一点，我们可以通过试验塞贝克系数可以求解出:math:`\eta`, 
+首先，我们注意到所有的热电输运系数都直接依赖于约化费米能级 :math:`\eta` ,
+而且塞贝克系数和洛伦兹常数仅依赖 :math:`\eta` 。
+基于这一点，我们可以通过试验塞贝克系数可以求解出 :math:`\eta` ,
 进一步求解出洛伦兹常数。
-除了:math:`\eta`以外, 输运系数就仅仅依赖一个半经验的参数:
+除了 :math:`\eta` 以外, 输运系数就仅仅依赖一个半经验的参数:
 本征电导率 :math:`\sigma_0` 。
 考虑材料的功率因子，
 
@@ -236,7 +273,7 @@ APS 通常会完全占据主导地位。
         = \sigma_0 \left( \frac{k_B}{q} \right) ^2 \cdot PF_r(\eta)
 
 我们注意到，功率因子可以被拆分成为一个比例系数 :math:`\sigma_0`
-和一个仅依赖:math:`\eta`的和材料无关的特殊数学函数 :math:`PF_r(\eta)`。
+和一个仅依赖 :math:`\eta` 的和材料无关的特殊数学函数 :math:`PF_r(\eta)` 。
 这里，:math:`PF(\eta)` 是一个典型的单峰值形状的函数，
 在 :math:`\eta \approx 0` 时取得最大值，约为 4.02。
 因此，对于一个材料而言，:math:`\sigma_0` 将是决定其最大
