@@ -5,10 +5,13 @@
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+from teflow._version import __version__
 
 project = 'TEflow'
 copyright = '2023-2024 Jianbo ZHU'
 author = 'Jianbo ZHU'
+version = '.'.join(__version__.split('.')[:2])
+release = __version__
 
 # sphinx-apidoc -e --tocfile index -o api_doc/ ../../src/teflow/
 
@@ -19,6 +22,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.napoleon',
     'sphinx.ext.autodoc',
+    'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
     'sphinx.ext.githubpages',
     'matplotlib.sphinxext.plot_directive',
@@ -33,12 +37,27 @@ gettext_compact = False
 
 # -- Options for HTML and Latex output ----------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
-
-# alabaster, classic, sphinxdoc, scrolls, agogo, traditional, nature, haiku, pyramid, bizstyle
-html_theme = 'sphinxdoc'
 html_static_path = ['_static']
 
-autoclass_content = 'both'
+# # alabaster, classic, sphinxdoc, scrolls, agogo, traditional, nature, haiku, pyramid, bizstyle
+# html_theme = 'sphinxdoc'
+# autoclass_content = 'both'
+
+extensions.append("sphinx_wagtail_theme")
+html_theme = 'sphinx_wagtail_theme'
+html_theme_options = {
+    "project_name": f"Welcome to {project}'s documentation!",
+    "github_url": "https://github.com/JianboHIT/TEflow/blob/master/docs/",
+    "logo_height": 10,
+    "logo_width": 10,
+    "header_links": ", ".join([
+        "Github|https://github.com/JianboHIT/TEflow",
+        "Gitee|https://gitee.com/joulehit/TEflow",
+        "PyPI|https://pypi.org/project/TEflow",
+    ]),
+    "footer_links": "/",
+}
+html_show_sourcelink = False
 
 latex_elements = {
     'extraclassoptions': 'openany',
