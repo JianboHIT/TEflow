@@ -336,6 +336,9 @@ def do_mixing(args=None):
         help='Works with the --extend option to assign the padding \
               value for the shorter columns.')
 
+    parser.add_argument('--labels', nargs='+', default=(),
+        help='Include labels in the output file.')
+
     parser.add_argument('-w', '--weight', metavar='WEIGHTS',
         help="Weights of mixing, with the same number of datafiles \
               (default:'1 1 1 ...')")
@@ -418,11 +421,15 @@ def do_mixing(args=None):
             with open(outputfile, 'w') as f:
                 if not options.bare:
                     f.write(f'# Extend datafiles - {TIME} {INFO}\n')
+                    if options.labels:
+                        f.write(f'# {" ".join(options.labels)}\n')
                 for lines in zip(*datas):
                     f.write(sep.join(lines) + '\n')
             logger.info(f'Save extended file to {outputfile} (Done)')
         else:
             fout = 'Result:'
+            if options.labels:
+                fout = f'Result[{" ".join(options.labels)}]:'
             for lines in zip(*datas):
                 fout += '\n  ' + sep.join(lines)
             logger.critical(fout)
@@ -451,11 +458,12 @@ def do_mixing(args=None):
     
     # data result
     if outputfile:
-        comment = '' if options.bare else f'Mixed datafiles - {TIME} {INFO}'
-        np.savetxt(outputfile, data, fmt='%.4f', header=comment)
+        _to_file(options, data, 'Mixed datafiles', options.labels, fp=outputfile)
         logger.info(f'Save mixed data to {outputfile} (Done)')
     else:
         fout = 'Result:'
+        if options.labels:
+            fout = f'Result[{" ".join(options.labels)}]:'
         for line in data:
             fout += '\n  ' + ' '.join(f'{v:.4f}' for v in line)
         logger.critical(fout)
